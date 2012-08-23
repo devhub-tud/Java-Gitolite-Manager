@@ -38,7 +38,7 @@ public final class User implements Identifiable {
 		return name;
 	}
 	
-	public void setKey(String name, String content) {
+	public void defineKey(String name, String content) {
 		keys.put(name, content);
 	}
 	

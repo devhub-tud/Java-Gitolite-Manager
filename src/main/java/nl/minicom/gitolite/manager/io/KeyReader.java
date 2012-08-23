@@ -8,9 +8,15 @@ import java.io.IOException;
 
 import nl.minicom.gitolite.manager.models.Config;
 
+import com.google.common.base.Preconditions;
+
 public class KeyReader {
 
-	public void addKeysToConfig(Config config, File keyDir) throws IOException {
+	public void readKeys(Config config, File keyDir) throws IOException {
+		Preconditions.checkNotNull(config);
+		Preconditions.checkNotNull(keyDir);
+		Preconditions.checkArgument(keyDir.isDirectory(), "The argument 'keyDir' must be a directory!");
+		
 		File[] files = keyDir.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File arg0, String arg1) {
@@ -20,7 +26,7 @@ public class KeyReader {
 		
 		for (File keyFile : files) {
 			String fileName = keyFile.getName();
-			if (fileName.contains("@")) {
+			if (!fileName.contains("@")) {
 				fileName = fileName.replace(".pub", "@.pub");
 			}
 			
@@ -29,7 +35,7 @@ public class KeyReader {
 			String keyName = fileName.substring(indexOfAt + 1, fileName.indexOf(".pub"));
 			String content = readKeyFile(keyFile);
 			
-			config.ensureUserExists(userName).setKey(keyName, content);
+			config.ensureUserExists(userName).defineKey(keyName, content);
 		}
 	}
 
