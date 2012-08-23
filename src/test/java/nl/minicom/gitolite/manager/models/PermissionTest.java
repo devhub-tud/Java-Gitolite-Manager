@@ -5,8 +5,6 @@ import java.util.SortedSet;
 
 import junit.framework.Assert;
 
-import nl.minicom.gitolite.manager.models.Permission;
-
 import org.junit.Test;
 
 import com.google.common.collect.Sets;

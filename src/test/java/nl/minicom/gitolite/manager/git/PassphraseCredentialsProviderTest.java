@@ -30,6 +30,11 @@ public class PassphraseCredentialsProviderTest {
 	}
 	
 	@Test
+	public void testIsInteractiveMethodReturnsFalse() {
+		Assert.assertFalse(new PassphraseCredentialsProvider("").isInteractive());
+	}
+	
+	@Test
 	public void testSupportsMethodWhenAskingForPassphrase() {
 		CredentialsProvider provider = new PassphraseCredentialsProvider("passphrase");
 		Assert.assertTrue(provider.supports(new Password()));

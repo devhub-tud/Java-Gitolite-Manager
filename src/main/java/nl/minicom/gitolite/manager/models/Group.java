@@ -121,6 +121,7 @@ public final class Group implements Identifiable {
 	 */
 	public void add(Identifiable entity) {
 		Preconditions.checkNotNull(entity);
+		Preconditions.checkArgument(!"@all".equalsIgnoreCase(name));
 		
 		if (entities.contains(entity)) {
 			throw new IllegalArgumentException("Cannot add entity: " + entity.getName() + ". This entity is already added!");

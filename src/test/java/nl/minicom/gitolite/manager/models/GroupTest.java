@@ -5,8 +5,6 @@ import java.util.SortedSet;
 
 import junit.framework.Assert;
 import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.minicom.gitolite.manager.models.Group;
-import nl.minicom.gitolite.manager.models.User;
 
 import org.junit.Test;
 

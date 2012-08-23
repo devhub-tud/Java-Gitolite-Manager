@@ -1,10 +1,5 @@
 package nl.minicom.gitolite.manager.models;
 
-import nl.minicom.gitolite.manager.models.Config;
-import nl.minicom.gitolite.manager.models.Group;
-import nl.minicom.gitolite.manager.models.Repository;
-import nl.minicom.gitolite.manager.models.User;
-
 import org.junit.Assert;
 import org.junit.Test;
 

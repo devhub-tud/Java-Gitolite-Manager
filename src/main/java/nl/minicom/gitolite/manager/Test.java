@@ -11,7 +11,7 @@ import nl.minicom.gitolite.manager.models.Repository;
 public class Test {
 
 	public static void main(String[] args) throws FileNotFoundException, IOException {
-		ConfigManager configManager = new ConfigManager("git@vm:gitolite-admin", new PassphraseCredentialsProvider("gitgit"));
+		ConfigManager configManager = ConfigManager.create("git@vm:gitolite-admin", new PassphraseCredentialsProvider("gitgit"));
 		configManager.initialize();
 		
 		Config config = configManager.getConfig();

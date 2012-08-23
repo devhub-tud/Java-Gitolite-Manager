@@ -5,10 +5,6 @@ import java.util.SortedSet;
 
 import junit.framework.Assert;
 
-import nl.minicom.gitolite.manager.models.Group;
-import nl.minicom.gitolite.manager.models.Identifiable;
-import nl.minicom.gitolite.manager.models.User;
-
 import org.junit.Before;
 import org.junit.Test;
 

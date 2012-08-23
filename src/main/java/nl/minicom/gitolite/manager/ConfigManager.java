@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import nl.minicom.gitolite.manager.git.JGitManager;
 import nl.minicom.gitolite.manager.git.GitManager;
 import nl.minicom.gitolite.manager.io.ConfigReader;
 import nl.minicom.gitolite.manager.io.ConfigWriter;
@@ -13,9 +14,22 @@ import nl.minicom.gitolite.manager.models.Config;
 
 import org.eclipse.jgit.transport.CredentialsProvider;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 
 public class ConfigManager {
+	
+	public static ConfigManager create(String gitUrl) {
+		return create(gitUrl, null);
+	}
+	
+	public static ConfigManager create(String gitUrl, CredentialsProvider credentialProvider) {
+		return create(gitUrl, Files.createTempDir(), credentialProvider);
+	}
+	
+	public static ConfigManager create(String gitUrl, File workingDirectory, CredentialsProvider credentialProvider) {
+		return new ConfigManager(gitUrl, new JGitManager(workingDirectory, credentialProvider));
+	}
 	
 	private final String gitUrl;
 	private final GitManager git;
@@ -23,10 +37,13 @@ public class ConfigManager {
 	
 	private Config config;
 
-	public ConfigManager(String gitUrl, CredentialsProvider credentialProvider) {
+	ConfigManager(String gitUrl, GitManager gitManager) {
+		Preconditions.checkNotNull(gitUrl);
+		Preconditions.checkNotNull(gitManager);
+		
 		this.gitUrl = gitUrl;
-		this.workingDirectory = Files.createTempDir();
-		this.git = new GitManager(workingDirectory, credentialProvider);
+		this.git = gitManager;
+		this.workingDirectory = git.getWorkingDirectory();
 	}
 	
 	public void initialize() {

@@ -5,8 +5,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import junit.framework.Assert;
-
-import nl.minicom.gitolite.manager.io.ConfigReader;
 import nl.minicom.gitolite.manager.models.Config;
 import nl.minicom.gitolite.manager.models.Group;
 import nl.minicom.gitolite.manager.models.Repository;

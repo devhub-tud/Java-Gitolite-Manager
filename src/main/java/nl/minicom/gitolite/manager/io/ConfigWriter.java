@@ -23,6 +23,9 @@ public class ConfigWriter {
 		Collection<Group> groups = config.getGroups();
 		if (!groups.isEmpty()) {
 			for (Group group : groups) {
+				if (group.getName().equals("@all")) {
+					continue;
+				}
 				writer.write(pad(group.getName(), PADDING) + " = " + Joiner.on(" ").join(group.getEntityNamesInGroup()) + "\n");
 			}
 			writer.write("\n");
