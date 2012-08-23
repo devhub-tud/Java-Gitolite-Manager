@@ -1,9 +1,13 @@
 package nl.minicom.gitolite.manager.models;
 
+import java.util.Map;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 /**
  * This class represents a user in Gitolite.
@@ -13,6 +17,7 @@ import com.google.common.base.Preconditions;
 public final class User implements Identifiable {
 
 	private final String name;
+	private final Map<String, String> keys;
 	
 	/**
 	 * Constructs a new {@link User} object with the provided name and public key.
@@ -25,11 +30,24 @@ public final class User implements Identifiable {
 		Preconditions.checkArgument(!name.isEmpty());
 		
 		this.name = name;
+		this.keys = Maps.newTreeMap();
 	}
 
 	@Override
 	public String getName() {
 		return name;
+	}
+	
+	public void setKey(String name, String content) {
+		keys.put(name, content);
+	}
+	
+	public ImmutableMap<String, String> getKeys() {
+		return ImmutableMap.copyOf(keys);
+	}
+	
+	public void removeKey(String name) {
+		keys.remove(name);
 	}
 	
 	@Override
