@@ -5,18 +5,20 @@ import java.io.IOException;
 
 public interface GitManager {
 
-	public abstract void open() throws IOException;
+	void open() throws IOException;
+	
+	void remove(String filePattern);
 
-	public abstract void clone(String uri);
+	void clone(String uri);
 
-	public abstract void init();
+	void init();
 
-	public abstract boolean pull();
+	boolean pull();
 
-	public abstract void commitChanges();
+	void commitChanges();
 
-	public abstract void push();
+	void push();
 
-	public abstract File getWorkingDirectory();
+	File getWorkingDirectory();
 
 }

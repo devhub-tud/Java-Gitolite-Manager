@@ -55,6 +55,19 @@ public final class Repository {
 	}
 
 	/**
+	 * This method revokes all rights on this {@link Repository} for the 
+	 * specified {@link User} or {@link Group}.
+	 * 
+	 * @param entity
+	 * 		The {@link Group} or {@link User} whose permissions need to be revoked.
+	 */
+	public void revokePermissions(Identifiable entity) {
+		for (Permission permission : Permission.values()) {
+			rights.remove(permission, entity);
+		}
+	}
+
+	/**
 	 * @return
 	 * 		An {@link ImmutableMultimap} containing all the {@link User}s and {@link Group}s 
 	 * 		who have some kind of access on this {@link Repository} object. They're ordered

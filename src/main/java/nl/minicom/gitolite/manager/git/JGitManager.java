@@ -10,6 +10,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.InitCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
@@ -35,6 +36,18 @@ public class JGitManager implements GitManager {
 	@Override
 	public void open() throws IOException {
 		this.git = Git.open(workingDirectory);
+	}
+	
+	@Override
+	public void remove(String filePattern) {
+		RmCommand rm = git.rm();
+		rm.addFilepattern(filePattern);
+		try {
+			rm.call();
+		} 
+		catch (NoFilepatternException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	@Override

@@ -23,11 +23,37 @@ public class JGitManagerTest {
 	}
 	
 	@Test
+	public void testGetWorkingDirectory() {
+		File workingDirectory = Files.createTempDir();
+		JGitManager manager = new JGitManager(workingDirectory, null);
+		
+		Assert.assertEquals(workingDirectory, manager.getWorkingDirectory());
+	}
+	
+	@Test
 	public void testOpenExistingWorkingDirectory() throws IOException {
 		File dir = Files.createTempDir();
 		new JGitManager(dir, null).init();
 		
 		new JGitManager(dir, null).open();
+	}
+	
+	@Test
+	public void testRemoveFileFromWorkingDirectory() throws IOException {
+		File dir = Files.createTempDir();
+		JGitManager jGitManager = new JGitManager(dir, null);
+		jGitManager.init();
+		
+		File file = new File(dir, "test.txt");
+		FileWriter writer = new FileWriter(file);
+		writer.write("Hello world");
+		writer.close();
+		
+		jGitManager.commitChanges();
+		jGitManager.remove(file.getName());
+		jGitManager.commitChanges();
+		
+		Assert.assertFalse(file.exists());
 	}
 	
 	@Test

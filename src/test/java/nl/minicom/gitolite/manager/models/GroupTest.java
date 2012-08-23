@@ -59,6 +59,16 @@ public class GroupTest {
 		parent.add(child);
 	}
 	
+	@Test(expected = IllegalArgumentException.class)
+	public void testAddingUserToAllGroupThrowsException() {
+		new Group("@all").add(new User("test-user"));
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testAddingGroupToAllGroupThrowsException() {
+		new Group("@all").add(new Group("@test-group"));
+	}
+	
 	@Test(expected = NullPointerException.class)
 	public void testThatContainsGroupMethodThrowsExceptionOnNullAsInput() {
 		new Group("@parent").containsGroup(null);

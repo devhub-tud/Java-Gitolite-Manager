@@ -140,7 +140,13 @@ public final class Config {
 	
 	public boolean removeUser(User user) {
 		Preconditions.checkNotNull(user);
-		return users.remove(user);
+		boolean success = users.remove(user);
+		
+		for (Repository repo : repositories) {
+			repo.revokePermissions(user);
+		}
+		
+		return success;
 	}
 	
 	public boolean hasUser(String userName) {

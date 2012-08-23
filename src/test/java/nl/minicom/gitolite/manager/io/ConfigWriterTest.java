@@ -23,6 +23,16 @@ public class ConfigWriterTest extends ConfigWriterTestingUtils {
 	}
 	
 	@Test
+	public void testCaseWithAllGroup() throws IOException {
+		Config config = new Config();
+		Repository repo = config.createRepository("test");
+		Group allGroup = config.createGroup("@all");
+		repo.setPermission(allGroup, Permission.ALL);
+		
+		validateWrittenConfig("config-with-all-group.conf", config);
+	}
+	
+	@Test
 	public void testCaseWithMultipleUsersAndGroups() throws IOException {
 		Config config = new Config();
 		Repository repo = config.createRepository("test");
