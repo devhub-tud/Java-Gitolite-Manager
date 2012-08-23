@@ -1,4 +1,4 @@
-package nl.minicom.gitolite;
+package nl.minicom.gitolite.manager.io;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,8 +6,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 
-import nl.minicom.gitolite.Config;
-import nl.minicom.gitolite.ConfigWriter;
+import nl.minicom.gitolite.manager.io.ConfigWriter;
+import nl.minicom.gitolite.manager.models.Config;
 
 import org.junit.Assert;
 import org.junit.Ignore;

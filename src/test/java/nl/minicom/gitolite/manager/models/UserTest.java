@@ -1,8 +1,8 @@
-package nl.minicom.gitolite;
+package nl.minicom.gitolite.manager.models;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
-import nl.minicom.gitolite.User;
+import nl.minicom.gitolite.manager.models.User;
 
 import org.junit.Test;
 

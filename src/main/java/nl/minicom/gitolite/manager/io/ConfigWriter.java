@@ -1,8 +1,14 @@
-package nl.minicom.gitolite;
+package nl.minicom.gitolite.manager.io;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
+
+import nl.minicom.gitolite.manager.models.Config;
+import nl.minicom.gitolite.manager.models.Group;
+import nl.minicom.gitolite.manager.models.Identifiable;
+import nl.minicom.gitolite.manager.models.Permission;
+import nl.minicom.gitolite.manager.models.Repository;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;

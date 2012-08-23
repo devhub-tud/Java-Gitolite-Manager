@@ -1,12 +1,12 @@
-package nl.minicom.gitolite;
+package nl.minicom.gitolite.manager.models;
 
 import java.util.Iterator;
 import java.util.SortedSet;
 
 import junit.framework.Assert;
 import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.minicom.gitolite.Group;
-import nl.minicom.gitolite.User;
+import nl.minicom.gitolite.manager.models.Group;
+import nl.minicom.gitolite.manager.models.User;
 
 import org.junit.Test;
 

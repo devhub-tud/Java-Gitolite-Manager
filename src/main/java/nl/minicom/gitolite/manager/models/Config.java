@@ -1,4 +1,4 @@
-package nl.minicom.gitolite;
+package nl.minicom.gitolite.manager.models;
 
 import java.text.MessageFormat;
 import java.util.SortedSet;

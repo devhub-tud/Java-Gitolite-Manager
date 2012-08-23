@@ -1,4 +1,4 @@
-package nl.minicom.git;
+package nl.minicom.gitolite.manager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -6,9 +6,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import nl.minicom.gitolite.Config;
-import nl.minicom.gitolite.ConfigReader;
-import nl.minicom.gitolite.ConfigWriter;
+import nl.minicom.gitolite.manager.git.GitManager;
+import nl.minicom.gitolite.manager.io.ConfigReader;
+import nl.minicom.gitolite.manager.io.ConfigWriter;
+import nl.minicom.gitolite.manager.models.Config;
 
 import org.eclipse.jgit.transport.CredentialsProvider;
 
@@ -44,7 +45,7 @@ public class ConfigManager {
 			throw new IllegalStateException("Config has not yet been loaded!");
 		}
 		new ConfigWriter().write(config, new FileWriter(getConfigFile()));
-		git.save();
+		git.commitChanges();
 		git.push();
 	}
 

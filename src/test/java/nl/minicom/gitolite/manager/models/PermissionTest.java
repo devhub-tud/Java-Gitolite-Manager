@@ -1,11 +1,11 @@
-package nl.minicom.gitolite;
+package nl.minicom.gitolite.manager.models;
 
 import java.util.Iterator;
 import java.util.SortedSet;
 
 import junit.framework.Assert;
 
-import nl.minicom.gitolite.Permission;
+import nl.minicom.gitolite.manager.models.Permission;
 
 import org.junit.Test;
 

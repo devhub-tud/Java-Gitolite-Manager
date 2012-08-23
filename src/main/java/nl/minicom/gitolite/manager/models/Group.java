@@ -1,4 +1,4 @@
-package nl.minicom.gitolite;
+package nl.minicom.gitolite.manager.models;
 
 import java.util.Collection;
 import java.util.Comparator;

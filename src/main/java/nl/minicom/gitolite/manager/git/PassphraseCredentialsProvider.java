@@ -1,4 +1,4 @@
-package nl.minicom.git;
+package nl.minicom.gitolite.manager.git;
 
 import org.eclipse.jgit.errors.UnsupportedCredentialItem;
 import org.eclipse.jgit.transport.CredentialItem;
@@ -6,11 +6,14 @@ import org.eclipse.jgit.transport.CredentialItem.Password;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.URIish;
 
+import com.google.common.base.Preconditions;
+
 public class PassphraseCredentialsProvider extends CredentialsProvider {
 
 	private final String passphrase;
 
 	public PassphraseCredentialsProvider(String passphrase) {
+		Preconditions.checkNotNull(passphrase);
 		this.passphrase = passphrase;
 	}
 	

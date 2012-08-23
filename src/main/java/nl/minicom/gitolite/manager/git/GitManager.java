@@ -1,4 +1,4 @@
-package nl.minicom.git;
+package nl.minicom.gitolite.manager.git;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +17,8 @@ import org.eclipse.jgit.api.errors.NoFilepatternException;
 import org.eclipse.jgit.errors.UnmergedPathException;
 import org.eclipse.jgit.transport.CredentialsProvider;
 
+import com.google.common.base.Preconditions;
+
 public class GitManager {
 	
 	private final File workingDirectory;
@@ -25,6 +27,7 @@ public class GitManager {
 	private Git git;
 
 	public GitManager(File workingDirectory, CredentialsProvider credentialProvider) {
+		Preconditions.checkNotNull(workingDirectory);
 		this.workingDirectory = workingDirectory;
 		this.credentialProvider = credentialProvider;
 	}
@@ -59,7 +62,7 @@ public class GitManager {
 		}
 	}
 	
-	public void save() {
+	public void commitChanges() {
 		add(git, ".");
 		commit(git, "Changed config...");
 	}

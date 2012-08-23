@@ -1,13 +1,13 @@
-package nl.minicom.gitolite;
+package nl.minicom.gitolite.manager.models;
 
 import junit.framework.Assert;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
-import nl.minicom.gitolite.Config;
-import nl.minicom.gitolite.Identifiable;
-import nl.minicom.gitolite.Permission;
-import nl.minicom.gitolite.Repository;
-import nl.minicom.gitolite.User;
+import nl.minicom.gitolite.manager.models.Config;
+import nl.minicom.gitolite.manager.models.Identifiable;
+import nl.minicom.gitolite.manager.models.Permission;
+import nl.minicom.gitolite.manager.models.Repository;
+import nl.minicom.gitolite.manager.models.User;
 
 import org.junit.Before;
 import org.junit.Test;

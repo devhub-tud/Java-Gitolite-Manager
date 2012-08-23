@@ -1,11 +1,12 @@
-package nl.minicom.git;
+package nl.minicom.gitolite.manager;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import nl.minicom.gitolite.Config;
-import nl.minicom.gitolite.Permission;
-import nl.minicom.gitolite.Repository;
+import nl.minicom.gitolite.manager.git.PassphraseCredentialsProvider;
+import nl.minicom.gitolite.manager.models.Config;
+import nl.minicom.gitolite.manager.models.Permission;
+import nl.minicom.gitolite.manager.models.Repository;
 
 public class Test {
 
