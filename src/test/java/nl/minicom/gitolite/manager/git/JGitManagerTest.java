@@ -10,7 +10,7 @@ import org.junit.Test;
 import com.google.common.io.Files;
 
 
-public class GitManagerTest {
+public class JGitManagerTest {
 
 	@Test
 	public void testConstructorWithValidInputs() {
