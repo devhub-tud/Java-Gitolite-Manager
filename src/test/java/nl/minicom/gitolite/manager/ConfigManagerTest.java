@@ -45,14 +45,15 @@ public class ConfigManagerTest {
 	public void testModifyingConfiguration() throws IOException {
 		GitManager git = prepareRepository();
 		
-		ConfigManager manager = ConfigManager.create(git.getWorkingDirectory().getAbsolutePath(), Files.createTempDir(), null);
+		String originalLocation = git.getWorkingDirectory().getAbsolutePath();
+		ConfigManager manager = ConfigManager.create(originalLocation, Files.createTempDir(), null);
 		Config config = manager.getConfig();
 		
 		config.removeUser(config.getUser("test-user"));
 		manager.applyConfig();
 		
 		File workingDirectory = Files.createTempDir();
-		ConfigManager verifier = ConfigManager.create(git.getWorkingDirectory().getAbsolutePath(), workingDirectory, null);
+		ConfigManager verifier = ConfigManager.create(originalLocation, workingDirectory, null);
 		Config configToVerify = verifier.getConfig();
 
 		Repository repo = configToVerify.getRepository("test");

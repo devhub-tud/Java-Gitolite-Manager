@@ -22,26 +22,40 @@ public enum Permission {
 		}
 	};
 
-	public static Permission getByName(String permissionName) {
-		Preconditions.checkNotNull(permissionName);
-		Preconditions.checkArgument(!permissionName.isEmpty());
+	/**
+	 * This method finds and returns the {@link Permission} with the specified level.
+	 * 
+	 * @param level
+	 * 	The level of the {@link Permission} to look for.
+	 * 	This may not be NULL nor an empty {@link String}.
+	 * 
+	 * @return
+	 * 	The {@link Permission} with the specified name.
+	 */
+	public static Permission getByLevel(String level) {
+		Preconditions.checkNotNull(level);
+		Preconditions.checkArgument(!level.isEmpty());
 		
 		for (Permission permission : values()) {
-			if (permission.getName().equals(permissionName)) {
+			if (permission.getLevel().equals(level)) {
 				return permission;
 			}
 		}
 		return null;
 	}
 
-	private final String name;
-	
-	private Permission(String name) {
-		this.name = Preconditions.checkNotNull(name);
+	private final String level;
+
+	private Permission(String level) {
+		this.level = Preconditions.checkNotNull(level);
 	}
 	
-	public String getName() {
-		return name;
+	/**
+	 * @return
+	 * 	The level of the {@link Permission}.
+	 */
+	public String getLevel() {
+		return level;
 	}
 	
 }

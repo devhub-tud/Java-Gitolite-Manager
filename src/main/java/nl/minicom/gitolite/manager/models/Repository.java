@@ -27,6 +27,12 @@ public final class Repository {
 	private final String name;
 	private final TreeMultimap<Permission, Identifiable> rights;
 	
+	/**
+	 * Constructs a new {@link Repository} object with the specified name.
+	 * 
+	 * @param name
+	 * 	The name of the {@link Repository}.
+	 */
 	Repository(String name) {
 		Preconditions.checkNotNull(name);
 		Preconditions.checkArgument(!name.isEmpty());
@@ -35,6 +41,10 @@ public final class Repository {
 		this.rights = TreeMultimap.create(Permission.SORT_ON_ORDINAL, Identifiable.SORT_BY_TYPE_AND_ALPHABETICALLY);
 	}
 	
+	/**
+	 * @return
+	 * 	The name of the repository
+	 */
 	public String getName() {
 		return name;
 	}
@@ -43,10 +53,10 @@ public final class Repository {
 	 * This method sets the {@link Permission} level for a specified {@link User} of {@link Group}.
 	 * 
 	 * @param entity
-	 * 		The {@link Group} or {@link User} to set the permission for.
+	 * 	The {@link Group} or {@link User} to set the permission for.
 	 * 
 	 * @param level
-	 * 		The {@link Permission} which the specified {@link User} or {@link Group} should have.
+	 * 	The {@link Permission} which the specified {@link User} or {@link Group} should have.
 	 */
 	public void setPermission(Identifiable entity, Permission level) {
 		Preconditions.checkNotNull(entity);
@@ -59,7 +69,7 @@ public final class Repository {
 	 * specified {@link User} or {@link Group}.
 	 * 
 	 * @param entity
-	 * 		The {@link Group} or {@link User} whose permissions need to be revoked.
+	 * 	The {@link Group} or {@link User} whose permissions need to be revoked.
 	 */
 	public void revokePermissions(Identifiable entity) {
 		for (Permission permission : Permission.values()) {
@@ -69,15 +79,19 @@ public final class Repository {
 
 	/**
 	 * @return
-	 * 		An {@link ImmutableMultimap} containing all the {@link User}s and {@link Group}s 
-	 * 		who have some kind of access on this {@link Repository} object. They're ordered
-	 * 		by highest {@link Permission} to lowest {@link Permission}, and each permission 
-	 * 		contains one or more {@link User}s and {@link Group}s.
+	 * 	An {@link ImmutableMultimap} containing all the {@link User}s and {@link Group}s 
+	 * 	who have some kind of access on this {@link Repository} object. They're ordered
+	 * 	by highest {@link Permission} to lowest {@link Permission}, and each permission 
+	 * 	contains one or more {@link User}s and {@link Group}s.
 	 */
 	public ImmutableMultimap<Permission, Identifiable> getPermissions() {
 		return ImmutableMultimap.copyOf(rights);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder()
@@ -85,6 +99,10 @@ public final class Repository {
 			.toHashCode();
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
 	@Override
 	public boolean equals(Object other) {
 		if (!(other instanceof Repository)) {

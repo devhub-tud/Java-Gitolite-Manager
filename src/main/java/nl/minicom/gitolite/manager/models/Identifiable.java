@@ -2,9 +2,14 @@ package nl.minicom.gitolite.manager.models;
 
 import java.util.Comparator;
 
+/**
+ * This interface represents either a gitolite {@link User} or {@link Group}.
+ * 
+ * @author Michael de Jong <michaelj@minicom.nl>
+ */
 public interface Identifiable {
 	
-	static final Comparator<Identifiable> SORT_BY_TYPE_AND_ALPHABETICALLY = new Comparator<Identifiable>() {
+	Comparator<Identifiable> SORT_BY_TYPE_AND_ALPHABETICALLY = new Comparator<Identifiable>() {
 		@Override
 		public int compare(Identifiable o1, Identifiable o2) {
 			boolean o1IsGroup = o1 instanceof Group;
@@ -20,6 +25,10 @@ public interface Identifiable {
 		}
 	};
 
+	/**
+	 * @return
+	 * 	The name of the {@link Identifiable}.
+	 */
 	String getName();
 	
 }

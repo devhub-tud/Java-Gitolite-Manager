@@ -23,7 +23,7 @@ public final class User implements Identifiable {
 	 * Constructs a new {@link User} object with the provided name and public key.
 	 * 
 	 * @param name
-	 * 		The name of the user.
+	 * 	The name of the user.
 	 */
 	User(String name) {
 		Preconditions.checkNotNull(name);
@@ -33,23 +33,54 @@ public final class User implements Identifiable {
 		this.keys = Maps.newTreeMap();
 	}
 
+	/**
+	 * @return
+	 * 	The name of the {@link User}.
+	 */
 	@Override
 	public String getName() {
 		return name;
 	}
 	
+	/**
+	 * This method allows you to set (and override existing) SSH keys for this particular {@link User}.
+	 * 
+	 * @param name
+	 * 	The name of the key. This may not be NULL.
+	 * 
+	 * @param content
+	 * 	The content of the public key file. This may not be NULL.
+	 */
 	public void defineKey(String name, String content) {
+		Preconditions.checkNotNull(name);
+		Preconditions.checkNotNull(content);
+		
 		keys.put(name, content);
 	}
 	
+	/**
+	 * @return
+	 * 	An {@link ImmutableMap} of SSH keys for this user. The key of the {@link Map}
+	 * 	is the name of the key, and the value is the contents of the associated key file.
+	 */
 	public ImmutableMap<String, String> getKeys() {
 		return ImmutableMap.copyOf(keys);
 	}
 	
+	/**
+	 * This method removes the SSH key with the specified name from this {@link User} object.
+	 *  
+	 * @param name
+	 * 	The name of the SSH key to remove.
+	 */
 	public void removeKey(String name) {
 		keys.remove(name);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder()
@@ -57,6 +88,10 @@ public final class User implements Identifiable {
 			.toHashCode();
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
 	@Override
 	public boolean equals(Object other) {
 		if (!(other instanceof User)) {

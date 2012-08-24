@@ -35,22 +35,22 @@ public class PermissionTest {
 	
 	@Test
 	public void testGetByNameMethodWhenPermissionIsNotPresent() {
-		Assert.assertEquals(null, Permission.getByName("permission-which-doesnt-exist"));
+		Assert.assertEquals(null, Permission.getByLevel("permission-which-doesnt-exist"));
 	}
 	
 	@Test
 	public void testGetByNameMethodWhenPermissionIsPresent() {
-		Assert.assertEquals(Permission.ALL, Permission.getByName("RW+"));
+		Assert.assertEquals(Permission.ALL, Permission.getByLevel("RW+"));
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void testThatGetByNameMethodThrowsExceptionOnInputNull() {
-		Permission.getByName(null);
+		Permission.getByLevel(null);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testThatGetByNameMethodThrowsExceptionsOnEmptyInput() {
-		Permission.getByName("");
+		Permission.getByLevel("");
 	}
 	
 }

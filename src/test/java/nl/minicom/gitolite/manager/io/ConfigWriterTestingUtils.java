@@ -1,6 +1,7 @@
 package nl.minicom.gitolite.manager.io;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -16,8 +17,7 @@ public class ConfigWriterTestingUtils {
 	
 	protected void validateWrittenConfig(String file, Config config) throws IOException {
 		StringWriter result = new StringWriter();
-		ConfigWriter writer = new ConfigWriter();
-		writer.write(config, result);
+		ConfigWriter.write(config, result);
 		
 		String contents = readFile(file);
 		Assert.assertEquals(compact(contents), compact(result.toString()));
@@ -31,10 +31,10 @@ public class ConfigWriterTestingUtils {
 		return value;
 	}
 	
-	private String readFile(String file) {
+	private String readFile(String file) throws IOException {
 		InputStream in = getClass().getResourceAsStream("/" + file);
 		if (in == null) {
-			Assert.fail("Could not locate file: " + file);
+			throw new FileNotFoundException();
 		}
 		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
@@ -49,16 +49,8 @@ public class ConfigWriterTestingUtils {
 				builder.append(line);
 			}
 		} 
-		catch (IOException e) {
-			Assert.fail(e.getMessage());
-		}
 		finally {
-			try {
-				reader.close();
-			} 
-			catch (IOException e) {
-				Assert.fail(e.getMessage());
-			}
+			reader.close();
 		}
 		
 		return builder.toString();

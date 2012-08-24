@@ -40,10 +40,4 @@ public class PassphraseCredentialsProviderTest {
 		Assert.assertTrue(provider.supports(new Password()));
 	}
 	
-	@Test
-	public void testSupportsMethodWhenNotAskingForPassphrase() {
-		CredentialsProvider provider = new PassphraseCredentialsProvider("passphrase");
-		Assert.assertFalse(provider.supports(new StringType("", true)));
-	}
-	
 }

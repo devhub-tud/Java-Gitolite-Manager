@@ -10,9 +10,28 @@ import nl.minicom.gitolite.manager.models.Config;
 
 import com.google.common.base.Preconditions;
 
-public class KeyReader {
+/**
+ * This class contains a method to read all SSH keys from a specific directory
+ * and register them with a provided {@link Config} object.
+ * 
+ * @author Michael de Jong <michaelj@minicom.nl>
+ */
+public final class KeyReader {
 
-	public void readKeys(Config config, File keyDir) throws IOException {
+	/**
+	 * This method reads all SSH keys from the specified key directory, and registers them
+	 * with the specified {@link Config} object.
+	 * 
+	 * @param config
+	 * 	The {@link Config} to register the keys with.
+	 * 
+	 * @param keyDir
+	 * 	The directory where all the SSH keys are registered.
+	 * 
+	 * @throws IOException
+	 * 	If there were problems when reading the key directory.
+	 */
+	public static void readKeys(Config config, File keyDir) throws IOException {
 		Preconditions.checkNotNull(config);
 		Preconditions.checkNotNull(keyDir);
 		Preconditions.checkArgument(keyDir.isDirectory(), "The argument 'keyDir' must be a directory!");
@@ -39,7 +58,7 @@ public class KeyReader {
 		}
 	}
 
-	private String readKeyFile(File keyFile) throws IOException {
+	private static String readKeyFile(File keyFile) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(keyFile));
 		StringBuilder builder = new StringBuilder();
 		
@@ -57,6 +76,10 @@ public class KeyReader {
 		}
 		
 		return builder.toString();
+	}
+	
+	private KeyReader() {
+		//Prevent instantiation.
 	}
 	
 }

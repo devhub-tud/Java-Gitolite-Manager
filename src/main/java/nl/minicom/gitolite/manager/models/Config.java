@@ -1,9 +1,6 @@
 package nl.minicom.gitolite.manager.models;
 
-import java.text.MessageFormat;
 import java.util.SortedSet;
-
-import nl.minicom.gitolite.manager.ConfigManager;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
@@ -22,9 +19,7 @@ public final class Config {
 	private final SortedSet<User> users;
 
 	/**
-	 * This constructs a new {@link Config} object. If you wish to change your gitolite 
-	 * configuration, you should use the {@link ConfigManager} in stead, to load and 
-	 * persist changes to your configuration.
+	 * This constructs a new {@link Config} object.
 	 */
 	public Config() {
 		this.repositories = Sets.newTreeSet(Repository.SORT_ALPHABETICALLY);
@@ -38,11 +33,11 @@ public final class Config {
 	 * be created.
 	 * 
 	 * @param repoName
-	 * 		The name the {@link Repository} should have. 
-	 * 		This may not be NULL or an empty {@link String}.
+	 * 	The name the {@link Repository} should have. 
+	 * 	This may not be NULL or an empty {@link String}.
 	 * 
 	 * @return
-	 * 		The existing or newly created {@link Repository} object.
+	 * 	The existing or newly created {@link Repository} object.
 	 */
 	public Repository ensureRepositoryExists(String repoName) {
 		validateRepositoryName(repoName);
@@ -57,20 +52,17 @@ public final class Config {
 	 * This method creates a new {@link Repository} with the specified name.
 	 * 
 	 * @param repoName
-	 * 		The name of the {@link Repository}.
-	 * 		This may not be NULL or an empty {@link String}.
+	 * 	The name of the {@link Repository}. This may not be NULL or an empty {@link String}.
+	 * 	If the {@link Repository} already exists a {@link IllegalArgumentException} is thrown. 
+	 * 	Use the {@link Config#ensureRepositoryExists(String)} method in stead.
 	 * 
 	 * @return
-	 * 		The created {@link Repository} object.
-	 * 
-	 * @throws IllegalArgumentException
-	 * 		If the {@link Repository} already exists. Use the 
-	 * 		{@link Config#ensureRepositoryExists(String)} method in stead.
+	 * 	The created {@link Repository} object.
 	 */
 	public Repository createRepository(String repoName) {
 		validateRepositoryName(repoName);
 		if (getRepository(repoName) != null) {
-			throw new IllegalArgumentException(MessageFormat.format("The repository {0} has already been created!", repoName));
+			throw new IllegalArgumentException("The repository " + repoName + " has already been created!");
 		}
 		
 		Repository repository = new Repository(repoName);
@@ -82,11 +74,11 @@ public final class Config {
 	 * This method removes the specified {@link Repository} from the {@link Config} object.
 	 * 
 	 * @param repository
-	 * 		The {@link Repository} to remove. This may not be NULL.
+	 * 	The {@link Repository} to remove. This may not be NULL.
 	 * 
 	 * @return
-	 * 		True if it was removed, or false if it was not. 
-	 * 		In the latter case it most likely did not exist.
+	 * 	True if it was removed, or false if it was not. 
+	 * 	In the latter case it most likely did not exist.
 	 */
 	public boolean removeRepository(Repository repository) {
 		Preconditions.checkNotNull(repository);
@@ -98,11 +90,11 @@ public final class Config {
 	 * object with the specified name.
 	 * 
 	 * @param repoName
-	 * 		The name of the {@link Repository} to look for.
-	 * 		This may not be NULL or an empty {@link String}.
+	 * 	The name of the {@link Repository} to look for.
+	 * 	This may not be NULL or an empty {@link String}.
 	 * 
 	 * @return
-	 * 		True if a {@link Repository} with the specified name exists, false otherwise.
+	 * 	True if a {@link Repository} with the specified name exists, false otherwise.
 	 */
 	public boolean hasRepository(String repoName) {
 		validateRepositoryName(repoName);
@@ -114,12 +106,12 @@ public final class Config {
 	 * from the {@link Config} object.
 	 * 
 	 * @param repoName
-	 * 		The name of the {@link Repository} to look for.
-	 * 		This may not be NULL or an empty {@link String}.
+	 * 	The name of the {@link Repository} to look for.
+	 * 	This may not be NULL or an empty {@link String}.
 	 * 
 	 * @return
-	 * 		The {@link Repository} object with the specified name, 
-	 * 		or NULL if no such {@link Repository} exists.
+	 * 	The {@link Repository} object with the specified name, 
+	 * 	or NULL if no such {@link Repository} exists.
 	 */
 	public Repository getRepository(String repoName) {
 		validateRepositoryName(repoName);
@@ -133,8 +125,8 @@ public final class Config {
 	
 	/**
 	 * @return
-	 * 		Am {@link ImmutableSet} of {@link Repository} objects currently 
-	 * 		registered in the {@link Config} object.
+	 * 	Am {@link ImmutableSet} of {@link Repository} objects currently 
+	 * 	registered in the {@link Config} object.
 	 */
 	public ImmutableSet<Repository> getRepositories() {
 		return ImmutableSet.copyOf(repositories);
@@ -151,11 +143,11 @@ public final class Config {
 	 * be created.
 	 * 
 	 * @param groupName
-	 * 		The name the {@link Group} should have.
-	 * 		This may not be NULL, and it must start with the character '@'.
+	 * 	The name the {@link Group} should have.
+	 * 	This may not be NULL, and it must start with the character '@'.
 	 * 
 	 * @return
-	 * 		The existing or newly created {@link Group} object.
+	 * 	The existing or newly created {@link Group} object.
 	 */
 	public Group ensureGroupExists(String groupName) {
 		validateGroupName(groupName);
@@ -170,20 +162,17 @@ public final class Config {
 	 * This method creates a new {@link Group} with the specified name.
 	 * 
 	 * @param groupName
-	 * 		The name of the {@link Group}.
-	 * 		This may not be NULL, and it must start with the character '@'.
+	 * 	The name of the {@link Group}. This may not be NULL, and it must start with the character '@'.
+	 * 	If the {@link Group} already exists an {@link IllegalArgumentException} is thrown. Use the 
+	 * 	{@link Config#ensureGroupExists(String)} method in stead.
 	 * 
 	 * @return
-	 * 		The created {@link Group} object.
-	 * 
-	 * @throws IllegalArgumentException
-	 * 		If the {@link Group} already exists. Use the 
-	 * 		{@link Config#ensureGroupExists(String)} method in stead.
+	 * 	The created {@link Group} object.
 	 */
 	public Group createGroup(String groupName) {
 		validateGroupName(groupName);
 		if (getGroup(groupName) != null) {
-			throw new IllegalArgumentException(MessageFormat.format("The group {0} has already been created!", groupName));
+			throw new IllegalArgumentException("The group " + groupName + " has already been created!");
 		}
 		
 		Group group = new Group(groupName);
@@ -195,11 +184,11 @@ public final class Config {
 	 * This method removes the specified {@link Repository} from the {@link Group} object.
 	 * 
 	 * @param group
-	 * 		The {@link Group} to remove. This may not be NULL.
+	 * 	The {@link Group} to remove. This may not be NULL.
 	 * 
 	 * @return
-	 * 		True if it was removed, or false if it was not. 
-	 * 		In the latter case it most likely did not exist.
+	 * 	True if it was removed, or false if it was not. 
+	 * 	In the latter case it most likely did not exist.
 	 */
 	public boolean removeGroup(Group group) {
 		Preconditions.checkNotNull(group);
@@ -211,11 +200,11 @@ public final class Config {
 	 * object with the specified name.
 	 * 
 	 * @param groupName
-	 * 		The name of the {@link Group} to look for.
-	 * 		This may not be NULL, and it must start with the character '@'.
+	 * 	The name of the {@link Group} to look for.
+	 * 	This may not be NULL, and it must start with the character '@'.
 	 * 
 	 * @return
-	 * 		True if a {@link Group} with the specified name exists, false otherwise.
+	 * 	True if a {@link Group} with the specified name exists, false otherwise.
 	 */
 	public boolean hasGroup(String groupName) {
 		validateGroupName(groupName);
@@ -227,12 +216,12 @@ public final class Config {
 	 * from the {@link Config} object.
 	 * 
 	 * @param groupName
-	 * 		The name of the {@link Group} to look for.
-	 * 		This may not be NULL, and it must start with the character '@'.
+	 * 	The name of the {@link Group} to look for.
+	 * 	This may not be NULL, and it must start with the character '@'.
 	 * 
 	 * @return
-	 * 		The {@link Group} object with the specified name, 
-	 * 		or NULL if no such {@link Group} exists.
+	 * 	The {@link Group} object with the specified name, 
+	 * 	or NULL if no such {@link Group} exists.
 	 */
 	public Group getGroup(String groupName) {
 		validateGroupName(groupName);
@@ -246,8 +235,8 @@ public final class Config {
 
 	/**
 	 * @return
-	 * 		Am {@link ImmutableSet} of {@link Group} objects currently 
-	 * 		registered in the {@link Config} object. This includes the "@all" {@link Group}.
+	 * 	Am {@link ImmutableSet} of {@link Group} objects currently 
+	 * 	registered in the {@link Config} object. This includes the "@all" {@link Group}.
 	 */
 	public ImmutableSet<Group> getGroups() {
 		return ImmutableSet.copyOf(groups);
@@ -265,11 +254,11 @@ public final class Config {
 	 * be created.
 	 * 
 	 * @param userName
-	 * 		The name the {@link User} should have.
-	 * 		This may not be NULL or an empty {@link String}.
+	 * 	The name the {@link User} should have.
+	 * 	This may not be NULL or an empty {@link String}.
 	 * 
 	 * @return
-	 * 		The existing or newly created {@link User} object.
+	 * 	The existing or newly created {@link User} object.
 	 */
 	public User ensureUserExists(String userName) {
 		validateUserName(userName);
@@ -283,21 +272,20 @@ public final class Config {
 	/**
 	 * This method creates a new {@link User} with the specified name.
 	 * 
-	 * @param repoName
-	 * 		The name of the {@link User}.
-	 * 		This may not be NULL or an empty {@link String}.
+	 * @param userName
+	 * 	The name of the {@link User}. This may not be NULL or an empty {@link String}.
+	 * 	If the {@link User} already exists, a {@link IllegalArgumentException} is thrown. 
+	 * 	Use the {@link Config#ensureUserExists(String)} method in stead.
 	 * 
 	 * @return
-	 * 		The created {@link User} object.
+	 * 	The created {@link User} object.
 	 * 
 	 * @throws IllegalArgumentException
-	 * 		If the {@link User} already exists. Use the 
-	 * 		{@link Config#ensureUserExists(String)} method in stead.
 	 */
 	public User createUser(String userName) {
 		validateUserName(userName);
 		if (getUser(userName) != null) {
-			throw new IllegalArgumentException(MessageFormat.format("The user {0} has already been created!", userName));
+			throw new IllegalArgumentException("The user " + userName + " has already been created!");
 		}
 		
 		User user = new User(userName);
@@ -309,11 +297,11 @@ public final class Config {
 	 * This method removes the specified {@link Repository} from the {@link User} object.
 	 * 
 	 * @param user
-	 * 		The {@link User} to remove. This may not be NULL.
+	 * 	The {@link User} to remove. This may not be NULL.
 	 * 
 	 * @return
-	 * 		True if it was removed, or false if it was not. 
-	 * 		In the latter case it most likely did not exist.
+	 * 	True if it was removed, or false if it was not. 
+	 * 	In the latter case it most likely did not exist.
 	 */
 	public boolean removeUser(User user) {
 		Preconditions.checkNotNull(user);
@@ -331,11 +319,11 @@ public final class Config {
 	 * object with the specified name.
 	 * 
 	 * @param userName
-	 * 		The name of the {@link User} to look for.
-	 * 		This may not be NULL or an empty {@link String}.
+	 * 	The name of the {@link User} to look for.
+	 * 	This may not be NULL or an empty {@link String}.
 	 * 
 	 * @return
-	 * 		True if a {@link User} with the specified name exists, false otherwise.
+	 * 	True if a {@link User} with the specified name exists, false otherwise.
 	 */
 	public boolean hasUser(String userName) {
 		validateUserName(userName);
@@ -343,16 +331,16 @@ public final class Config {
 	}
 	
 	/**
-	 * This method fetches the {@link User} object with the specified name 
+	 * This method fetches the {@link User} object with the specified name
 	 * from the {@link Config} object.
 	 * 
 	 * @param userName
-	 * 		The name of the {@link User} to look for.
-	 * 		This may not be NULL or an empty {@link String}.
+	 * 	The name of the {@link User} to look for.
+	 * 	This may not be NULL or an empty {@link String}.
 	 * 
 	 * @return
-	 * 		The {@link User} object with the specified name, 
-	 * 		or NULL if no such {@link User} exists.
+	 * 	The {@link User} object with the specified name,
+	 * 	or NULL if no such {@link User} exists.
 	 */
 	public User getUser(String userName) {
 		validateUserName(userName);
@@ -366,8 +354,8 @@ public final class Config {
 	
 	/**
 	 * @return
-	 * 		Am {@link ImmutableSet} of {@link User} objects currently 
-	 * 		registered in the {@link Config} object.
+	 * 	Am {@link ImmutableSet} of {@link User} objects currently
+	 * 	registered in the {@link Config} object.
 	 */
 	public ImmutableSet<User> getUsers() {
 		return ImmutableSet.copyOf(users);

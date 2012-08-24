@@ -16,7 +16,7 @@ public class ConfigReaderTestingUtils {
 
 	protected Config read(String fileName) throws IOException {
 		InputStream in = getClass().getResourceAsStream("/" + fileName);
-		return new ConfigReader().read(new InputStreamReader(in));
+		return ConfigReader.read(new InputStreamReader(in));
 	}
 
 	protected void verifyConfigsAreTheSame(Config expected, Config actual) {

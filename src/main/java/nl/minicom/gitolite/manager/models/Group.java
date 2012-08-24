@@ -13,7 +13,11 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-
+/**
+ * This class represents a {@link Group} in the gitolite configuration.
+ * 
+ * @author Michael de Jong <michaelj@minicom.nl>
+ */
 public final class Group implements Identifiable {
 
 	static final Comparator<Group> SORT_BY_DEPTH = new Comparator<Group>() {
@@ -44,13 +48,7 @@ public final class Group implements Identifiable {
 	 * Constructs a new {@link Group} object with the specified name.
 	 * 
 	 * @param name
-	 * 		The name of the group. The name must be a non-null, not-empty value.
-	 * 
-	 * @throws NullPointerException
-	 * 		If the name argument is null.
-	 * 
-	 * @throws IllegalArgumentException
-	 * 		If the name is an empty {@link String}.
+	 * 	The name of the group. The name must be a non-null, not-empty value.
 	 */
 	Group(String name) {
 		Preconditions.checkNotNull(name);
@@ -63,7 +61,7 @@ public final class Group implements Identifiable {
 	
 	/**
 	 * @return
-	 * 		The name of this {@link Group}.
+	 * 	The name of this {@link Group}.
 	 */
 	public String getName() {
 		return name;
@@ -71,7 +69,7 @@ public final class Group implements Identifiable {
 	
 	/**
 	 * @return
-	 * 		True if this {@link Group} object consists of other {@link Group} objects.
+	 * 	True if this {@link Group} object consists of other {@link Group} objects.
 	 */
 	protected boolean containsGroups() {
 		for (Identifiable entity : entities) {
@@ -87,13 +85,11 @@ public final class Group implements Identifiable {
 	 * child of one of its children) which equals the provided {@link Group}.
 	 * 
 	 * @param needle
-	 * 		The {@link Group} to look for in the children of this {@link Group}.
+	 * 	The {@link Group} to look for in the children of this {@link Group}.
+	 * 	This may not be NULL.
 	 * 
 	 * @return
-	 * 		True if the specified {@link Group} is a child of this {@link Group}.
-	 * 
-	 * @throws NullPointerException
-	 * 		If the argument 'needle' is NULL.
+	 * 	True if the specified {@link Group} is a child of this {@link Group}.
 	 */
 	protected boolean containsGroup(Group needle) {
 		Preconditions.checkNotNull(needle);
@@ -114,29 +110,32 @@ public final class Group implements Identifiable {
 	 * This is usually a {@link User} or {@link Group} object.
 	 * 
 	 * @param entity
-	 * 		The {@link Identifiable} to add to this {@link Group}.
-	 * 
-	 * @throws NullPointerException
-	 * 		If the argument 'entity' is NULL.
+	 * 	The {@link Identifiable} to add to this {@link Group}. This may not be NULL.
+	 * 	In case the {@link Identifiable} is already a member of this group an 
+	 * 	{@link IllegalArgumentException} is thrown.
 	 */
 	public void add(Identifiable entity) {
 		Preconditions.checkNotNull(entity);
 		Preconditions.checkArgument(!"@all".equalsIgnoreCase(name));
 		
 		if (entities.contains(entity)) {
-			throw new IllegalArgumentException("Cannot add entity: " + entity.getName() + ". This entity is already added!");
+			throw new IllegalArgumentException("Cannot add entity: " + entity.getName() + ". It's already added!");
 		}
 		entities.add(entity);
 	}
 	
 	/**
 	 * @return
-	 * 		An {@link ImmutableSet} of {@link Identifiable} children of this {@link Group}.
+	 * 	An {@link ImmutableSet} of {@link Identifiable} children of this {@link Group}.
 	 */
 	public ImmutableSet<Identifiable> getChildren() {
 		return ImmutableSet.copyOf(entities);
 	}
 
+	/**
+	 * @return
+	 * 	A {@link Collection} of entity names currently belonging to this {@link Group}.
+	 */
 	public Collection<String> getEntityNamesInGroup() {
 		return ImmutableSet.copyOf(Collections2.transform(getChildren(), new Function<Identifiable, String>() {
 			@Override
@@ -146,6 +145,10 @@ public final class Group implements Identifiable {
 		}));
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder()
@@ -153,6 +156,10 @@ public final class Group implements Identifiable {
 			.toHashCode();
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
 	@Override
 	public boolean equals(Object other) {
 		if (!(other instanceof Group)) {

@@ -2,7 +2,6 @@ package nl.minicom.gitolite.manager;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -38,11 +37,11 @@ public class ConfigManager {
 	 * Constructs a {@link ConfigManager} which is based on the provided URI.
 	 * 
 	 * @param gitUri
-	 * 		The URI of the remote configuration repository.
+	 * 	The URI of the remote configuration repository.
 	 * 
 	 * @return
-	 * 		A {@link ConfigManager} which allows a developer to 
-	 * 		manipulate the configuration repository.
+	 * 	A {@link ConfigManager} which allows a developer to 
+	 * 	manipulate the configuration repository.
 	 */
 	public static ConfigManager create(String gitUri) {
 		return create(gitUri, null);
@@ -53,15 +52,15 @@ public class ConfigManager {
 	 * and {@link CredentialsProvider}.
 	 * 
 	 * @param gitUri
-	 * 		The URI of the remote configuration repository.
+	 * 	The URI of the remote configuration repository.
 	 * 
 	 * @param credentialProvider
-	 * 		The {@link CredentialsProvider} which handles the authentication of 
-	 * 		the git user who accesses the remote repository containing the configuration.
+	 * 	The {@link CredentialsProvider} which handles the authentication of 
+	 * 	the git user who accesses the remote repository containing the configuration.
 	 * 
 	 * @return
-	 * 		A {@link ConfigManager} which allows a developer to 
-	 * 		manipulate the configuration repository.
+	 * 	A {@link ConfigManager} which allows a developer to 
+	 * 	manipulate the configuration repository.
 	 */
 	public static ConfigManager create(String gitUri, CredentialsProvider credentialProvider) {
 		return create(gitUri, Files.createTempDir(), credentialProvider);
@@ -72,18 +71,18 @@ public class ConfigManager {
 	 * a working directory and {@link CredentialsProvider}.
 	 * 
 	 * @param gitUri
-	 * 		The URI of the remote configuration repository.
+	 * 	The URI of the remote configuration repository.
 	 * 
 	 * @param workingDirectory
-	 * 		The directory where the configuration repository needs to be cloned to.
+	 * 	The directory where the configuration repository needs to be cloned to.
 	 * 
 	 * @param credentialProvider
-	 * 		The {@link CredentialsProvider} which handles the authentication of 
-	 * 		the git user who accesses the remote repository containing the configuration.
+	 * 	The {@link CredentialsProvider} which handles the authentication of 
+	 * 	the git user who accesses the remote repository containing the configuration.
 	 * 
 	 * @return
-	 * 		A {@link ConfigManager} which allows a developer to 
-	 * 		manipulate the configuration repository.
+	 * 	A {@link ConfigManager} which allows a developer to 
+	 * 	manipulate the configuration repository.
 	 */
 	public static ConfigManager create(String gitUri, File workingDirectory, CredentialsProvider credentialProvider) {
 		return new ConfigManager(gitUri, new JGitManager(workingDirectory, credentialProvider));
@@ -95,6 +94,15 @@ public class ConfigManager {
 	
 	private Config config;
 
+	/**
+	 * Constructs a new {@link ConfigManager} object.
+	 * 
+	 * @param gitUri
+	 * 	The URI to clone from and push changes to.
+	 * 
+	 * @param gitManager
+	 * 	The {@link GitManager} which will handle the git operations.
+	 */
 	ConfigManager(String gitUri, GitManager gitManager) {
 		Preconditions.checkNotNull(gitUri);
 		Preconditions.checkNotNull(gitManager);
@@ -108,15 +116,12 @@ public class ConfigManager {
 	 * This method reads and interprets the configuration repository, and returns a representation.
 	 * 
 	 * @return
-	 * 		A {@link Config} object, representing the configuration repository.
-	 * 
-	 * @throws FileNotFoundException
-	 * 		If the gitolite.conf file could not be located in the repository.
+	 * 	A {@link Config} object, representing the configuration repository.
 	 * 
 	 * @throws IOException
-	 * 		If one or more files in the repository could not be read.
+	 * 	If one or more files in the repository could not be read.
 	 */
-	public Config getConfig() throws FileNotFoundException, IOException {
+	public Config getConfig() throws IOException {
 		if (!new File(workingDirectory, ".git").exists()) {
 			git.clone(gitUri);
 		}
@@ -128,15 +133,19 @@ public class ConfigManager {
 	}
 	
 	/**
-	 * This method 
+	 * This method writes the current state of the internal {@link Config} object to the git repository
+	 * and commits and pushes the changes.
+	 * 
 	 * @throws IOException
+	 * 	In case the operation failed, when writing the new configuration, committing the changes
+	 * 	or pushing them to the remote repository.
 	 */
 	public void applyConfig() throws IOException {
 		if (config == null) {
 			throw new IllegalStateException("Config has not yet been loaded!");
 		}
-		new ConfigWriter().write(config, new FileWriter(getConfigFile()));
-		Set<File> writtenKeys = new KeyWriter().writeKeys(config, ensureKeyDirectory());
+		ConfigWriter.write(config, new FileWriter(getConfigFile()));
+		Set<File> writtenKeys = KeyWriter.writeKeys(config, ensureKeyDirectory());
 		Set<File> orphanedKeyFiles = listKeys();
 		orphanedKeyFiles.removeAll(writtenKeys);
 		
@@ -168,9 +177,9 @@ public class ConfigManager {
 		return keys;
 	}
 
-	private Config readConfig() throws FileNotFoundException, IOException {
-		Config config = new ConfigReader().read(new FileReader(getConfigFile()));
-		new KeyReader().readKeys(config, ensureKeyDirectory());
+	private Config readConfig() throws IOException {
+		Config config = ConfigReader.read(new FileReader(getConfigFile()));
+		KeyReader.readKeys(config, ensureKeyDirectory());
 		return config;
 	}
 

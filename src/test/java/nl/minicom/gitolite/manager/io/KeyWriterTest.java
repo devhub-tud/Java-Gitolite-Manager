@@ -18,12 +18,12 @@ public class KeyWriterTest {
 
 	@Test(expected = NullPointerException.class)
 	public void testThatAddingKeysToConfigWhenConfigIsNullExceptionIsThrown() throws IOException {
-		new KeyWriter().writeKeys(null, Files.createTempDir());
+		KeyWriter.writeKeys(null, Files.createTempDir());
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void testThatAddingKeysToConfigWhenKeyDirIsNullExceptionIsThrown() throws IOException {
-		new KeyWriter().writeKeys(new Config(), null);
+		KeyWriter.writeKeys(new Config(), null);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
@@ -32,7 +32,7 @@ public class KeyWriterTest {
 		File file = new File(keyDir, "test.pub");
 		file.createNewFile();
 		
-		new KeyWriter().writeKeys(new Config(), file);
+		KeyWriter.writeKeys(new Config(), file);
 	}
 	
 	@Test
@@ -40,7 +40,7 @@ public class KeyWriterTest {
 		File keyDir = Files.createTempDir();
 		Config config = new Config();
 		config.ensureUserExists("test-user").defineKey("", CONTENT);
-		new KeyWriter().writeKeys(config, keyDir);
+		KeyWriter.writeKeys(config, keyDir);
 		
 		Assert.assertEquals(CONTENT, readKey(keyDir, "test-user.pub"));
 	}
@@ -50,7 +50,7 @@ public class KeyWriterTest {
 		File keyDir = Files.createTempDir();
 		Config config = new Config();
 		config.ensureUserExists("test-user").defineKey("iMac", CONTENT);
-		new KeyWriter().writeKeys(config, keyDir);
+		KeyWriter.writeKeys(config, keyDir);
 		
 		Assert.assertEquals(CONTENT, readKey(keyDir, "test-user@iMac.pub"));
 	}
@@ -61,7 +61,7 @@ public class KeyWriterTest {
 		Config config = new Config();
 		config.ensureUserExists("test-user").defineKey("iMac", CONTENT);
 		config.ensureUserExists("test-user").defineKey("MacBook-Air", CONTENT);
-		new KeyWriter().writeKeys(config, keyDir);
+		KeyWriter.writeKeys(config, keyDir);
 		
 		Assert.assertEquals(CONTENT, readKey(keyDir, "test-user@iMac.pub"));
 		Assert.assertEquals(CONTENT, readKey(keyDir, "test-user@MacBook-Air.pub"));
@@ -75,7 +75,7 @@ public class KeyWriterTest {
 		config.ensureUserExists("test-user-1").defineKey("MacBook-Air", CONTENT);
 		config.ensureUserExists("test-user-2").defineKey("iMac", CONTENT);
 		config.ensureUserExists("test-user-2").defineKey("MacBook-Air", CONTENT);
-		new KeyWriter().writeKeys(config, keyDir);
+		KeyWriter.writeKeys(config, keyDir);
 		
 		Assert.assertEquals(CONTENT, readKey(keyDir, "test-user-1@iMac.pub"));
 		Assert.assertEquals(CONTENT, readKey(keyDir, "test-user-1@MacBook-Air.pub"));

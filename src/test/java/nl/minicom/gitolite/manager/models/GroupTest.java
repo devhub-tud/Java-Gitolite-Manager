@@ -144,17 +144,17 @@ public class GroupTest {
 		Assert.assertEquals(Sets.newHashSet("@child", "test-user"), parent.getEntityNamesInGroup());
 	}
 	
-	/**
+	/*
 	 * Test case tree:
 	 * 
-	 * 		    B
-	 * 		  /
+	 * 	    B
+	 * 	  /
 	 * 	-->	A
-	 * 		  \
-	 * 		    C - D
+	 * 	  \
+	 * 	    C - D
 	 * 
 	 * Expected ordering (bottom-up, alphabetical):
-	 * 		D, B, C, A
+	 * 	D, B, C, A
 	 */
 	@Test
 	public void testGroupOrdering() {

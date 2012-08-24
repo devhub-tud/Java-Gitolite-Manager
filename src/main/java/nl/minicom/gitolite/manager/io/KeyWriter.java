@@ -14,9 +14,31 @@ import org.apache.commons.lang3.StringUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
-public class KeyWriter {
+/**
+ * This class contains a method to write all registered SSH keys in 
+ * a specified {@link Config} object, to a specified directory.
+ * 
+ * @author Michael de Jong <michaelj@minicom.nl>
+ */
+public final class KeyWriter {
 
-	public Set<File> writeKeys(Config config, File keyDir) throws IOException {
+	/**
+	 * This method writes all SSH keys currently present in the provided {@link Config} object
+	 * to the specified key directory. Existing keys are not removed, but may be overwritten.
+	 * 
+	 * @param config
+	 * 	The {@link Config} object, containing all the SSH keys. This cannot be NULL.
+	 * 
+	 * @param keyDir
+	 * 	The directory where all the keys should be stored. This cannot be NULL.
+	 * 
+	 * @return
+	 * 	A {@link Set} of {@link File} handles of all written SSH key files.
+	 * 
+	 * @throws IOException
+	 * 	If a problem occurred when writing the SSH key files.
+	 */
+	public static Set<File> writeKeys(Config config, File keyDir) throws IOException {
 		Preconditions.checkNotNull(config);
 		Preconditions.checkNotNull(keyDir);
 		Preconditions.checkArgument(keyDir.isDirectory(), "The argument 'keyDir' must be a directory!");
@@ -35,11 +57,11 @@ public class KeyWriter {
 		return keysWritten;
 	}
 
-	private File createKeyFile(File keyDir, String userName, String keyName, String keyContent) throws IOException {
+	private static File createKeyFile(File keyDir, String userName, String name, String content) throws IOException {
 		StringBuilder builder = new StringBuilder();
 		builder.append(userName);
-		if (StringUtils.isNotEmpty(keyName)) {
-			builder.append("@" + keyName);
+		if (StringUtils.isNotEmpty(name)) {
+			builder.append("@" + name);
 		}
 		builder.append(".pub");
 		
@@ -47,7 +69,7 @@ public class KeyWriter {
 		File file = new File(keyDir, builder.toString());
 		try {
 			writer = new FileWriter(file);
-			writer.write(keyContent);
+			writer.write(content);
 		}
 		finally {
 			if (writer != null) {
@@ -56,6 +78,10 @@ public class KeyWriter {
 		}
 		
 		return file;
+	}
+	
+	private KeyWriter() {
+		//Prevent instantiation.
 	}
 	
 }

@@ -41,6 +41,18 @@ public class UserTest {
 		Assert.assertEquals(expected, user.getKeys());
 	}
 	
+	@Test(expected = NullPointerException.class)
+	public void testAddingKeyWithNameNull() {
+		User user = new User("test-user");
+		user.defineKey(null, KEY_CONTENT);
+	}
+	
+	@Test(expected = NullPointerException.class)
+	public void testAddingKeyWithContentNull() {
+		User user = new User("test-user");
+		user.defineKey("", null);
+	}
+	
 	@Test
 	public void testOverridingKey() {
 		User user = new User("test-user");

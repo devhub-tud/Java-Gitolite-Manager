@@ -1,5 +1,7 @@
 package nl.minicom.gitolite.manager.models;
 
+import java.util.Collection;
+
 import junit.framework.Assert;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
@@ -53,7 +55,8 @@ public class RepositoryTest {
 		repository.setPermission(user1, Permission.READ_ONLY);
 		
 		Assert.assertEquals(Sets.newHashSet(Permission.READ_ONLY), repository.getPermissions().keySet());
-		Assert.assertEquals(Sets.newHashSet(user1), Sets.newHashSet(repository.getPermissions().get(Permission.READ_ONLY)));
+		Collection<Identifiable> entitiesWithReadOnlyPermission = repository.getPermissions().get(Permission.READ_ONLY);
+		Assert.assertEquals(Sets.newHashSet(user1), Sets.newHashSet(entitiesWithReadOnlyPermission));
 	}
 	
 	@Test

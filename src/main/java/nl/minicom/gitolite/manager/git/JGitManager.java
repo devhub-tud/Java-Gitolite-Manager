@@ -20,6 +20,12 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * The {@link JGitManager} class is responsible for communicating with the remote git repository
+ * containing the gitolite configuration.
+ * 
+ * @author Michael de Jong <michaelj@minicom.nl>
+ */
 public class JGitManager implements GitManager {
 	
 	private final File workingDirectory;
@@ -27,17 +33,36 @@ public class JGitManager implements GitManager {
 	
 	private Git git;
 
+	/**
+	 * Constructs a new {@link JGitManager} object.
+	 * 
+	 * @param workingDirectory
+	 * 	The working directory where we will clone to, and manipulate the configuration files in.
+	 * 	It's recommended to use a temporary directory, unless you wish to keep the git repository.
+	 * 
+	 * @param credentialProvider
+	 * 	The {@link CredentialsProvider} to use to authenticate when cloning, pulling or pushing, 
+	 * 	from or to.
+	 */
 	public JGitManager(File workingDirectory, CredentialsProvider credentialProvider) {
 		Preconditions.checkNotNull(workingDirectory);
 		this.workingDirectory = workingDirectory;
 		this.credentialProvider = credentialProvider;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see nl.minicom.gitolite.manager.git.GitManager#open()
+	 */
 	@Override
 	public void open() throws IOException {
 		this.git = Git.open(workingDirectory);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see nl.minicom.gitolite.manager.git.GitManager#remove(java.lang.String)
+	 */
 	@Override
 	public void remove(String filePattern) throws IOException {
 		RmCommand rm = git.rm();
@@ -50,8 +75,14 @@ public class JGitManager implements GitManager {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see nl.minicom.gitolite.manager.git.GitManager#clone(java.lang.String)
+	 */
 	@Override
 	public void clone(String uri) throws IOException {
+		Preconditions.checkNotNull(uri);
+		
 		CloneCommand clone = Git.cloneRepository();
 		clone.setDirectory(workingDirectory);
 		clone.setURI(uri);
@@ -64,6 +95,10 @@ public class JGitManager implements GitManager {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see nl.minicom.gitolite.manager.git.GitManager#init()
+	 */
 	@Override
 	public void init() throws IOException {
 		InitCommand initCommand = Git.init();
@@ -76,6 +111,10 @@ public class JGitManager implements GitManager {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see nl.minicom.gitolite.manager.git.GitManager#pull()
+	 */
 	@Override
 	public boolean pull() throws IOException {
 		PullCommand pull = git.pull();
@@ -86,7 +125,11 @@ public class JGitManager implements GitManager {
 			throw new IOException(e);
 		}
 	}
-	
+
+	/*
+	 * (non-Javadoc)
+	 * @see nl.minicom.gitolite.manager.git.GitManager#commitChanges()
+	 */
 	@Override
 	public void commitChanges() throws IOException {
 		add(git, ".");
@@ -118,7 +161,11 @@ public class JGitManager implements GitManager {
 			throw new IOException(e);
 		}
 	}
-
+	
+	/*
+	 * (non-Javadoc)
+	 * @see nl.minicom.gitolite.manager.git.GitManager#push()
+	 */
 	@Override
 	public void push() throws IOException {
 		PushCommand push = git.push();
@@ -133,7 +180,11 @@ public class JGitManager implements GitManager {
 			throw new IOException(e);
 		}
 	}
-
+	
+	/*
+	 * (non-Javadoc)
+	 * @see nl.minicom.gitolite.manager.git.GitManager#getWorkingDirectory()
+	 */
 	@Override
 	public File getWorkingDirectory() {
 		return workingDirectory;

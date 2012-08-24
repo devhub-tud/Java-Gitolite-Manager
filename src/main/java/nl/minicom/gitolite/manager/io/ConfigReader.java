@@ -10,21 +10,44 @@ import nl.minicom.gitolite.manager.models.Identifiable;
 import nl.minicom.gitolite.manager.models.Permission;
 import nl.minicom.gitolite.manager.models.Repository;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 
-public class ConfigReader {
+/**
+ * This class contains a method to read a gitolite configuration file, and
+ * parsing it. This allows you to obtain a {@link Config} object based on the
+ * configuration file
+ * 
+ * @author Michael de Jong <michaelj@minicom.nl>
+ */
+public final class ConfigReader {
 
-	public Config read(Reader in) throws IOException {
-		BufferedReader reader = new BufferedReader(in);
+	/**
+	 * This method reads the configuration file from the specified {@link Reader}, and creates
+	 * a {@link Config} object from it.
+	 * 
+	 * @param reader
+	 * 	The {@link Reader} which allows us to read the configuration file. This cannot be NULL.
+	 * 
+	 * @return
+	 * 	The constructed {@link Config} object.
+	 * 
+	 * @throws IOException
+	 * 	If the configuration file could not be read, or was syntactically incorrect.
+	 */
+	public static Config read(Reader reader) throws IOException {
+		Preconditions.checkNotNull(reader);
+		
+		BufferedReader bufferedReader = new BufferedReader(reader);
 		try {
-			return parseConfig(reader);
+			return parseConfig(bufferedReader);
 		}
 		finally {
-			reader.close();
+			bufferedReader.close();
 		}
 	}
 
-	private Config parseConfig(BufferedReader reader) throws IOException {
+	private static Config parseConfig(BufferedReader reader) throws IOException {
 		Config config = new Config();
 		
 		String line;
@@ -35,28 +58,25 @@ public class ConfigReader {
 			line = line.trim();
 			line = line.replaceAll("#.*", "");
 			
-			if (line.isEmpty()) {
-				continue;
-			}
-			
-			if (line.startsWith("@")) {
-				addIdentifiablesToGroup(config, line);
-			}
-			else if (line.startsWith("repo")) {
-				currentRepo = createRepo(config, line);
-			}
-			else if (currentRepo != null) {
-				createPermissionRule(config, currentRepo, line);
-			}
-			else {
-				throw new IllegalArgumentException("The config file is syntaxtically incorrect at line: " + lineNumber);
+			if (!line.isEmpty()) {
+				if (line.charAt(0) == '@') {
+					addIdentifiablesToGroup(config, line);
+				}
+				else if (line.startsWith("repo")) {
+					currentRepo = createRepo(config, line);
+				}
+				else if (currentRepo != null) {
+					createPermissionRule(config, currentRepo, line);
+				}
+				else {
+					throw new IllegalArgumentException("Incorrect syntax at line: " + lineNumber);
+				}
 			}
 		}
-		
 		return config;
 	}
 
-	private void addIdentifiablesToGroup(Config config, String line) {
+	private static void addIdentifiablesToGroup(Config config, String line) {
 		int indexOfEqualsSign = line.indexOf('=');
 		String groupName = line.substring(0, indexOfEqualsSign).trim();
 		String identifiables = line.substring(indexOfEqualsSign + 1).trim();
@@ -73,21 +93,21 @@ public class ConfigReader {
 		}
 	}
 
-	private Repository createRepo(Config config, String line) {
-		String repoName = line.substring(4).trim();
+	private static Repository createRepo(Config config, String line) {
+		String repoName = line.substring("repo".length()).trim();
 		return config.createRepository(repoName);
 	}
 
-	private void createPermissionRule(Config config, Repository currentRepo, String line) {
+	private static void createPermissionRule(Config config, Repository currentRepo, String line) {
 		int indexOfEqualsSign = line.indexOf('=');
-		String permissionName = line.substring(0, indexOfEqualsSign).trim();
-		Permission permission = Permission.getByName(permissionName);
+		String permissionLevel = line.substring(0, indexOfEqualsSign).trim();
+		Permission permission = Permission.getByLevel(permissionLevel);
 		String identifiables = line.substring(indexOfEqualsSign + 1).trim();
 		Iterable<String> ids = Splitter.on(' ').omitEmptyStrings().split(identifiables);
 
 		for (String id : ids) {
 			Identifiable entity;
-			if (id.startsWith("@")) {
+			if (id.charAt(0) == '@') {
 				entity = config.ensureGroupExists(id);
 			}
 			else {
@@ -96,6 +116,10 @@ public class ConfigReader {
 			
 			currentRepo.setPermission(entity, permission);
 		}
+	}
+	
+	private ConfigReader() {
+		//prevent instantiation.
 	}
 	
 }

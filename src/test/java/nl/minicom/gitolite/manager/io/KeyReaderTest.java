@@ -27,12 +27,12 @@ public class KeyReaderTest {
 	
 	@Test(expected = NullPointerException.class)
 	public void testThatAddingKeysToConfigWhenConfigIsNullExceptionIsThrown() throws IOException {
-		new KeyReader().readKeys(null, Files.createTempDir());
+		KeyReader.readKeys(null, Files.createTempDir());
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void testThatAddingKeysToConfigWhenKeyDirIsNullExceptionIsThrown() throws IOException {
-		new KeyReader().readKeys(new Config(), null);
+		KeyReader.readKeys(new Config(), null);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
@@ -40,7 +40,7 @@ public class KeyReaderTest {
 		File keyDir = Files.createTempDir();
 		writeKeyFile(keyDir, "test", null, CONTENT);
 		
-		new KeyReader().readKeys(new Config(), new File(keyDir, "test.pub"));
+		KeyReader.readKeys(new Config(), new File(keyDir, "test.pub"));
 	}
 	
 	@Test
@@ -49,7 +49,7 @@ public class KeyReaderTest {
 		File keyDir = Files.createTempDir();
 		writeKeyFile(keyDir, "test-user-1", null, CONTENT);
 		
-		new KeyReader().readKeys(config, keyDir);
+		KeyReader.readKeys(config, keyDir);
 		expectedKeys.put("", CONTENT);
 		
 		Assert.assertEquals(expectedKeys, config.getUser("test-user-1").getKeys());
@@ -61,7 +61,7 @@ public class KeyReaderTest {
 		File keyDir = Files.createTempDir();
 		writeKeyFile(keyDir, "test-user-1", "iMac", CONTENT);
 		
-		new KeyReader().readKeys(config, keyDir);
+		KeyReader.readKeys(config, keyDir);
 		expectedKeys.put("iMac", CONTENT);
 		
 		Assert.assertEquals(expectedKeys, config.getUser("test-user-1").getKeys());
@@ -74,7 +74,7 @@ public class KeyReaderTest {
 		writeKeyFile(keyDir, "test-user-1", "iMac", CONTENT);
 		writeKeyFile(keyDir, "test-user-1", "MacBook-Air", CONTENT);
 		
-		new KeyReader().readKeys(config, keyDir);
+		KeyReader.readKeys(config, keyDir);
 		expectedKeys.put("iMac", CONTENT);
 		expectedKeys.put("MacBook-Air", CONTENT);
 		
@@ -90,7 +90,7 @@ public class KeyReaderTest {
 		writeKeyFile(keyDir, "test-user-2", "iMac", CONTENT);
 		writeKeyFile(keyDir, "test-user-2", "MacBook-Air", CONTENT);
 		
-		new KeyReader().readKeys(config, keyDir);
+		KeyReader.readKeys(config, keyDir);
 		expectedKeys.put("iMac", CONTENT);
 		expectedKeys.put("MacBook-Air", CONTENT);
 		
