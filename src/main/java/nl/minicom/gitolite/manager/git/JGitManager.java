@@ -39,88 +39,98 @@ public class JGitManager implements GitManager {
 	}
 	
 	@Override
-	public void remove(String filePattern) {
+	public void remove(String filePattern) throws IOException {
 		RmCommand rm = git.rm();
 		rm.addFilepattern(filePattern);
 		try {
 			rm.call();
 		} 
 		catch (NoFilepatternException e) {
-			throw new RuntimeException(e);
+			throw new IOException(e);
 		}
 	}
 	
 	@Override
-	public void clone(String uri) {
+	public void clone(String uri) throws IOException {
 		CloneCommand clone = Git.cloneRepository();
 		clone.setDirectory(workingDirectory);
 		clone.setURI(uri);
 		clone.setCredentialsProvider(credentialProvider);
-		this.git = clone.call();
+		try {
+			this.git = clone.call();
+		}
+		catch (JGitInternalException e) {
+			throw new IOException(e);
+		}
 	}
 	
 	@Override
-	public void init() {
+	public void init() throws IOException {
 		InitCommand initCommand = Git.init();
 		initCommand.setDirectory(workingDirectory);
-		this.git = initCommand.call();
+		try {
+			this.git = initCommand.call();
+		}
+		catch (JGitInternalException e) {
+			throw new IOException(e);
+		}
 	}
 	
 	@Override
-	public boolean pull() {
+	public boolean pull() throws IOException {
 		PullCommand pull = git.pull();
 		try {
 			return !pull.call().getFetchResult().getTrackingRefUpdates().isEmpty();
 		} 
 		catch (GitAPIException e) {
-			throw new RuntimeException(e);
+			throw new IOException(e);
 		}
 	}
 	
 	@Override
-	public void commitChanges() {
+	public void commitChanges() throws IOException {
 		add(git, ".");
 		commit(git, "Changed config...");
 	}
 
-	private void commit(Git git, String message) {
+	private void commit(Git git, String message) throws IOException {
 		CommitCommand commit = git.commit();
 		try {
 			commit.setMessage(message).call();
 		} 
 		catch (GitAPIException e) {
-			throw new RuntimeException(e);
+			throw new IOException(e);
 		} 
 		catch (UnmergedPathException e) {
-			throw new RuntimeException(e);
+			throw new IOException(e);
 		} 
 		catch (JGitInternalException e) {
-			throw new RuntimeException(e);
+			throw new IOException(e);
 		}
 	}
 
-	private void add(Git git, String pathToAdd) {
+	private void add(Git git, String pathToAdd) throws IOException {
 		AddCommand add = git.add();
 		try {
 			add.addFilepattern(pathToAdd).call();
 		} 
 		catch (NoFilepatternException e) {
-			throw new RuntimeException(e);
+			throw new IOException(e);
 		}
 	}
 
 	@Override
-	public void push() {
+	public void push() throws IOException {
 		PushCommand push = git.push();
 		push.setCredentialsProvider(credentialProvider);
 		try {
 			push.call();
 		} 
 		catch (JGitInternalException e) {
-			throw new RuntimeException(e);
+			throw new IOException(e);
 		} 
 		catch (InvalidRemoteException e) {
-			throw new RuntimeException(e);
+			throw new IOException(e);
 		}
 	}
 

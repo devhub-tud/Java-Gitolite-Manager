@@ -57,7 +57,7 @@ public class JGitManagerTest {
 	}
 	
 	@Test
-	public void testCloningExistingRepo() {
+	public void testCloningExistingRepo() throws IOException {
 		File location = Files.createTempDir();
 		new JGitManager(location, null).init();
 		
@@ -66,7 +66,7 @@ public class JGitManagerTest {
 	}
 	
 	@Test
-	public void testInitializingNewRepo() {
+	public void testInitializingNewRepo() throws IOException {
 		File dir = Files.createTempDir();
 		new JGitManager(dir, null).init();
 		Assert.assertTrue(new File(dir, ".git").exists());
@@ -92,7 +92,7 @@ public class JGitManagerTest {
 	}
 	
 	@Test
-	public void testCommittingChangesToRepo() {
+	public void testCommittingChangesToRepo() throws IOException {
 		File location = Files.createTempDir();
 		GitManager orig = new JGitManager(location, null);
 		orig.init();

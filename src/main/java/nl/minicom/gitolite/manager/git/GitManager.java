@@ -7,17 +7,17 @@ public interface GitManager {
 
 	void open() throws IOException;
 	
-	void remove(String filePattern);
+	void remove(String filePattern) throws IOException;
 
-	void clone(String uri);
+	void clone(String uri) throws IOException;
 
-	void init();
+	void init() throws IOException;
 
-	boolean pull();
+	boolean pull() throws IOException;
 
-	void commitChanges();
+	void commitChanges() throws IOException;
 
-	void push();
+	void push() throws IOException;
 
 	File getWorkingDirectory();
 
