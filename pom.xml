@@ -4,10 +4,11 @@
 	<groupId>nl.minicom.nl</groupId>
 	<artifactId>java-gitolite-manager</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	
+
 	<scm>
 		<url>https://github.com/michaeldejong/java-gitolite-manager</url>
 	</scm>
+
 	<developers>
 		<developer>
 			<id>michaelj</id>
@@ -65,5 +66,13 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>devhub-snapshots</id>
+			<name>Internal snapshots</name>
+			<url>http://dea.hartveld.com/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 </project>
