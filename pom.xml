@@ -8,6 +8,7 @@
 	<scm>
 		<url>https://github.com/michaeldejong/java-gitolite-manager</url>
 	</scm>
+	
 	<developers>
 		<developer>
 			<id>michaelj</id>
@@ -15,6 +16,14 @@
 			<email>michaelj@minicom.nl</email>
 		</developer>
 	</developers>
+	
+	<distributionManagement>
+		<snapshotRepository>
+			<id>snapshots</id>
+			<name>Internal snapshots</name>
+			<url>http://dea.hartveld.com/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 
 	<build>
 		<plugins>
