@@ -5,8 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Iterator;
 
-import javax.naming.ServiceUnavailableException;
-
+import nl.minicom.gitolite.manager.exceptions.ServiceUnavailable;
 import nl.minicom.gitolite.manager.git.GitManager;
 import nl.minicom.gitolite.manager.git.JGitManager;
 import nl.minicom.gitolite.manager.models.Config;
@@ -25,7 +24,7 @@ import com.google.common.io.Files;
 public class ConfigManagerTest {
 
 	@Test
-	public void testLoadConfiguration() throws IOException, ServiceUnavailableException {
+	public void testLoadConfiguration() throws IOException, ServiceUnavailable {
 		GitManager git = prepareRepository();
 		ConfigManager manager = ConfigManager.create(git.getWorkingDirectory().getAbsolutePath());
 		Config config = manager.getConfig();
@@ -44,7 +43,7 @@ public class ConfigManagerTest {
 	}
 
 	@Test
-	public void testModifyingConfiguration() throws IOException, ServiceUnavailableException {
+	public void testModifyingConfiguration() throws IOException, ServiceUnavailable {
 		GitManager git = prepareRepository();
 
 		String originalLocation = git.getWorkingDirectory().getAbsolutePath();

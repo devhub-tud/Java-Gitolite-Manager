@@ -7,8 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Set;
 
-import javax.naming.ServiceUnavailableException;
-
+import nl.minicom.gitolite.manager.exceptions.ServiceUnavailable;
 import nl.minicom.gitolite.manager.git.GitManager;
 import nl.minicom.gitolite.manager.git.JGitManager;
 import nl.minicom.gitolite.manager.io.ConfigReader;
@@ -114,18 +113,18 @@ public class ConfigManager {
 	 * @return A {@link Config} object, representing the configuration
 	 *         repository.
 	 * 
-	 * @throws ServiceUnavailableException If the service could not be reached.
+	 * @throws ServiceUnavailable If the service could not be reached.
 	 * 
 	 * @throws IOException If one or more files in the repository could not be
 	 *            read.
 	 */
-	public Config getConfig() throws IOException, ServiceUnavailableException {
+	public Config getConfig() throws IOException, ServiceUnavailable {
 		try {
 			if (!new File(workingDirectory, ".git").exists()) {
 				git.clone(gitUri);
 			}
-		} catch (IOException e) {
-			throw new ServiceUnavailableException();
+		} catch (IOException | ServiceUnavailable e) {
+			throw new ServiceUnavailable();
 		}
 
 		if (git.pull() || config == null) {
@@ -142,10 +141,9 @@ public class ConfigManager {
 	 *            configuration, committing the changes or pushing them to the
 	 *            remote repository.
 	 * 
-	 * @throws ServiceUnavailableException If the remote service could not be
-	 *            reached.
+	 * @throws ServiceUnavailable If the remote service could not be reached.
 	 */
-	public void applyConfig() throws IOException, ServiceUnavailableException {
+	public void applyConfig() throws IOException, ServiceUnavailable {
 		if (config == null) {
 			throw new IllegalStateException("Config has not yet been loaded!");
 		}
@@ -163,7 +161,7 @@ public class ConfigManager {
 		try {
 			git.push();
 		} catch (IOException e) {
-			throw new ServiceUnavailableException();
+			throw new ServiceUnavailable();
 		}
 	}
 

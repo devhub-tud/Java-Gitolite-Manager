@@ -3,6 +3,8 @@ package nl.minicom.gitolite.manager.git;
 import java.io.File;
 import java.io.IOException;
 
+import nl.minicom.gitolite.manager.exceptions.ServiceUnavailable;
+
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
@@ -81,7 +83,7 @@ public class JGitManager implements GitManager {
 	 * @see nl.minicom.gitolite.manager.git.GitManager#clone(java.lang.String)
 	 */
 	@Override
-	public void clone(String uri) throws IOException {
+	public void clone(String uri) throws IOException, ServiceUnavailable {
 		Preconditions.checkNotNull(uri);
 
 		CloneCommand clone = Git.cloneRepository();
@@ -90,6 +92,8 @@ public class JGitManager implements GitManager {
 		clone.setCredentialsProvider(credentialProvider);
 		try {
 			this.git = clone.call();
+		} catch (NullPointerException e) {
+			throw new ServiceUnavailable();
 		} catch (JGitInternalException e) {
 			throw new IOException(e);
 		}
@@ -117,10 +121,12 @@ public class JGitManager implements GitManager {
 	 * @see nl.minicom.gitolite.manager.git.GitManager#pull()
 	 */
 	@Override
-	public boolean pull() throws IOException {
-		PullCommand pull = git.pull();
+	public boolean pull() throws IOException, ServiceUnavailable {
 		try {
+			PullCommand pull = git.pull();
 			return !pull.call().getFetchResult().getTrackingRefUpdates().isEmpty();
+		} catch (NullPointerException e) {
+			throw new ServiceUnavailable();
 		} catch (GitAPIException e) {
 			throw new IOException(e);
 		}
@@ -165,11 +171,13 @@ public class JGitManager implements GitManager {
 	 * @see nl.minicom.gitolite.manager.git.GitManager#push()
 	 */
 	@Override
-	public void push() throws IOException {
-		PushCommand push = git.push();
-		push.setCredentialsProvider(credentialProvider);
+	public void push() throws IOException, ServiceUnavailable {
 		try {
+			PushCommand push = git.push();
+			push.setCredentialsProvider(credentialProvider);
 			push.call();
+		} catch (NullPointerException e) {
+			throw new ServiceUnavailable();
 		} catch (JGitInternalException e) {
 			throw new IOException(e);
 		} catch (InvalidRemoteException e) {
