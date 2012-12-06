@@ -24,13 +24,18 @@
 			<email>michaelj@minicom.nl</email>
 		</developer>
 	</developers>
-	
+
 	<distributionManagement>
 		<snapshotRepository>
 			<id>devhub-snapshots</id>
 			<name>Internal snapshots</name>
 			<url>http://dea.hartveld.com/nexus/content/repositories/snapshots</url>
 		</snapshotRepository>
+		<repository>
+			<id>devhub-snapshots</id>
+			<name>Internal releases</name>
+			<url>http://dea.hartveld.com/nexus/content/repositories/releases</url>
+		</repository>
 	</distributionManagement>
 
 	<build>
