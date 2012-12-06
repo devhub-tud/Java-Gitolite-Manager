@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import junit.framework.Assert;
 import nl.minicom.gitolite.manager.models.Config;
 import nl.minicom.gitolite.manager.models.Group;
 import nl.minicom.gitolite.manager.models.Repository;
 
+import org.junit.Assert;
 import org.junit.Ignore;
 
 @Ignore
@@ -25,12 +25,12 @@ public class ConfigReaderTestingUtils {
 			Group actualGroup = actual.getGroup(expectedGroup.getName());
 			Assert.assertEquals(expectedGroup.getChildren(), actualGroup.getChildren());
 		}
-		
+
 		Assert.assertEquals(expected.getRepositories(), actual.getRepositories());
 		for (Repository expectedRepo : expected.getRepositories()) {
 			Repository actualRepo = actual.getRepository(expectedRepo.getName());
 			Assert.assertEquals(expectedRepo.getPermissions(), actualRepo.getPermissions());
 		}
 	}
-	
+
 }

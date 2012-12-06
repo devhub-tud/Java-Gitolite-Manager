@@ -1,10 +1,9 @@
 package nl.minicom.gitolite.manager.git;
 
-import junit.framework.Assert;
-
 import org.eclipse.jgit.transport.CredentialItem.Password;
 import org.eclipse.jgit.transport.CredentialItem.StringType;
 import org.eclipse.jgit.transport.CredentialsProvider;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class PassphraseCredentialsProviderTest {
