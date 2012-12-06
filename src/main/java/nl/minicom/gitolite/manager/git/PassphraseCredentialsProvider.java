@@ -6,11 +6,9 @@ import org.eclipse.jgit.transport.CredentialItem.StringType;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.URIish;
 
-import com.google.common.base.Preconditions;
-
 /**
- * This class is a very basic {@link CredentialsProvider} which attempts
- * to login with a passphrase.
+ * This class is a very basic {@link CredentialsProvider} which attempts to
+ * login with a passphrase.
  * 
  * @author Michael de Jong <michaelj@minicom.nl>
  */
@@ -21,23 +19,19 @@ public class PassphraseCredentialsProvider extends CredentialsProvider {
 	/**
 	 * This constructs a new {@link PassphraseCredentialsProvider} object.
 	 * 
-	 * @param passphrase
-	 * 	The passphrase to use, to log in.
+	 * @param passphrase The passphrase to use, to log in.
 	 */
 	public PassphraseCredentialsProvider(String passphrase) {
-		Preconditions.checkNotNull(passphrase);
-		this.passphrase = passphrase;
+		this.passphrase = (passphrase == null) ? "" : passphrase;
 	}
-	
+
 	/**
-	 * This method attempts to augment the provided {@link CredentialItem} objects, so that
-	 * we can log in.
+	 * This method attempts to augment the provided {@link CredentialItem}
+	 * objects, so that we can log in.
 	 * 
-	 * @param uri
-	 * 	The URI of the git repository.
+	 * @param uri The URI of the git repository.
 	 * 
-	 * @param items
-	 * 	The {@link CredentialItem} objects to augment.
+	 * @param items The {@link CredentialItem} objects to augment.
 	 * 
 	 * @return True
 	 */
@@ -63,15 +57,13 @@ public class PassphraseCredentialsProvider extends CredentialsProvider {
 	}
 
 	/**
-	 * @param items
-	 * 	The {@link CredentialItem} objects to process.
+	 * @param items The {@link CredentialItem} objects to process.
 	 * 
-	 * @return 
-	 * 	True
+	 * @return True
 	 */
 	@Override
 	public boolean supports(CredentialItem... items) {
 		return true;
 	}
-	
+
 }
