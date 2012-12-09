@@ -58,7 +58,7 @@ public class JGitManager implements GitManager {
 	 */
 	@Override
 	public void open() throws IOException {
-		this.git = Git.open(workingDirectory);
+		git = Git.open(workingDirectory);
 	}
 
 	/*
@@ -91,9 +91,9 @@ public class JGitManager implements GitManager {
 		clone.setURI(uri);
 		clone.setCredentialsProvider(credentialProvider);
 		try {
-			this.git = clone.call();
+			git = clone.call();
 		} catch (NullPointerException e) {
-			throw new ServiceUnavailable();
+			throw new ServiceUnavailable(e);
 		} catch (JGitInternalException e) {
 			throw new IOException(e);
 		}
@@ -109,7 +109,7 @@ public class JGitManager implements GitManager {
 		InitCommand initCommand = Git.init();
 		initCommand.setDirectory(workingDirectory);
 		try {
-			this.git = initCommand.call();
+			git = initCommand.call();
 		} catch (JGitInternalException e) {
 			throw new IOException(e);
 		}
@@ -126,7 +126,7 @@ public class JGitManager implements GitManager {
 			PullCommand pull = git.pull();
 			return !pull.call().getFetchResult().getTrackingRefUpdates().isEmpty();
 		} catch (NullPointerException e) {
-			throw new ServiceUnavailable();
+			throw new ServiceUnavailable(e);
 		} catch (GitAPIException e) {
 			throw new IOException(e);
 		}
@@ -177,7 +177,7 @@ public class JGitManager implements GitManager {
 			push.setCredentialsProvider(credentialProvider);
 			push.call();
 		} catch (NullPointerException e) {
-			throw new ServiceUnavailable();
+			throw new ServiceUnavailable(e);
 		} catch (JGitInternalException e) {
 			throw new IOException(e);
 		} catch (InvalidRemoteException e) {
