@@ -102,8 +102,8 @@ public class ConfigManager {
 		Preconditions.checkNotNull(gitManager);
 
 		this.gitUri = gitUri;
-		this.git = gitManager;
-		this.workingDirectory = git.getWorkingDirectory();
+		git = gitManager;
+		workingDirectory = git.getWorkingDirectory();
 	}
 
 	/**
@@ -124,7 +124,7 @@ public class ConfigManager {
 				git.clone(gitUri);
 			}
 		} catch (IOException | ServiceUnavailable e) {
-			throw new ServiceUnavailable();
+			throw new ServiceUnavailable(e);
 		}
 
 		if (git.pull() || config == null) {
@@ -161,7 +161,7 @@ public class ConfigManager {
 		try {
 			git.push();
 		} catch (IOException e) {
-			throw new ServiceUnavailable();
+			throw new ServiceUnavailable(e);
 		}
 	}
 
