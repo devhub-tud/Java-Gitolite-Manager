@@ -6,13 +6,13 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 
-import nl.minicom.gitolite.manager.models.Config;
+import nl.minicom.gitolite.manager.models.InternalConfig;
 
 import com.google.common.base.Preconditions;
 
 /**
  * This class contains a method to read all SSH keys from a specific directory
- * and register them with a provided {@link Config} object.
+ * and register them with a provided {@link InternalConfig} object.
  * 
  * @author Michael de Jong <michaelj@minicom.nl>
  */
@@ -20,10 +20,10 @@ public final class KeyReader {
 
 	/**
 	 * This method reads all SSH keys from the specified key directory, and registers them
-	 * with the specified {@link Config} object.
+	 * with the specified {@link InternalConfig} object.
 	 * 
 	 * @param config
-	 * 	The {@link Config} to register the keys with.
+	 * 	The {@link InternalConfig} to register the keys with.
 	 * 
 	 * @param keyDir
 	 * 	The directory where all the SSH keys are registered.
@@ -31,7 +31,7 @@ public final class KeyReader {
 	 * @throws IOException
 	 * 	If there were problems when reading the key directory.
 	 */
-	public static void readKeys(Config config, File keyDir) throws IOException {
+	public static void readKeys(InternalConfig config, File keyDir) throws IOException {
 		Preconditions.checkNotNull(config);
 		Preconditions.checkNotNull(keyDir);
 		Preconditions.checkArgument(keyDir.isDirectory(), "The argument 'keyDir' must be a directory!");

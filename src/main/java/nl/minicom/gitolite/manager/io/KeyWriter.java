@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import nl.minicom.gitolite.manager.models.Config;
+import nl.minicom.gitolite.manager.models.InternalConfig;
 import nl.minicom.gitolite.manager.models.User;
 
 import org.apache.commons.lang3.StringUtils;
@@ -16,18 +16,18 @@ import com.google.common.collect.Sets;
 
 /**
  * This class contains a method to write all registered SSH keys in 
- * a specified {@link Config} object, to a specified directory.
+ * a specified {@link InternalConfig} object, to a specified directory.
  * 
  * @author Michael de Jong <michaelj@minicom.nl>
  */
 public final class KeyWriter {
 
 	/**
-	 * This method writes all SSH keys currently present in the provided {@link Config} object
+	 * This method writes all SSH keys currently present in the provided {@link InternalConfig} object
 	 * to the specified key directory. Existing keys are not removed, but may be overwritten.
 	 * 
 	 * @param config
-	 * 	The {@link Config} object, containing all the SSH keys. This cannot be NULL.
+	 * 	The {@link InternalConfig} object, containing all the SSH keys. This cannot be NULL.
 	 * 
 	 * @param keyDir
 	 * 	The directory where all the keys should be stored. This cannot be NULL.
@@ -38,7 +38,7 @@ public final class KeyWriter {
 	 * @throws IOException
 	 * 	If a problem occurred when writing the SSH key files.
 	 */
-	public static Set<File> writeKeys(Config config, File keyDir) throws IOException {
+	public static Set<File> writeKeys(InternalConfig config, File keyDir) throws IOException {
 		Preconditions.checkNotNull(config);
 		Preconditions.checkNotNull(keyDir);
 		Preconditions.checkArgument(keyDir.isDirectory(), "The argument 'keyDir' must be a directory!");

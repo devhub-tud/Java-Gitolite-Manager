@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 
-import nl.minicom.gitolite.manager.models.Config;
+import nl.minicom.gitolite.manager.models.InternalConfig;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -15,7 +15,7 @@ import org.junit.Ignore;
 @Ignore
 public class ConfigWriterTestingUtils {
 	
-	protected void validateWrittenConfig(String file, Config config) throws IOException {
+	protected void validateWrittenConfig(String file, InternalConfig config) throws IOException {
 		StringWriter result = new StringWriter();
 		ConfigWriter.write(config, result);
 		

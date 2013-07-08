@@ -5,7 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
 
-import nl.minicom.gitolite.manager.models.Config;
+import nl.minicom.gitolite.manager.models.InternalConfig;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,7 +32,7 @@ public class KeyReaderTest {
 
 	@Test(expected = NullPointerException.class)
 	public void testThatAddingKeysToConfigWhenKeyDirIsNullExceptionIsThrown() throws IOException {
-		KeyReader.readKeys(new Config(), null);
+		KeyReader.readKeys(new InternalConfig(), null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -40,12 +40,12 @@ public class KeyReaderTest {
 		File keyDir = Files.createTempDir();
 		writeKeyFile(keyDir, "test", null, CONTENT);
 
-		KeyReader.readKeys(new Config(), new File(keyDir, "test.pub"));
+		KeyReader.readKeys(new InternalConfig(), new File(keyDir, "test.pub"));
 	}
 
 	@Test
 	public void testAddingSingleKeyWithoutNameToConfig() throws IOException {
-		Config config = new Config();
+		InternalConfig config = new InternalConfig();
 		File keyDir = Files.createTempDir();
 		writeKeyFile(keyDir, "test-user-1", null, CONTENT);
 
@@ -57,7 +57,7 @@ public class KeyReaderTest {
 
 	@Test
 	public void testAddingSingleKeyWithNameToConfig() throws IOException {
-		Config config = new Config();
+		InternalConfig config = new InternalConfig();
 		File keyDir = Files.createTempDir();
 		writeKeyFile(keyDir, "test-user-1", "iMac", CONTENT);
 
@@ -69,7 +69,7 @@ public class KeyReaderTest {
 
 	@Test
 	public void testAddingMultipleKeysForTheSameUserToConfig() throws IOException {
-		Config config = new Config();
+		InternalConfig config = new InternalConfig();
 		File keyDir = Files.createTempDir();
 		writeKeyFile(keyDir, "test-user-1", "iMac", CONTENT);
 		writeKeyFile(keyDir, "test-user-1", "MacBook-Air", CONTENT);
@@ -83,7 +83,7 @@ public class KeyReaderTest {
 
 	@Test
 	public void testAddingMultipleKeysForMultipleUsersToConfig() throws IOException {
-		Config config = new Config();
+		InternalConfig config = new InternalConfig();
 		File keyDir = Files.createTempDir();
 		writeKeyFile(keyDir, "test-user-1", "iMac", CONTENT);
 		writeKeyFile(keyDir, "test-user-1", "MacBook-Air", CONTENT);

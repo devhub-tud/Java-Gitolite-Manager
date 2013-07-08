@@ -1,5 +1,6 @@
 package nl.minicom.gitolite.manager.models;
 
+import java.util.Comparator;
 import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -15,6 +16,13 @@ import com.google.common.collect.Maps;
  * @author Michael de Jong <michaelj@minicom.nl>
  */
 public final class User implements Identifiable {
+
+	static final Comparator<User> SORT_BY_NAME = new Comparator<User>() {
+		@Override
+		public int compare(User arg0, User arg1) {
+			return arg0.getName().compareTo(arg1.getName());
+		}
+	};
 
 	private final String name;
 	private final Map<String, String> keys;
@@ -101,6 +109,11 @@ public final class User implements Identifiable {
 		return new EqualsBuilder()
 			.append(name, ((User) other).name)
 			.isEquals();
+	}
+	
+	@Override
+	public String toString() {
+		return name;
 	}
 	
 }

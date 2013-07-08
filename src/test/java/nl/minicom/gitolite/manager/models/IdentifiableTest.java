@@ -11,22 +11,22 @@ import com.google.common.collect.Sets;
 
 public class IdentifiableTest {
 
-	private Group group1;
-	private Group group2;
+	private InternalGroup group1;
+	private InternalGroup group2;
 	private User user1;
 	private User user2;
 
 	@Before
 	public void setUp() {
-		group1 = new Group("@group1");
-		group2 = new Group("@group2");
+		group1 = new InternalGroup("@group1");
+		group2 = new InternalGroup("@group2");
 		user1 = new User("user1");
 		user2 = new User("user2");
 	}
 
 	@Test
 	public void testComparatorWithGroupsOnly() {
-		SortedSet<Identifiable> identifiables = Sets.newTreeSet(Identifiable.SORT_BY_TYPE_AND_ALPHABETICALLY);
+		SortedSet<Identifiable> identifiables = Sets.newTreeSet(Identifiable.SORT_BY_TYPE_AND_NAME);
 		identifiables.add(group2);
 		identifiables.add(group1);
 
@@ -35,7 +35,7 @@ public class IdentifiableTest {
 
 	@Test
 	public void testComparatorWithUsersOnly() {
-		SortedSet<Identifiable> identifiables = Sets.newTreeSet(Identifiable.SORT_BY_TYPE_AND_ALPHABETICALLY);
+		SortedSet<Identifiable> identifiables = Sets.newTreeSet(Identifiable.SORT_BY_TYPE_AND_NAME);
 		identifiables.add(user2);
 		identifiables.add(user1);
 
@@ -44,7 +44,7 @@ public class IdentifiableTest {
 
 	@Test
 	public void testComparatorWithUsersAndGroups() {
-		SortedSet<Identifiable> identifiables = Sets.newTreeSet(Identifiable.SORT_BY_TYPE_AND_ALPHABETICALLY);
+		SortedSet<Identifiable> identifiables = Sets.newTreeSet(Identifiable.SORT_BY_TYPE_AND_NAME);
 		identifiables.add(group2);
 		identifiables.add(user2);
 		identifiables.add(group1);

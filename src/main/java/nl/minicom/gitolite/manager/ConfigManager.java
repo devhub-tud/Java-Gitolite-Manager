@@ -5,8 +5,11 @@ import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
+import nl.minicom.gitolite.manager.Changes.Change;
+import nl.minicom.gitolite.manager.exceptions.ModificationException;
 import nl.minicom.gitolite.manager.exceptions.ServiceUnavailable;
 import nl.minicom.gitolite.manager.git.GitManager;
 import nl.minicom.gitolite.manager.git.JGitManager;
@@ -14,7 +17,7 @@ import nl.minicom.gitolite.manager.io.ConfigReader;
 import nl.minicom.gitolite.manager.io.ConfigWriter;
 import nl.minicom.gitolite.manager.io.KeyReader;
 import nl.minicom.gitolite.manager.io.KeyWriter;
-import nl.minicom.gitolite.manager.models.Config;
+import nl.minicom.gitolite.manager.models.InternalConfig;
 
 import org.eclipse.jgit.transport.CredentialsProvider;
 
@@ -86,8 +89,8 @@ public class ConfigManager {
 	private final String gitUri;
 	private final GitManager git;
 	private final File workingDirectory;
-
-	private Config config;
+	
+	private final Object lock = new Object();
 
 	/**
 	 * Constructs a new {@link ConfigManager} object.
@@ -105,12 +108,28 @@ public class ConfigManager {
 		git = gitManager;
 		workingDirectory = git.getWorkingDirectory();
 	}
+	
+	private void ensureAdminRepoIsUpToDate() throws ServiceUnavailable, IOException {
+		synchronized (lock) {
+			try {
+				if (!new File(workingDirectory, ".git").exists()) {
+					git.clone(gitUri);
+				}
+				else {
+					git.pull();
+				}
+			}
+			catch (IOException | ServiceUnavailable e) {
+				throw new ServiceUnavailable(e);
+			}
+		}
+	}
 
 	/**
 	 * This method reads and interprets the configuration repository, and returns
 	 * a representation.
 	 * 
-	 * @return A {@link Config} object, representing the configuration
+	 * @return A {@link InternalConfig} object, representing the configuration
 	 *         repository.
 	 * 
 	 * @throws ServiceUnavailable If the service could not be reached.
@@ -118,50 +137,45 @@ public class ConfigManager {
 	 * @throws IOException If one or more files in the repository could not be
 	 *            read.
 	 */
-	public Config getConfig() throws IOException, ServiceUnavailable {
-		try {
-			if (!new File(workingDirectory, ".git").exists()) {
-				git.clone(gitUri);
-			}
-		} catch (IOException | ServiceUnavailable e) {
-			throw new ServiceUnavailable(e);
-		}
-
-		if (git.pull() || config == null) {
-			config = readConfig();
-		}
-		return config;
+	public Config loadConfig() throws IOException, ServiceUnavailable {
+		ensureAdminRepoIsUpToDate();
+		return new Config(readConfig());
 	}
 
-	/**
-	 * This method writes the current state of the internal {@link Config} object
-	 * to the git repository and commits and pushes the changes.
-	 * 
-	 * @throws IOException In case the operation failed, when writing the new
-	 *            configuration, committing the changes or pushing them to the
-	 *            remote repository.
-	 * 
-	 * @throws ServiceUnavailable If the remote service could not be reached.
-	 */
-	public void applyConfig() throws IOException, ServiceUnavailable {
-		if (config == null) {
-			throw new IllegalStateException("Config has not yet been loaded!");
+	public void applyChanges(Config config) throws IOException, ModificationException, ServiceUnavailable {
+		ensureAdminRepoIsUpToDate();
+		InternalConfig current = readConfig();
+		
+		List<Change> changes = config.listChanges();
+		for (Change change : changes) {
+			change.apply(current);
 		}
-		ConfigWriter.write(config, new FileWriter(getConfigFile()));
-		Set<File> writtenKeys = KeyWriter.writeKeys(config, ensureKeyDirectory());
-		Set<File> orphanedKeyFiles = listKeys();
-		orphanedKeyFiles.removeAll(writtenKeys);
-
-		for (File orphanedKeyFile : orphanedKeyFiles) {
-			git.remove("keydir/" + orphanedKeyFile.getName());
-		}
-
-		git.commitChanges();
-
-		try {
-			git.push();
-		} catch (IOException e) {
-			throw new ServiceUnavailable(e);
+		
+		writeAndPush(current);
+	}
+	
+	private void writeAndPush(InternalConfig config) throws IOException, ServiceUnavailable {
+		synchronized (lock) {
+			if (config == null) {
+				throw new IllegalStateException("Config has not yet been loaded!");
+			}
+			
+			ConfigWriter.write(config, new FileWriter(getConfigFile()));
+			Set<File> writtenKeys = KeyWriter.writeKeys(config, ensureKeyDirectory());
+			Set<File> orphanedKeyFiles = listKeys();
+			orphanedKeyFiles.removeAll(writtenKeys);
+	
+			for (File orphanedKeyFile : orphanedKeyFiles) {
+				git.remove("keydir/" + orphanedKeyFile.getName());
+			}
+			git.commitChanges();
+	
+			try {
+				git.push();
+			} 
+			catch (IOException e) {
+				throw new ServiceUnavailable(e);
+			}
 		}
 	}
 
@@ -185,8 +199,8 @@ public class ConfigManager {
 		return keys;
 	}
 
-	private Config readConfig() throws IOException {
-		Config config = ConfigReader.read(new FileReader(getConfigFile()));
+	private InternalConfig readConfig() throws IOException {
+		InternalConfig config = ConfigReader.read(new FileReader(getConfigFile()));
 		KeyReader.readKeys(config, ensureKeyDirectory());
 		return config;
 	}

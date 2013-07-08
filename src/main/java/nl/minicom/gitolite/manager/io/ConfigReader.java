@@ -6,6 +6,7 @@ import java.io.Reader;
 
 import nl.minicom.gitolite.manager.models.Config;
 import nl.minicom.gitolite.manager.models.Group;
+import nl.minicom.gitolite.manager.models.InternalConfig;
 import nl.minicom.gitolite.manager.models.Identifiable;
 import nl.minicom.gitolite.manager.models.Permission;
 import nl.minicom.gitolite.manager.models.Repository;
@@ -15,7 +16,7 @@ import com.google.common.base.Splitter;
 
 /**
  * This class contains a method to read a gitolite configuration file, and
- * parsing it. This allows you to obtain a {@link Config} object based on the
+ * parsing it. This allows you to obtain a {@link InternalConfig} object based on the
  * configuration file
  * 
  * @author Michael de Jong <michaelj@minicom.nl>
@@ -24,18 +25,18 @@ public final class ConfigReader {
 
 	/**
 	 * This method reads the configuration file from the specified {@link Reader}, and creates
-	 * a {@link Config} object from it.
+	 * a {@link InternalConfig} object from it.
 	 * 
 	 * @param reader
 	 * 	The {@link Reader} which allows us to read the configuration file. This cannot be NULL.
 	 * 
 	 * @return
-	 * 	The constructed {@link Config} object.
+	 * 	The constructed {@link InternalConfig} object.
 	 * 
 	 * @throws IOException
 	 * 	If the configuration file could not be read, or was syntactically incorrect.
 	 */
-	public static Config read(Reader reader) throws IOException {
+	public static InternalConfig read(Reader reader) throws IOException {
 		Preconditions.checkNotNull(reader);
 		
 		BufferedReader bufferedReader = new BufferedReader(reader);
@@ -47,8 +48,8 @@ public final class ConfigReader {
 		}
 	}
 
-	private static Config parseConfig(BufferedReader reader) throws IOException {
-		Config config = new Config();
+	private static InternalConfig parseConfig(BufferedReader reader) throws IOException {
+		InternalConfig config = new InternalConfig();
 		
 		String line;
 		Repository currentRepo = null;

@@ -5,7 +5,8 @@ import java.io.Writer;
 import java.util.Collection;
 
 import nl.minicom.gitolite.manager.models.Config;
-import nl.minicom.gitolite.manager.models.Group;
+import nl.minicom.gitolite.manager.models.InternalConfig;
+import nl.minicom.gitolite.manager.models.InternalGroup;
 import nl.minicom.gitolite.manager.models.Identifiable;
 import nl.minicom.gitolite.manager.models.Permission;
 import nl.minicom.gitolite.manager.models.Repository;
@@ -18,7 +19,7 @@ import com.google.common.collect.Multimap;
 
 /**
  * This class contains a method to write a configuration file 
- * based on a specified {@link Config} object.
+ * based on a specified {@link InternalConfig} object.
  *
  * @author Michael de Jong <michaelj@minicom.nl>
  */
@@ -28,11 +29,11 @@ public final class ConfigWriter {
 	private static final int PADDING = 20;
 
 	/**
-	 * This method writes a configuration file based on the specified {@link Config} object,
+	 * This method writes a configuration file based on the specified {@link InternalConfig} object,
 	 * to the specified {@link Writer}.
 	 * 
 	 * @param config
-	 * 	The {@link Config} object to write. This cannot be NULL.
+	 * 	The {@link InternalConfig} object to write. This cannot be NULL.
 	 * 
 	 * @param writer
 	 * 	The {@link Writer} to write the configuration to. This cannot be NULL.
@@ -40,7 +41,7 @@ public final class ConfigWriter {
 	 * @throws IOException
 	 * 	If the configuration file could not be written.
 	 */
-	public static void write(Config config, Writer writer) throws IOException {
+	public static void write(InternalConfig config, Writer writer) throws IOException {
 		Preconditions.checkNotNull(config);
 		Preconditions.checkNotNull(writer);
 		
@@ -52,14 +53,14 @@ public final class ConfigWriter {
 	}
 
 	private static void writeGroups(Config config, Writer writer) throws IOException {
-		Collection<Group> groups = config.getGroups();
+		Collection<InternalGroup> groups = config.getGroups();
 		if (!groups.isEmpty()) {
-			for (Group group : groups) {
+			for (InternalGroup group : groups) {
 				if (group.getName().equals("@all")) {
 					continue;
 				}
 				writer.write(pad(group.getName(), PADDING) + " = " 
-					+ Joiner.on(" ").join(group.getEntityNamesInGroup()) + "\n");
+					+ Joiner.on(" ").join(group.getMembers()) + "\n");
 			}
 			writer.write("\n");
 		}

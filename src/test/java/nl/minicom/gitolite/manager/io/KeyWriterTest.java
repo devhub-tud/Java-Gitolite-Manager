@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import nl.minicom.gitolite.manager.models.Config;
+import nl.minicom.gitolite.manager.models.InternalConfig;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -23,7 +23,7 @@ public class KeyWriterTest {
 
 	@Test(expected = NullPointerException.class)
 	public void testThatAddingKeysToConfigWhenKeyDirIsNullExceptionIsThrown() throws IOException {
-		KeyWriter.writeKeys(new Config(), null);
+		KeyWriter.writeKeys(new InternalConfig(), null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -32,13 +32,13 @@ public class KeyWriterTest {
 		File file = new File(keyDir, "test.pub");
 		file.createNewFile();
 
-		KeyWriter.writeKeys(new Config(), file);
+		KeyWriter.writeKeys(new InternalConfig(), file);
 	}
 
 	@Test
 	public void testWritingSingleSimpleKeyToKeyDir() throws IOException {
 		File keyDir = Files.createTempDir();
-		Config config = new Config();
+		InternalConfig config = new InternalConfig();
 		config.ensureUserExists("test-user").defineKey("", CONTENT);
 		KeyWriter.writeKeys(config, keyDir);
 
@@ -48,7 +48,7 @@ public class KeyWriterTest {
 	@Test
 	public void testWritingSingleKeyWithNameToKeyDir() throws IOException {
 		File keyDir = Files.createTempDir();
-		Config config = new Config();
+		InternalConfig config = new InternalConfig();
 		config.ensureUserExists("test-user").defineKey("iMac", CONTENT);
 		KeyWriter.writeKeys(config, keyDir);
 
@@ -58,7 +58,7 @@ public class KeyWriterTest {
 	@Test
 	public void testWritingMultipleKeysForSingleUserToKeyDir() throws IOException {
 		File keyDir = Files.createTempDir();
-		Config config = new Config();
+		InternalConfig config = new InternalConfig();
 		config.ensureUserExists("test-user").defineKey("iMac", CONTENT);
 		config.ensureUserExists("test-user").defineKey("MacBook-Air", CONTENT);
 		KeyWriter.writeKeys(config, keyDir);
@@ -70,7 +70,7 @@ public class KeyWriterTest {
 	@Test
 	public void testWritingMultipleKeysForMultipleUsersToKeyDir() throws IOException {
 		File keyDir = Files.createTempDir();
-		Config config = new Config();
+		InternalConfig config = new InternalConfig();
 		config.ensureUserExists("test-user-1").defineKey("iMac", CONTENT);
 		config.ensureUserExists("test-user-1").defineKey("MacBook-Air", CONTENT);
 		config.ensureUserExists("test-user-2").defineKey("iMac", CONTENT);

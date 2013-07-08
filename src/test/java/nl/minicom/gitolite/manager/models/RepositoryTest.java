@@ -22,7 +22,7 @@ public class RepositoryTest {
 
 	@Before
 	public void setUp() {
-		config = new Config();
+		config = new InternalConfig();
 		user1 = new User("test-user-1");
 		user2 = new User("test-user-2");
 	}

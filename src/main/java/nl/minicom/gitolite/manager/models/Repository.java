@@ -38,7 +38,7 @@ public final class Repository {
 		Preconditions.checkArgument(!name.isEmpty());
 		
 		this.name = name;
-		this.rights = TreeMultimap.create(Permission.SORT_ON_ORDINAL, Identifiable.SORT_BY_TYPE_AND_ALPHABETICALLY);
+		this.rights = TreeMultimap.create(Permission.SORT_ON_ORDINAL, Identifiable.SORT_BY_TYPE_AND_NAME);
 	}
 	
 	/**
@@ -50,13 +50,13 @@ public final class Repository {
 	}
 	
 	/**
-	 * This method sets the {@link Permission} level for a specified {@link User} of {@link Group}.
+	 * This method sets the {@link Permission} level for a specified {@link User} of {@link InternalGroup}.
 	 * 
 	 * @param entity
-	 * 	The {@link Group} or {@link User} to set the permission for.
+	 * 	The {@link InternalGroup} or {@link User} to set the permission for.
 	 * 
 	 * @param level
-	 * 	The {@link Permission} which the specified {@link User} or {@link Group} should have.
+	 * 	The {@link Permission} which the specified {@link User} or {@link InternalGroup} should have.
 	 */
 	public void setPermission(Identifiable entity, Permission level) {
 		Preconditions.checkNotNull(entity);
@@ -66,10 +66,10 @@ public final class Repository {
 
 	/**
 	 * This method revokes all rights on this {@link Repository} for the 
-	 * specified {@link User} or {@link Group}.
+	 * specified {@link User} or {@link InternalGroup}.
 	 * 
 	 * @param entity
-	 * 	The {@link Group} or {@link User} whose permissions need to be revoked.
+	 * 	The {@link InternalGroup} or {@link User} whose permissions need to be revoked.
 	 */
 	public void revokePermissions(Identifiable entity) {
 		for (Permission permission : Permission.values()) {
@@ -79,10 +79,10 @@ public final class Repository {
 
 	/**
 	 * @return
-	 * 	An {@link ImmutableMultimap} containing all the {@link User}s and {@link Group}s 
+	 * 	An {@link ImmutableMultimap} containing all the {@link User}s and {@link InternalGroup}s 
 	 * 	who have some kind of access on this {@link Repository} object. They're ordered
 	 * 	by highest {@link Permission} to lowest {@link Permission}, and each permission 
-	 * 	contains one or more {@link User}s and {@link Group}s.
+	 * 	contains one or more {@link User}s and {@link InternalGroup}s.
 	 */
 	public ImmutableMultimap<Permission, Identifiable> getPermissions() {
 		return ImmutableMultimap.copyOf(rights);
