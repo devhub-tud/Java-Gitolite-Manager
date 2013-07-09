@@ -11,17 +11,17 @@ import com.google.common.collect.Sets;
 
 public class IdentifiableTest {
 
-	private InternalGroup group1;
-	private InternalGroup group2;
+	private Group group1;
+	private Group group2;
 	private User user1;
 	private User user2;
 
 	@Before
 	public void setUp() {
-		group1 = new InternalGroup("@group1");
-		group2 = new InternalGroup("@group2");
-		user1 = new User("user1");
-		user2 = new User("user2");
+		group1 = new Group("@group1", new Recorder());
+		group2 = new Group("@group2", new Recorder());
+		user1 = new User("user1", new Recorder());
+		user2 = new User("user2", new Recorder());
 	}
 
 	@Test

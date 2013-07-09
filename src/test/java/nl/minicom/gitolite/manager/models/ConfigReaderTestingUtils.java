@@ -1,12 +1,12 @@
-package nl.minicom.gitolite.manager.io;
+package nl.minicom.gitolite.manager.models;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import nl.minicom.gitolite.manager.models.Config;
+import nl.minicom.gitolite.manager.models.ConfigReader;
 import nl.minicom.gitolite.manager.models.Group;
-import nl.minicom.gitolite.manager.models.InternalGroup;
 import nl.minicom.gitolite.manager.models.Repository;
 
 import org.junit.Assert;
@@ -22,9 +22,9 @@ public class ConfigReaderTestingUtils {
 
 	protected void verifyConfigsAreTheSame(Config expected, Config actual) {
 		Assert.assertEquals(expected.getGroups(), actual.getGroups());
-		for (InternalGroup expectedGroup : expected.getGroups()) {
+		for (Group expectedGroup : expected.getGroups()) {
 			Group actualGroup = actual.getGroup(expectedGroup.getName());
-			Assert.assertEquals(expectedGroup.getMembers(), actualGroup.getMembers());
+			Assert.assertEquals(expectedGroup.getAllMembers(), actualGroup.getAllMembers());
 		}
 
 		Assert.assertEquals(expected.getRepositories(), actual.getRepositories());

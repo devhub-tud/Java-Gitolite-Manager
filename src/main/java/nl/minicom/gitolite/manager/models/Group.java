@@ -1,11 +1,25 @@
 package nl.minicom.gitolite.manager.models;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
+import java.util.SortedSet;
 
-import com.google.common.collect.ImmutableSet;
+import nl.minicom.gitolite.manager.exceptions.ModificationException;
+import nl.minicom.gitolite.manager.models.Recorder.Modification;
 
-public interface Group extends Identifiable {
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+
+/**
+ * This class represents a {@link Group} in the gitolite configuration.
+ * 
+ * @author Michael de Jong <michaelj@minicom.nl>
+ */
+public final class Group implements Identifiable {
 
 	static final Comparator<Group> SORT_BY_NAME = new Comparator<Group>() {
 		@Override
@@ -13,22 +27,48 @@ public interface Group extends Identifiable {
 			return arg0.getName().compareTo(arg1.getName());
 		}
 	};
+	
+	private final String name;
+	private final Recorder recorder;
+	private final SortedSet<Group> groups;
+	private final SortedSet<User> users;
+	
+	/**
+	 * Constructs a new {@link Group} object with the specified name.
+	 * 
+	 * @param name
+	 * 	The name of the group. The name must be a non-null, not-empty value.
+	 */
+	Group(String name) {
+		this(name, new Recorder());
+	}
+	
+	/**
+	 * Constructs a new {@link Group} object with the specified name.
+	 * 
+	 * @param name
+	 * 	The name of the group. The name must be a non-null, not-empty value.
+	 */
+	Group(String name, Recorder recorder) {
+		Preconditions.checkNotNull(name);
+		Preconditions.checkArgument(!name.isEmpty());
+		Preconditions.checkArgument(name.startsWith("@"));
+		Preconditions.checkNotNull(recorder);
+		
+		this.name = name;
+		this.recorder = recorder;
+		this.groups = Sets.newTreeSet(Group.SORT_BY_NAME);
+		this.users = Sets.newTreeSet(User.SORT_BY_NAME);
+	}
 
 	/**
 	 * @return
 	 * 	The name of this {@link Group}.
 	 */
-	String getName();
-
-	/**
-	 * This method adds a child {@link Group} object to the {@link Group}.
-	 * 
-	 * @param group
-	 * 	The {@link Group} to add to this {@link Group}. This may not be NULL.
-	 * 	In case the {@link Group} is already a member of this group an 
-	 * 	{@link IllegalArgumentException} is thrown.
-	 */
-	void add(Group group);
+	@Override
+	public String getName() {
+		return name;
+	}
 
 	/**
 	 * This method adds a {@link User} object to the {@link Group}.
@@ -38,19 +78,53 @@ public interface Group extends Identifiable {
 	 * 	In case the {@link User} is already a member of this group an 
 	 * 	{@link IllegalArgumentException} is thrown.
 	 */
-	void add(User user);
-	
-	/**
-	 * @return
-	 * 	An {@link ImmutableSet} of {@link User}s of this {@link Group}.
-	 */
-	Set<User> getUsers();
+	public void add(User user) {
+		Preconditions.checkArgument(!isAllGroup());
+		Preconditions.checkNotNull(user);
+		
+		if (users.contains(user)) {
+			throw new IllegalArgumentException("Cannot add user: '" + user.getName() + "'. It's already added!");
+		}
+		users.add(user);
+
+		final String childName = user.getName();
+		recorder.append(new Modification("Adding user: '%s' to group: '%s'", childName, getName()) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				Group parent = config.getGroup(getName());
+				User child = config.getUser(childName);
+				parent.add(child);
+			}
+		});
+	}
 
 	/**
-	 * @return
-	 * 	An {@link ImmutableSet} of child {@link Group}s of this {@link Group}.
+	 * This method adds a child {@link Group} object to the {@link Group}.
+	 * 
+	 * @param group
+	 * 	The {@link Group} to add to this {@link Group}. This may not be NULL.
+	 * 	In case the {@link Group} is already a member of this group an 
+	 * 	{@link IllegalArgumentException} is thrown.
 	 */
-	Set<Group> getGroups();
+	public void add(Group group) {
+		Preconditions.checkArgument(!isAllGroup());
+		Preconditions.checkNotNull(group);
+		
+		if (groups.contains(group)) {
+			throw new IllegalArgumentException("Cannot add group: '" + group.getName() + "'. It's already added!");
+		}
+		groups.add(group);
+
+		final String groupName = group.getName();
+		recorder.append(new Modification("Adding group: '%s' to group: '%s'", groupName, getName()) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				Group parent = config.getGroup(getName());
+				Group child = config.getGroup(groupName);
+				parent.add(child);
+			}
+		});
+	}
 
 	/**
 	 * This method returns true if the specified {@link User} is a member 
@@ -62,7 +136,10 @@ public interface Group extends Identifiable {
 	 * @return
 	 * 	True if the specified {@link User} is a member of this {@link Group}.
 	 */
-	boolean containsUser(User user);
+	public boolean containsUser(User user) {
+		Preconditions.checkNotNull(user);
+		return getUsers().contains(user);
+	}
 
 	/**
 	 * This method returns true if the specified {@link Group} is a child 
@@ -74,12 +151,66 @@ public interface Group extends Identifiable {
 	 * @return
 	 * 	True if the specified {@link Group} is a child of this {@link Group}.
 	 */
-	boolean containsGroup(Group group);
+	public boolean containsGroup(Group group) {
+		Preconditions.checkNotNull(group);
+		if (getGroups().contains(group)) {
+			return true;
+		}
+		for (Group child : getGroups()) {
+			if (child.containsGroup(group)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * @return
+	 * 	An {@link Set} of child {@link Group}s of this {@link Group}.
+	 */
+	public Set<Group> getGroups() {
+		return Collections.unmodifiableSortedSet(groups);
+	}
+
+	/**
+	 * @return
+	 * 	An {@link Set} of child {@link User}s of this {@link Group}.
+	 */
+	public Set<User> getUsers() {
+		return Collections.unmodifiableSortedSet(users);
+	}
 
 	/**
 	 * @return
 	 * 	A {@link Set} containing all {@link User}s and {@link Group}s.
 	 */
-	Set<Identifiable> getMembers();
+	public Set<Identifiable> getAllMembers() {
+		Set<Identifiable> members = Sets.newTreeSet(Identifiable.SORT_BY_TYPE_AND_NAME);
+		members.addAll(groups);
+		members.addAll(users);
+		return members;
+	}
+	
+	private boolean isAllGroup() {
+		return name.equals("@all");
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder()
+			.append(name)
+			.toHashCode();
+	}
+	
+	@Override
+	public boolean equals(Object other) {
+		if (!(other instanceof Group)) {
+			return false;
+		}
+		
+		return new EqualsBuilder()
+			.append(name, ((Group) other).name)
+			.isEquals();
+	}
 	
 }

@@ -15,35 +15,35 @@ public class GroupTest {
 
 	@Test
 	public void testConstructorWithValidInputs() {
-		Group group = new InternalGroup("@test-group");
+		Group group = new Group("@test-group");
 		Assert.assertEquals("@test-group", group.getName());
 	}
 
 	@Test(expected = NullPointerException.class)
 	public void testConstructorWithNullAsName() {
-		new InternalGroup(null);
+		new Group(null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorWithEmptyName() {
-		new InternalGroup("");
+		new Group("");
 	}
 
 	@Test(expected = NullPointerException.class)
 	public void testAddingNullGroupToGroup() {
 		Group nullGroup = null;
-		new InternalGroup("@parent").add(nullGroup);
+		new Group("@parent").add(nullGroup);
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void testAddingNullUserToGroup() {
 		User nullUser = null;
-		new InternalGroup("@parent").add(nullUser);
+		new Group("@parent").add(nullUser);
 	}
 
 	@Test
 	public void testAddingUserToGroup() {
-		Group parent = new InternalGroup("@parent");
+		Group parent = new Group("@parent");
 		User user = new User("test-user");
 		parent.add(user);
 
@@ -52,8 +52,8 @@ public class GroupTest {
 
 	@Test
 	public void testAddingGroupToGroup() {
-		Group parent = new InternalGroup("@parent");
-		Group child = new InternalGroup("@child");
+		Group parent = new Group("@parent");
+		Group child = new Group("@child");
 		parent.add(child);
 
 		Assert.assertEquals(Sets.newHashSet(child), parent.getGroups());
@@ -61,31 +61,31 @@ public class GroupTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testAddingSameGroupTwiceToGroup() {
-		Group parent = new InternalGroup("@parent");
-		Group child = new InternalGroup("@child");
+		Group parent = new Group("@parent");
+		Group child = new Group("@child");
 		parent.add(child);
 		parent.add(child);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testAddingUserToAllGroupThrowsException() {
-		new InternalGroup("@all").add(new User("test-user"));
+		new Group("@all").add(new User("test-user"));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testAddingGroupToAllGroupThrowsException() {
-		new InternalGroup("@all").add(new InternalGroup("@test-group"));
+		new Group("@all").add(new Group("@test-group"));
 	}
 
 	@Test(expected = NullPointerException.class)
 	public void testThatContainsGroupMethodThrowsExceptionOnNullAsInput() {
-		new InternalGroup("@parent").containsGroup(null);
+		new Group("@parent").containsGroup(null);
 	}
 
 	@Test
 	public void testContainsGroupMethodWithFirstDegreeChild() {
-		Group parent = new InternalGroup("@parent");
-		Group child = new InternalGroup("@child");
+		Group parent = new Group("@parent");
+		Group child = new Group("@child");
 		parent.add(child);
 
 		Assert.assertTrue(parent.containsGroup(child));
@@ -93,9 +93,9 @@ public class GroupTest {
 
 	@Test
 	public void testContainsGroupMethodWithSecondDegreeChild() {
-		Group parent = new InternalGroup("@parent");
-		Group intermediate = new InternalGroup("@intermediate");
-		Group child = new InternalGroup("@child");
+		Group parent = new Group("@parent");
+		Group intermediate = new Group("@intermediate");
+		Group child = new Group("@child");
 
 		parent.add(intermediate);
 		intermediate.add(child);
@@ -105,24 +105,24 @@ public class GroupTest {
 
 	@Test
 	public void testContainsGroupMethodWhenOtherGroupIsNoChild() {
-		Group parent = new InternalGroup("@parent");
-		Group other = new InternalGroup("@other");
+		Group parent = new Group("@parent");
+		Group other = new Group("@other");
 
 		Assert.assertFalse(parent.containsGroup(other));
 	}
 
 	@Test
 	public void testContainsGroupMethodWhenOnlyUsersArePresent() {
-		Group parent = new InternalGroup("@parent");
+		Group parent = new Group("@parent");
 		parent.add(new User("test-user"));
 
-		Assert.assertFalse(parent.containsGroup(new InternalGroup("@other")));
+		Assert.assertFalse(parent.containsGroup(new Group("@other")));
 	}
 
 	@Test
 	public void testContainsGroupsMethodWhenGroupHasChildren() {
-		Group parent = new InternalGroup("@parent");
-		Group child = new InternalGroup("@child");
+		Group parent = new Group("@parent");
+		Group child = new Group("@child");
 		parent.add(child);
 
 		Assert.assertTrue(parent.containsGroup(child));
@@ -130,7 +130,7 @@ public class GroupTest {
 
 	@Test
 	public void testContainsGroupsMethodWhenGroupOnlyContainsUsers() {
-		Group parent = new InternalGroup("@parent");
+		Group parent = new Group("@parent");
 		User user = new User("test-user");
 		parent.add(user);
 		
@@ -140,8 +140,8 @@ public class GroupTest {
 
 	@Test
 	public void testGetMembersMethod() {
-		Group parent = new InternalGroup("@parent");
-		Group child = new InternalGroup("@child");
+		Group parent = new Group("@parent");
+		Group child = new Group("@child");
 		User user = new User("test-user");
 		parent.add(user);
 		parent.add(child);
@@ -150,7 +150,7 @@ public class GroupTest {
 		members.add(child);
 		members.add(user);
 
-		Assert.assertEquals(members, parent.getMembers());
+		Assert.assertEquals(members, parent.getAllMembers());
 	}
 
 	/**
@@ -169,16 +169,16 @@ public class GroupTest {
 	 */
 	@Test
 	public void testGroupOrdering() {
-		Group a = new InternalGroup("@a");
-		Group b = new InternalGroup("@b");
-		Group c = new InternalGroup("@c");
-		Group d = new InternalGroup("@d");
+		Group a = new Group("@a");
+		Group b = new Group("@b");
+		Group c = new Group("@c");
+		Group d = new Group("@d");
 
 		a.add(b);
 		a.add(c);
 		c.add(d);
 
-		SortedSet<Group> groups = Sets.newTreeSet(InternalGroup.SORT_BY_NAME);
+		SortedSet<Group> groups = Sets.newTreeSet(Group.SORT_BY_NAME);
 		groups.add(a);
 		groups.add(b);
 		groups.add(c);
@@ -193,7 +193,7 @@ public class GroupTest {
 
 	@Test
 	public void testEqualsAndHashCode() {
-		EqualsVerifier.forClass(InternalGroup.class).verify();
+		EqualsVerifier.forClass(Group.class).verify();
 	}
 
 }

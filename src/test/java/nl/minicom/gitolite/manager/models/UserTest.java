@@ -12,17 +12,23 @@ import com.google.common.collect.Maps;
 
 public class UserTest {
 
-	private static final String NET_ID = "mdejong2";
+	private static final String NAME = "test-user";
+	private static final String KEY_NAME = "test-key";
 	private static final String KEY_CONTENT = "Content of SSH key...";
 	
 	@Test
 	public void testConstructorWithValidInput() {
-		new User(NET_ID);
+		new User(NAME);
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void testThatConstructorThrowsNullPointerExceptionWhenNameIsNull() {
 		new User(null);
+	}
+	
+	@Test(expected = NullPointerException.class)
+	public void testThatConstructorThrowsNullPointerExceptionWhenRecorderIsNull() {
+		new User(NAME, null);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
@@ -32,44 +38,44 @@ public class UserTest {
 	
 	@Test
 	public void testAddingKey() {
-		User user = new User("test-user");
-		user.defineKey("test", KEY_CONTENT);
+		User user = new User(NAME);
+		user.setKey(KEY_NAME, KEY_CONTENT);
 		
 		Map<String, String> expected = Maps.newTreeMap();
-		expected.put("test", KEY_CONTENT);
+		expected.put(KEY_NAME, KEY_CONTENT);
 		
 		Assert.assertEquals(expected, user.getKeys());
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void testAddingKeyWithNameNull() {
-		User user = new User("test-user");
-		user.defineKey(null, KEY_CONTENT);
+		User user = new User(NAME);
+		user.setKey(null, KEY_CONTENT);
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void testAddingKeyWithContentNull() {
-		User user = new User("test-user");
-		user.defineKey("", null);
+		User user = new User(NAME);
+		user.setKey("", null);
 	}
 	
 	@Test
 	public void testOverridingKey() {
-		User user = new User("test-user");
-		user.defineKey("test", KEY_CONTENT);
-		user.defineKey("test", KEY_CONTENT + "...");
+		User user = new User(NAME);
+		user.setKey(KEY_NAME, KEY_CONTENT);
+		user.setKey(KEY_NAME, KEY_CONTENT + "...");
 		
 		Map<String, String> expected = Maps.newTreeMap();
-		expected.put("test", KEY_CONTENT + "...");
+		expected.put(KEY_NAME, KEY_CONTENT + "...");
 		
 		Assert.assertEquals(expected, user.getKeys());
 	}
 	
 	@Test
 	public void testRemovingKey() {
-		User user = new User("test-user");
-		user.defineKey("test", KEY_CONTENT);
-		user.removeKey("test");
+		User user = new User(NAME);
+		user.setKey(KEY_NAME, KEY_CONTENT);
+		user.removeKey(KEY_NAME);
 		
 		Map<String, String> expected = Maps.newTreeMap();
 		Assert.assertEquals(expected, user.getKeys());

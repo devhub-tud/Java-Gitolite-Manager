@@ -1,4 +1,4 @@
-package nl.minicom.gitolite.manager;
+package nl.minicom.gitolite.manager.models;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -8,16 +8,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import nl.minicom.gitolite.manager.Changes.Change;
 import nl.minicom.gitolite.manager.exceptions.ModificationException;
 import nl.minicom.gitolite.manager.exceptions.ServiceUnavailable;
 import nl.minicom.gitolite.manager.git.GitManager;
 import nl.minicom.gitolite.manager.git.JGitManager;
-import nl.minicom.gitolite.manager.io.ConfigReader;
-import nl.minicom.gitolite.manager.io.ConfigWriter;
-import nl.minicom.gitolite.manager.io.KeyReader;
-import nl.minicom.gitolite.manager.io.KeyWriter;
-import nl.minicom.gitolite.manager.models.InternalConfig;
+import nl.minicom.gitolite.manager.models.Recorder.Modification;
 
 import org.eclipse.jgit.transport.CredentialsProvider;
 
@@ -32,7 +27,7 @@ import com.google.common.io.Files;
  * @author Michael de Jong <michaelj@minicom.nl>
  */
 public class ConfigManager {
-
+	
 	private static final String KEY_DIRECTORY_NAME = "keydir";
 	private static final String CONF_FILE_NAME = "gitolite.conf";
 	private static final String CONF_DIRECTORY_NAME = "conf";
@@ -129,7 +124,7 @@ public class ConfigManager {
 	 * This method reads and interprets the configuration repository, and returns
 	 * a representation.
 	 * 
-	 * @return A {@link InternalConfig} object, representing the configuration
+	 * @return A {@link ConfigRecorder} object, representing the configuration
 	 *         repository.
 	 * 
 	 * @throws ServiceUnavailable If the service could not be reached.
@@ -139,22 +134,23 @@ public class ConfigManager {
 	 */
 	public Config loadConfig() throws IOException, ServiceUnavailable {
 		ensureAdminRepoIsUpToDate();
-		return new Config(readConfig());
+		return readConfig();
 	}
 
 	public void applyChanges(Config config) throws IOException, ModificationException, ServiceUnavailable {
-		ensureAdminRepoIsUpToDate();
-		InternalConfig current = readConfig();
+		List<Modification> changes = config.getRecorder().stop();
 		
-		List<Change> changes = config.listChanges();
-		for (Change change : changes) {
+		ensureAdminRepoIsUpToDate();
+		Config current = readConfig();
+		
+		for (Modification change : changes) {
 			change.apply(current);
 		}
 		
 		writeAndPush(current);
 	}
 	
-	private void writeAndPush(InternalConfig config) throws IOException, ServiceUnavailable {
+	private void writeAndPush(Config config) throws IOException, ServiceUnavailable {
 		synchronized (lock) {
 			if (config == null) {
 				throw new IllegalStateException("Config has not yet been loaded!");
@@ -199,8 +195,8 @@ public class ConfigManager {
 		return keys;
 	}
 
-	private InternalConfig readConfig() throws IOException {
-		InternalConfig config = ConfigReader.read(new FileReader(getConfigFile()));
+	private Config readConfig() throws IOException {
+		Config config = ConfigReader.read(new FileReader(getConfigFile()));
 		KeyReader.readKeys(config, ensureKeyDirectory());
 		return config;
 	}

@@ -1,11 +1,12 @@
-package nl.minicom.gitolite.manager.io;
+package nl.minicom.gitolite.manager.models;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import nl.minicom.gitolite.manager.models.InternalConfig;
+import nl.minicom.gitolite.manager.models.Config;
+import nl.minicom.gitolite.manager.models.KeyWriter;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class KeyWriterTest {
 
 	@Test(expected = NullPointerException.class)
 	public void testThatAddingKeysToConfigWhenKeyDirIsNullExceptionIsThrown() throws IOException {
-		KeyWriter.writeKeys(new InternalConfig(), null);
+		KeyWriter.writeKeys(new Config(), null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -32,14 +33,14 @@ public class KeyWriterTest {
 		File file = new File(keyDir, "test.pub");
 		file.createNewFile();
 
-		KeyWriter.writeKeys(new InternalConfig(), file);
+		KeyWriter.writeKeys(new Config(), file);
 	}
 
 	@Test
 	public void testWritingSingleSimpleKeyToKeyDir() throws IOException {
 		File keyDir = Files.createTempDir();
-		InternalConfig config = new InternalConfig();
-		config.ensureUserExists("test-user").defineKey("", CONTENT);
+		Config config = new Config();
+		config.ensureUserExists("test-user").setKey("", CONTENT);
 		KeyWriter.writeKeys(config, keyDir);
 
 		Assert.assertEquals(CONTENT, readKey(keyDir, "test-user.pub"));
@@ -48,8 +49,8 @@ public class KeyWriterTest {
 	@Test
 	public void testWritingSingleKeyWithNameToKeyDir() throws IOException {
 		File keyDir = Files.createTempDir();
-		InternalConfig config = new InternalConfig();
-		config.ensureUserExists("test-user").defineKey("iMac", CONTENT);
+		Config config = new Config();
+		config.ensureUserExists("test-user").setKey("iMac", CONTENT);
 		KeyWriter.writeKeys(config, keyDir);
 
 		Assert.assertEquals(CONTENT, readKey(keyDir, "test-user@iMac.pub"));
@@ -58,9 +59,9 @@ public class KeyWriterTest {
 	@Test
 	public void testWritingMultipleKeysForSingleUserToKeyDir() throws IOException {
 		File keyDir = Files.createTempDir();
-		InternalConfig config = new InternalConfig();
-		config.ensureUserExists("test-user").defineKey("iMac", CONTENT);
-		config.ensureUserExists("test-user").defineKey("MacBook-Air", CONTENT);
+		Config config = new Config();
+		config.ensureUserExists("test-user").setKey("iMac", CONTENT);
+		config.ensureUserExists("test-user").setKey("MacBook-Air", CONTENT);
 		KeyWriter.writeKeys(config, keyDir);
 
 		Assert.assertEquals(CONTENT, readKey(keyDir, "test-user@iMac.pub"));
@@ -70,11 +71,11 @@ public class KeyWriterTest {
 	@Test
 	public void testWritingMultipleKeysForMultipleUsersToKeyDir() throws IOException {
 		File keyDir = Files.createTempDir();
-		InternalConfig config = new InternalConfig();
-		config.ensureUserExists("test-user-1").defineKey("iMac", CONTENT);
-		config.ensureUserExists("test-user-1").defineKey("MacBook-Air", CONTENT);
-		config.ensureUserExists("test-user-2").defineKey("iMac", CONTENT);
-		config.ensureUserExists("test-user-2").defineKey("MacBook-Air", CONTENT);
+		Config config = new Config();
+		config.ensureUserExists("test-user-1").setKey("iMac", CONTENT);
+		config.ensureUserExists("test-user-1").setKey("MacBook-Air", CONTENT);
+		config.ensureUserExists("test-user-2").setKey("iMac", CONTENT);
+		config.ensureUserExists("test-user-2").setKey("MacBook-Air", CONTENT);
 		KeyWriter.writeKeys(config, keyDir);
 
 		Assert.assertEquals(CONTENT, readKey(keyDir, "test-user-1@iMac.pub"));

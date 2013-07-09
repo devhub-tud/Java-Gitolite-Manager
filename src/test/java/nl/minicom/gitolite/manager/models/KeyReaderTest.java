@@ -1,11 +1,12 @@
-package nl.minicom.gitolite.manager.io;
+package nl.minicom.gitolite.manager.models;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
 
-import nl.minicom.gitolite.manager.models.InternalConfig;
+import nl.minicom.gitolite.manager.models.Config;
+import nl.minicom.gitolite.manager.models.KeyReader;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,7 +33,7 @@ public class KeyReaderTest {
 
 	@Test(expected = NullPointerException.class)
 	public void testThatAddingKeysToConfigWhenKeyDirIsNullExceptionIsThrown() throws IOException {
-		KeyReader.readKeys(new InternalConfig(), null);
+		KeyReader.readKeys(new Config(), null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -40,24 +41,23 @@ public class KeyReaderTest {
 		File keyDir = Files.createTempDir();
 		writeKeyFile(keyDir, "test", null, CONTENT);
 
-		KeyReader.readKeys(new InternalConfig(), new File(keyDir, "test.pub"));
+		KeyReader.readKeys(new Config(), new File(keyDir, "test.pub"));
 	}
 
 	@Test
 	public void testAddingSingleKeyWithoutNameToConfig() throws IOException {
-		InternalConfig config = new InternalConfig();
+		Config config = new Config();
 		File keyDir = Files.createTempDir();
 		writeKeyFile(keyDir, "test-user-1", null, CONTENT);
 
 		KeyReader.readKeys(config, keyDir);
 		expectedKeys.put("", CONTENT);
-
 		Assert.assertEquals(expectedKeys, config.getUser("test-user-1").getKeys());
 	}
 
 	@Test
 	public void testAddingSingleKeyWithNameToConfig() throws IOException {
-		InternalConfig config = new InternalConfig();
+		Config config = new Config();
 		File keyDir = Files.createTempDir();
 		writeKeyFile(keyDir, "test-user-1", "iMac", CONTENT);
 
@@ -69,7 +69,7 @@ public class KeyReaderTest {
 
 	@Test
 	public void testAddingMultipleKeysForTheSameUserToConfig() throws IOException {
-		InternalConfig config = new InternalConfig();
+		Config config = new Config();
 		File keyDir = Files.createTempDir();
 		writeKeyFile(keyDir, "test-user-1", "iMac", CONTENT);
 		writeKeyFile(keyDir, "test-user-1", "MacBook-Air", CONTENT);
@@ -83,7 +83,7 @@ public class KeyReaderTest {
 
 	@Test
 	public void testAddingMultipleKeysForMultipleUsersToConfig() throws IOException {
-		InternalConfig config = new InternalConfig();
+		Config config = new Config();
 		File keyDir = Files.createTempDir();
 		writeKeyFile(keyDir, "test-user-1", "iMac", CONTENT);
 		writeKeyFile(keyDir, "test-user-1", "MacBook-Air", CONTENT);

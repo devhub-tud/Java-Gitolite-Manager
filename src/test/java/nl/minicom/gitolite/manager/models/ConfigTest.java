@@ -1,5 +1,6 @@
 package nl.minicom.gitolite.manager.models;
 
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -9,36 +10,36 @@ public class ConfigTest {
 	
 	@Test
 	public void testConstructor() {
-		new InternalConfig();
+		new Config();
 	}
 	
 	@Test
 	public void testIfWeCanCreateNewRepo() {
-		Config config = new InternalConfig();
+		Config config = new Config();
 		Repository repo = config.createRepository("test-repo");
 		Assert.assertEquals(Sets.newHashSet(repo), config.getRepositories());
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void testThatCreateRepositoryMethodThrowsExceptionWhenNameIsNull() {
-		new InternalConfig().createRepository(null);
+		new Config().createRepository(null);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testThatCreateRepositoryMethodThrowsExceptionWhenNameIsEmpty() {
-		new InternalConfig().createRepository("");
+		new Config().createRepository("");
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testThatWeCannotCreateTwoReposWithSameName() {
-		Config config = new InternalConfig();
+		Config config = new Config();
 		config.createRepository("test-repo");
 		config.createRepository("test-repo");
 	}
 	
 	@Test
 	public void testThatEnsureRepositoryMethodCreatesNewRepoWhenRepoDoesntExist() {
-		Config config = new InternalConfig();
+		Config config = new Config();
 		Repository repo = config.ensureRepositoryExists("test-repo");
 		
 		Assert.assertEquals(Sets.newHashSet(repo), config.getRepositories());
@@ -46,7 +47,7 @@ public class ConfigTest {
 	
 	@Test
 	public void testThatEnsureRepositoryMethodDoesNotCreateDuplicateRepositories() {
-		Config config = new InternalConfig();
+		Config config = new Config();
 		Repository repo1 = config.ensureRepositoryExists("test-repo");
 		Repository repo2 = config.ensureRepositoryExists("test-repo");
 		
@@ -56,17 +57,17 @@ public class ConfigTest {
 	
 	@Test(expected = NullPointerException.class)
 	public void testThatEnsureRepositoryExistsMethodThrowsExceptionWhenNameIsNull() {
-		new InternalConfig().ensureRepositoryExists(null);
+		new Config().ensureRepositoryExists(null);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testThatEnsureRepositoryExistsMethodThrowsExceptionWhenNameIsEmpty() {
-		new InternalConfig().ensureRepositoryExists("");
+		new Config().ensureRepositoryExists("");
 	}
 
 	@Test
 	public void testRemoveRepositoryOnExistingRepository() {
-		Config config = new InternalConfig();
+		Config config = new Config();
 		Repository repository = config.createRepository("test-repo");
 		
 		Assert.assertTrue(config.removeRepository(repository));
@@ -75,67 +76,67 @@ public class ConfigTest {
 	
 	@Test(expected = NullPointerException.class)
 	public void testRemoveRepositoryOnNullArgument() {
-		new InternalConfig().removeRepository(null);
+		new Config().removeRepository(null);
 	}
 	
 	@Test
 	public void testHasRepositoryMethodWhenRepositoryExists() {
-		Config config = new InternalConfig();
+		Config config = new Config();
 		config.createRepository("test-repo");
 		Assert.assertTrue(config.hasRepository("test-repo"));
 	}
 	
 	@Test
 	public void testHasRepositoryMethodWhenRepositoryDoesNotExist() {
-		Assert.assertFalse(new InternalConfig().hasRepository("test-repo"));
+		Assert.assertFalse(new Config().hasRepository("test-repo"));
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void testGetRepositoryWithNullAsInput() {
-		new InternalConfig().getRepository(null);
+		new Config().getRepository(null);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testGetRepositoryWithEmptyStringAsInput() {
-		new InternalConfig().getRepository("");
+		new Config().getRepository("");
 	}
 	
 	@Test
 	public void testIfWeCanCreateNewGroup() {
-		Config config = new InternalConfig();
-		InternalGroup group = config.createGroup("@test-group");
+		Config config = new Config();
+		Group group = config.createGroup("@test-group");
 		Assert.assertEquals(Sets.newHashSet(group), config.getGroups());
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void testThatCreateGroupMethodThrowsExceptionWhenNameIsNull() {
-		new InternalConfig().createGroup(null);
+		new Config().createGroup(null);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testThatCreateGroupMethodThrowsExceptionWhenNameIsEmpty() {
-		new InternalConfig().createGroup("");
+		new Config().createGroup("");
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testThatWeCannotCreateTwoGroupsWithSameName() {
-		Config config = new InternalConfig();
+		Config config = new Config();
 		config.createGroup("@test-group");
 		config.createGroup("@test-group");
 	}
 	
 	@Test
 	public void testThatEnsureGroupMethodCreatesNewgroupWhengroupDoesntExist() {
-		Config config = new InternalConfig();
-		InternalGroup group = config.ensureGroupExists("@test-group");
+		Config config = new Config();
+		Group group = config.ensureGroupExists("@test-group");
 		
 		Assert.assertEquals(Sets.newHashSet(group), config.getGroups());
 	}
 	
 	@Test
 	public void testThatEnsureGroupMethodDoesNotCreateDuplicateGroup() {
-		Config config = new InternalConfig();
-		InternalGroup group1 = config.ensureGroupExists("@test-group");
+		Config config = new Config();
+		Group group1 = config.ensureGroupExists("@test-group");
 		Group group2 = config.ensureGroupExists("@test-group");
 		
 		Assert.assertEquals(group1, group2);
@@ -144,18 +145,18 @@ public class ConfigTest {
 	
 	@Test(expected = NullPointerException.class)
 	public void testThatEnsureGroupExistsMethodThrowsExceptionWhenNameIsNull() {
-		new InternalConfig().ensureGroupExists(null);
+		new Config().ensureGroupExists(null);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testThatEnsureGroupExistsMethodThrowsExceptionWhenNameIsEmpty() {
-		new InternalConfig().ensureGroupExists("");
+		new Config().ensureGroupExists("");
 	}
 
 	@Test
 	public void testRemoveGroupOnExistingGroup() {
-		Config config = new InternalConfig();
-		InternalGroup group = config.createGroup("@test-group");
+		Config config = new Config();
+		Group group = config.createGroup("@test-group");
 		
 		Assert.assertTrue(config.removeGroup(group));
 		Assert.assertEquals(Sets.<Group>newHashSet(), config.getGroups());
@@ -163,58 +164,58 @@ public class ConfigTest {
 	
 	@Test(expected = NullPointerException.class)
 	public void testRemoveGroupOnNullArgument() {
-		new InternalConfig().removeGroup(null);
+		new Config().removeGroup(null);
 	}
 	
 	@Test
 	public void testHasGroupMethodWhenGroupExists() {
-		Config config = new InternalConfig();
+		Config config = new Config();
 		config.createGroup("@test-group");
 		Assert.assertTrue(config.hasGroup("@test-group"));
 	}
 	
 	@Test
 	public void testHasGroupMethodWhenGroupDoesNotExist() {
-		Assert.assertFalse(new InternalConfig().hasGroup("@test-group"));
+		Assert.assertFalse(new Config().hasGroup("@test-group"));
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void testGetGroupWithNullAsInput() {
-		new InternalConfig().getGroup(null);
+		new Config().getGroup(null);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testGetGroupWithEmptyStringAsInput() {
-		new InternalConfig().getGroup("");
+		new Config().getGroup("");
 	}
 	
 	@Test
 	public void testIfWeCanCreateNewUser() {
-		Config config = new InternalConfig();
+		Config config = new Config();
 		User user = config.createUser("@test-user");
 		Assert.assertEquals(Sets.newHashSet(user), config.getUsers());
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void testThatCreateUserMethodThrowsExceptionWhenNameIsNull() {
-		new InternalConfig().createUser(null);
+		new Config().createUser(null);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testThatCreateUserMethodThrowsExceptionWhenNameIsEmpty() {
-		new InternalConfig().createUser("");
+		new Config().createUser("");
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testThatWeCannotCreateTwoUsersWithSameName() {
-		Config config = new InternalConfig();
+		Config config = new Config();
 		config.createUser("@test-user");
 		config.createUser("@test-user");
 	}
 	
 	@Test
 	public void testThatEnsureUserMethodCreatesNewuserWhenuserDoesntExist() {
-		Config config = new InternalConfig();
+		Config config = new Config();
 		User user = config.ensureUserExists("@test-user");
 		
 		Assert.assertEquals(Sets.newHashSet(user), config.getUsers());
@@ -222,7 +223,7 @@ public class ConfigTest {
 	
 	@Test
 	public void testThatEnsureUserMethodDoesNotCreateDuplicateUser() {
-		Config config = new InternalConfig();
+		Config config = new Config();
 		User user1 = config.ensureUserExists("@test-user");
 		User user2 = config.ensureUserExists("@test-user");
 		
@@ -232,17 +233,17 @@ public class ConfigTest {
 	
 	@Test(expected = NullPointerException.class)
 	public void testThatEnsureUserExistsMethodThrowsExceptionWhenNameIsNull() {
-		new InternalConfig().ensureUserExists(null);
+		new Config().ensureUserExists(null);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testThatEnsureUserExistsMethodThrowsExceptionWhenNameIsEmpty() {
-		new InternalConfig().ensureUserExists("");
+		new Config().ensureUserExists("");
 	}
 
 	@Test
 	public void testRemoveUserOnExistingUser() {
-		Config config = new InternalConfig();
+		Config config = new Config();
 		User user = config.createUser("@test-user");
 		
 		Assert.assertTrue(config.removeUser(user));
@@ -251,29 +252,29 @@ public class ConfigTest {
 	
 	@Test(expected = NullPointerException.class)
 	public void testRemoveUserOnNullArgument() {
-		new InternalConfig().removeUser(null);
+		new Config().removeUser(null);
 	}
 	
 	@Test
 	public void testHasUserMethodWhenUserExists() {
-		Config config = new InternalConfig();
+		Config config = new Config();
 		config.createUser("@test-user");
 		Assert.assertTrue(config.hasUser("@test-user"));
 	}
 	
 	@Test
 	public void testHasUserMethodWhenUserDoesNotExist() {
-		Assert.assertFalse(new InternalConfig().hasUser("@test-user"));
+		Assert.assertFalse(new Config().hasUser("@test-user"));
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void testGetUserWithNullAsInput() {
-		new InternalConfig().getUser(null);
+		new Config().getUser(null);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testGetUserWithEmptyStringAsInput() {
-		new InternalConfig().getUser("");
+		new Config().getUser("");
 	}
 	
 }

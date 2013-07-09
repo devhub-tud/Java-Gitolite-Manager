@@ -2,11 +2,15 @@ package nl.minicom.gitolite.manager.models;
 
 import java.util.Comparator;
 
+import nl.minicom.gitolite.manager.exceptions.ModificationException;
+import nl.minicom.gitolite.manager.models.Recorder.Modification;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 
 /**
@@ -17,7 +21,7 @@ import com.google.common.collect.TreeMultimap;
  */
 public final class Repository {
 
-	static final Comparator<Repository> SORT_ALPHABETICALLY = new Comparator<Repository>() {
+	static final Comparator<Repository> SORT_BY_NAME = new Comparator<Repository>() {
 		@Override
 		public int compare(Repository arg0, Repository arg1) {
 			return arg0.getName().compareTo(arg1.getName());
@@ -26,6 +30,7 @@ public final class Repository {
 
 	private final String name;
 	private final TreeMultimap<Permission, Identifiable> rights;
+	private final Recorder recorder;
 	
 	/**
 	 * Constructs a new {@link Repository} object with the specified name.
@@ -33,14 +38,16 @@ public final class Repository {
 	 * @param name
 	 * 	The name of the {@link Repository}.
 	 */
-	Repository(String name) {
+	Repository(String name, Recorder recorder) {
 		Preconditions.checkNotNull(name);
 		Preconditions.checkArgument(!name.isEmpty());
+		Preconditions.checkNotNull(recorder);
 		
 		this.name = name;
+		this.recorder = recorder;
 		this.rights = TreeMultimap.create(Permission.SORT_ON_ORDINAL, Identifiable.SORT_BY_TYPE_AND_NAME);
 	}
-	
+
 	/**
 	 * @return
 	 * 	The name of the repository
@@ -48,50 +55,114 @@ public final class Repository {
 	public String getName() {
 		return name;
 	}
-	
+
 	/**
-	 * This method sets the {@link Permission} level for a specified {@link User} of {@link InternalGroup}.
+	 * This method sets the {@link Permission} level for a specified {@link User}.
 	 * 
 	 * @param entity
-	 * 	The {@link InternalGroup} or {@link User} to set the permission for.
+	 * 	The {@link User} to set the permission for.
 	 * 
 	 * @param level
-	 * 	The {@link Permission} which the specified {@link User} or {@link InternalGroup} should have.
+	 * 	The {@link Permission} which the specified {@link User} should have.
 	 */
-	public void setPermission(Identifiable entity, Permission level) {
-		Preconditions.checkNotNull(entity);
+	public void setPermission(User user, final Permission level) {
+		Preconditions.checkNotNull(user);
 		Preconditions.checkNotNull(level);
-		rights.put(level, entity);
+		rights.put(level, user);
+		
+		final String userName = user.getName();
+		recorder.append(new Modification("Setting permission for user: '%s' to repository: '%s'", userName, getName()) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				Repository repo = config.getRepository(getName());
+				User user = config.getUser(userName);
+				repo.setPermission(user, level);
+			}
+		});
+	}
+
+	/**
+	 * This method sets the {@link Permission} level for a specified {@link Group}.
+	 * 
+	 * @param entity
+	 * 	The {@link Group} to set the permission for.
+	 * 
+	 * @param level
+	 * 	The {@link Permission} which the specified {@link Group} should have.
+	 */
+	public void setPermission(Group group, final Permission level) {
+		Preconditions.checkNotNull(group);
+		Preconditions.checkNotNull(level);
+		rights.put(level, group);
+		
+		final String groupName = group.getName();
+		recorder.append(new Modification("Setting permission for group: '%s' to repository: '%s'", groupName, getName()) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				Repository repo = config.getRepository(getName());
+				Group group = config.getGroup(groupName);
+				repo.setPermission(group, level);
+			}
+		});
 	}
 
 	/**
 	 * This method revokes all rights on this {@link Repository} for the 
-	 * specified {@link User} or {@link InternalGroup}.
+	 * specified {@link User}.
 	 * 
 	 * @param entity
-	 * 	The {@link InternalGroup} or {@link User} whose permissions need to be revoked.
+	 * 	The {@link User} whose permissions need to be revoked.
 	 */
-	public void revokePermissions(Identifiable entity) {
+	public void revokePermissions(User user) {
 		for (Permission permission : Permission.values()) {
-			rights.remove(permission, entity);
+			rights.remove(permission, user);
 		}
+		
+		final String userName = user.getName();
+		recorder.append(new Modification("Revoking permission for user: '%s' to repository: '%s'", userName, getName()) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				Repository repo = config.getRepository(getName());
+				User user = config.getUser(userName);
+				repo.revokePermissions(user);
+			}
+		});
+	}
+
+	/**
+	 * This method revokes all rights on this {@link Repository} for the 
+	 * specified {@link Group}.
+	 * 
+	 * @param entity
+	 * 	The {@link Group} whose permissions need to be revoked.
+	 */
+	public void revokePermissions(Group group) {
+		for (Permission permission : Permission.values()) {
+			rights.remove(permission, group);
+		}
+		
+		final String groupName = group.getName();
+		recorder.append(new Modification("Revoking permission for group: '%s' to repository: '%s'", groupName, getName()) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				Repository repo = config.getRepository(getName());
+				Group group = config.getGroup(groupName);
+				repo.revokePermissions(group);
+			}
+		});
 	}
 
 	/**
 	 * @return
-	 * 	An {@link ImmutableMultimap} containing all the {@link User}s and {@link InternalGroup}s 
+	 * 	An {@link Multimap} containing all the {@link User}s and {@link Group}s 
 	 * 	who have some kind of access on this {@link Repository} object. They're ordered
 	 * 	by highest {@link Permission} to lowest {@link Permission}, and each permission 
-	 * 	contains one or more {@link User}s and {@link InternalGroup}s.
+	 * 	contains one or more {@link User}s and {@link Group}s.
 	 */
-	public ImmutableMultimap<Permission, Identifiable> getPermissions() {
+	public Multimap<Permission, Identifiable> getPermissions() {
 		return ImmutableMultimap.copyOf(rights);
 	}
 	
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder()
@@ -99,16 +170,11 @@ public final class Repository {
 			.toHashCode();
 	}
 	
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object other) {
 		if (!(other instanceof Repository)) {
 			return false;
 		}
-		
 		return new EqualsBuilder()
 			.append(name, ((Repository) other).name)
 			.isEquals();
