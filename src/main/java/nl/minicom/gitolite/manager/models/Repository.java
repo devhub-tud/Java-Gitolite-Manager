@@ -123,7 +123,15 @@ public final class Repository {
 			@Override
 			public void apply(Config config) throws ModificationException {
 				Repository repo = config.getRepository(getName());
+				if (repo == null) {
+					throw new ModificationException();
+				}
+				
 				User user = config.getUser(userName);
+				if (user == null) {
+					throw new ModificationException();
+				}
+				
 				repo.revokePermissions(user);
 			}
 		});

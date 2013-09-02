@@ -134,7 +134,9 @@ public class ConfigManager {
 	 */
 	public Config loadConfig() throws IOException, ServiceUnavailable {
 		ensureAdminRepoIsUpToDate();
-		return readConfig();
+		Config config = readConfig();
+		config.getRecorder().record();
+		return config;
 	}
 
 	public void applyChanges(Config config) throws IOException, ModificationException, ServiceUnavailable {

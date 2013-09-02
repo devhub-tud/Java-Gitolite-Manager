@@ -90,7 +90,12 @@ public final class Config {
 		recorder.append(new Modification("Create repository: " + repoName) {
 			@Override
 			public void apply(Config config) throws ModificationException {
-				config.createRepository(repoName);
+				try {
+					config.createRepository(repoName);
+				}
+				catch (IllegalArgumentException e) {
+					throw new ModificationException();
+				}
 			}
 		});
 		
@@ -116,6 +121,10 @@ public final class Config {
 			@Override
 			public void apply(Config config) throws ModificationException {
 				Repository repo = config.getRepository(repoName);
+				if (repo == null) {
+					throw new ModificationException();
+				}
+				
 				config.removeRepository(repo);
 			}
 		});
@@ -207,7 +216,7 @@ public final class Config {
 	 * @return
 	 * 	The created {@link Group} object.
 	 */
-	public Group createGroup(String groupName) {
+	public Group createGroup(final String groupName) {
 		validateGroupName(groupName);
 		if (getGroup(groupName) != null) {
 			throw new IllegalArgumentException("The group " + groupName + " has already been created!");
@@ -215,6 +224,14 @@ public final class Config {
 		
 		Group group = new Group(groupName, recorder);
 		groups.add(group);
+		
+		recorder.append(new Modification("Creating group: " + groupName) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				config.createGroup(groupName);
+			}
+		});
+		
 		return group;
 	}
 
@@ -230,7 +247,22 @@ public final class Config {
 	 */
 	public boolean removeGroup(Group group) {
 		Preconditions.checkNotNull(group);
-		return groups.remove(group);
+		boolean remove = groups.remove(group);
+		
+		if (remove) {
+			final String groupName = group.getName();
+			recorder.append(new Modification("Removing group: " + groupName) {
+				@Override
+				public void apply(Config config) throws ModificationException {
+					Group group = config.getGroup(groupName);
+					if (group == null || !config.removeGroup(group)) {
+						throw new ModificationException();
+					}
+				}
+			});
+		}
+		
+		return remove;
 	}
 
 	/**
@@ -320,7 +352,7 @@ public final class Config {
 	 * 
 	 * @throws IllegalArgumentException
 	 */
-	public User createUser(String userName) {
+	public User createUser(final String userName) {
 		validateUserName(userName);
 		if (getUser(userName) != null) {
 			throw new IllegalArgumentException("The user " + userName + " has already been created!");
@@ -328,6 +360,14 @@ public final class Config {
 		
 		User user = new User(userName, recorder);
 		users.add(user);
+
+		recorder.append(new Modification("Creating user: " + userName) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				config.createUser(userName);
+			}
+		});
+		
 		return user;
 	}
 
@@ -344,6 +384,17 @@ public final class Config {
 	public boolean removeUser(User user) {
 		Preconditions.checkNotNull(user);
 		boolean success = users.remove(user);
+
+		final String userName = user.getName();
+		recorder.append(new Modification("Removing user: " + userName) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				User user = config.getUser(userName);
+				if (user == null || !config.removeUser(user)) {
+					throw new ModificationException();
+				}
+			}
+		});
 		
 		for (Repository repo : repositories) {
 			repo.revokePermissions(user);
