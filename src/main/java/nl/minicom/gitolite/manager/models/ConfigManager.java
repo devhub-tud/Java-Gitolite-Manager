@@ -5,8 +5,13 @@ import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import nl.minicom.gitolite.manager.exceptions.ModificationException;
 import nl.minicom.gitolite.manager.exceptions.ServiceUnavailable;
@@ -17,8 +22,12 @@ import nl.minicom.gitolite.manager.models.Recorder.Modification;
 import org.eclipse.jgit.transport.CredentialsProvider;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 
 /**
  * The {@link ConfigManager} class is designed to be used by developers who wish
@@ -84,6 +93,7 @@ public class ConfigManager {
 	private final String gitUri;
 	private final GitManager git;
 	private final File workingDirectory;
+	private final Worker worker;
 	
 	private final Object lock = new Object();
 
@@ -100,8 +110,9 @@ public class ConfigManager {
 		Preconditions.checkNotNull(gitManager);
 
 		this.gitUri = gitUri;
-		git = gitManager;
-		workingDirectory = git.getWorkingDirectory();
+		this.git = gitManager;
+		this.workingDirectory = git.getWorkingDirectory();
+		this.worker = new Worker();
 	}
 	
 	private void ensureAdminRepoIsUpToDate() throws ServiceUnavailable, IOException {
@@ -132,24 +143,16 @@ public class ConfigManager {
 	 * @throws IOException If one or more files in the repository could not be
 	 *            read.
 	 */
-	public Config loadConfig() throws IOException, ServiceUnavailable {
+	public Config get() throws IOException, ServiceUnavailable {
 		ensureAdminRepoIsUpToDate();
 		Config config = readConfig();
 		config.getRecorder().record();
 		return config;
 	}
-
-	public void applyChanges(Config config) throws IOException, ModificationException, ServiceUnavailable {
-		List<Modification> changes = config.getRecorder().stop();
-		
-		ensureAdminRepoIsUpToDate();
-		Config current = readConfig();
-		
-		for (Modification change : changes) {
-			change.apply(current);
-		}
-		
-		writeAndPush(current);
+	
+	public ListenableFuture<Void> apply(Config config) {
+		List<Modification> recording = config.getRecorder().stop();
+		return worker.submit(recording);
 	}
 	
 	private void writeAndPush(Config config) throws IOException, ServiceUnavailable {
@@ -217,6 +220,108 @@ public class ConfigManager {
 		File keyDir = new File(workingDirectory, KEY_DIRECTORY_NAME);
 		keyDir.mkdir();
 		return keyDir;
+	}
+	
+	private class Worker {
+
+		protected static final int MAXIMUM_BATCH_SIZE = 10;
+		
+		private final ScheduledThreadPoolExecutor executor;
+		private final Queue<UnitOfWork> modifications;
+		
+		public Worker() {
+			this.modifications = Queues.newConcurrentLinkedQueue();
+			this.executor = new ScheduledThreadPoolExecutor(1);
+			
+			startWorker();
+		}
+		
+		private void startWorker() {
+			executor.submit(new Callable<Void>() {
+				@Override
+				public Void call() throws Exception {
+					try {
+						synchronized(modifications) {
+							while (modifications.isEmpty()) {
+								modifications.wait();
+							}
+						}
+						
+						ensureAdminRepoIsUpToDate();
+						Config current = readConfig();
+						
+						Collection<SettableFuture<Void>> succeeded = Lists.newArrayList();
+						
+						while (!modifications.isEmpty() && succeeded.size() < MAXIMUM_BATCH_SIZE) {
+							Config fallback = current.copy();
+							
+							UnitOfWork unit = modifications.poll();
+							try {
+								for (Modification change : unit.getModifications()) {
+									change.apply(current);
+								}
+								succeeded.add(unit.getFuture());
+							}
+							catch (ModificationException e) {
+								unit.getFuture().setException(e);
+								current = fallback;
+							}
+						}
+						
+						try {
+							writeAndPush(current);
+						}
+						catch (IOException | ServiceUnavailable e) {
+							for (SettableFuture<Void> future : succeeded) {
+								future.setException(e);
+							}
+							return null;
+						}
+						
+						for (SettableFuture<Void> future : succeeded) {
+							future.set(null);
+						}
+					} 
+					finally {
+						startWorker();
+					}
+					
+					return null;
+				}
+			});
+		}
+
+		public ListenableFuture<Void> submit(List<Modification> recording) {
+			UnitOfWork unit = new UnitOfWork(recording);
+			
+			synchronized (modifications) {
+				modifications.offer(unit);
+				modifications.notify();
+			}
+			
+			return unit.getFuture();
+		}
+		
+	}
+	
+	private static class UnitOfWork {
+		
+		private final List<Modification> modifications;
+		private final SettableFuture<Void> future;
+		
+		public UnitOfWork(List<Modification> modifications) {
+			this.modifications = Collections.unmodifiableList(modifications);
+			this.future = SettableFuture.create();
+		}
+		
+		public List<Modification> getModifications() {
+			return modifications;
+		}
+		
+		public SettableFuture<Void> getFuture() {
+			return future;
+		}
+		
 	}
 
 }

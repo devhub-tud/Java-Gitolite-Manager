@@ -1,5 +1,6 @@
 package nl.minicom.gitolite.manager.models;
 
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -468,5 +469,49 @@ public final class Config {
 		Preconditions.checkNotNull(userName);
 		Preconditions.checkArgument(!userName.isEmpty());
 	}
-
+	
+	Config copy() {
+		Config config = new Config();
+		
+		// Add users.
+		for (User user : getUsers()) {
+			User created = config.createUser(user.getName());
+			for (Entry<String, String> entry : user.getKeys().entrySet()) {
+				created.setKey(entry.getKey(), entry.getValue());
+			}
+		}
+		
+		// Add groups and their users.
+		for (Group group : getGroups()) {
+			Group created = config.createGroup(group.getName());
+			for (User member : group.getUsers()) {
+				created.add(member);
+			}
+		}
+		
+		// Add sub groups to groups.
+		for (Group group : getGroups()) {
+			Group existing = config.getGroup(group.getName());
+			for (Group member : group.getGroups()) {
+				existing.add(config.getGroup(member.getName()));
+			}
+		}
+		
+		for (Repository repo : getRepositories()) {
+			Repository created = config.createRepository(repo.getName());
+			for (Entry<Permission, Identifiable> entry : repo.getPermissions().entries()) {
+				if (entry.getValue() instanceof User) {
+					User user = config.getUser(entry.getValue().getName());
+					created.setPermission(user, entry.getKey());
+				}
+				else {
+					Group group = config.getGroup(entry.getValue().getName());
+					created.setPermission(group, entry.getKey());
+				}
+			}
+		}
+		
+		return config;
+	}
+	
 }
