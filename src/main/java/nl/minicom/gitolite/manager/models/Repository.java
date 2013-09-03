@@ -154,7 +154,15 @@ public final class Repository {
 			@Override
 			public void apply(Config config) throws ModificationException {
 				Repository repo = config.getRepository(getName());
+				if (repo == null) {
+					throw new ModificationException();
+				}
+				
 				Group group = config.getGroup(groupName);
+				if (group == null) {
+					throw new ModificationException();
+				}
+				
 				repo.revokePermissions(group);
 			}
 		});

@@ -228,7 +228,12 @@ public final class Config {
 		recorder.append(new Modification("Creating group: " + groupName) {
 			@Override
 			public void apply(Config config) throws ModificationException {
-				config.createGroup(groupName);
+				try {
+					config.createGroup(groupName);
+				}
+				catch (IllegalArgumentException e) {
+					throw new ModificationException();
+				}
 			}
 		});
 		
@@ -248,6 +253,10 @@ public final class Config {
 	public boolean removeGroup(Group group) {
 		Preconditions.checkNotNull(group);
 		boolean remove = groups.remove(group);
+		
+		for (Repository repo : repositories) {
+			repo.revokePermissions(group);
+		}
 		
 		if (remove) {
 			final String groupName = group.getName();
@@ -364,7 +373,12 @@ public final class Config {
 		recorder.append(new Modification("Creating user: " + userName) {
 			@Override
 			public void apply(Config config) throws ModificationException {
-				config.createUser(userName);
+				try {
+					config.createUser(userName);
+				}
+				catch (IllegalArgumentException e) {
+					throw new ModificationException();
+				}
 			}
 		});
 		
@@ -384,6 +398,10 @@ public final class Config {
 	public boolean removeUser(User user) {
 		Preconditions.checkNotNull(user);
 		boolean success = users.remove(user);
+		
+		for (Repository repo : repositories) {
+			repo.revokePermissions(user);
+		}
 
 		final String userName = user.getName();
 		recorder.append(new Modification("Removing user: " + userName) {
@@ -395,10 +413,6 @@ public final class Config {
 				}
 			}
 		});
-		
-		for (Repository repo : repositories) {
-			repo.revokePermissions(user);
-		}
 		
 		return success;
 	}
