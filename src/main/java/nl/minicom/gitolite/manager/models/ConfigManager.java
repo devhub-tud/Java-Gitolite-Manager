@@ -6,12 +6,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicReference;
 
 import nl.minicom.gitolite.manager.exceptions.ModificationException;
 import nl.minicom.gitolite.manager.exceptions.ServiceUnavailable;
@@ -20,8 +21,11 @@ import nl.minicom.gitolite.manager.git.JGitManager;
 import nl.minicom.gitolite.manager.models.Recorder.Modification;
 
 import org.eclipse.jgit.transport.CredentialsProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
@@ -36,6 +40,8 @@ import com.google.common.util.concurrent.SettableFuture;
  * @author Michael de Jong <michaelj@minicom.nl>
  */
 public class ConfigManager {
+	
+	private static final Logger log = LoggerFactory.getLogger(ConfigManager.class);
 	
 	private static final String KEY_DIRECTORY_NAME = "keydir";
 	private static final String CONF_FILE_NAME = "gitolite.conf";
@@ -95,8 +101,9 @@ public class ConfigManager {
 	private final File workingDirectory;
 	private final Worker worker;
 	
-	private final Object lock = new Object();
-
+	private final AtomicReference<Config> config; 
+	private final Object diskLock = new Object();
+	
 	/**
 	 * Constructs a new {@link ConfigManager} object.
 	 * 
@@ -112,22 +119,31 @@ public class ConfigManager {
 		this.gitUri = gitUri;
 		this.git = gitManager;
 		this.workingDirectory = git.getWorkingDirectory();
+		this.config = new AtomicReference<>();
 		this.worker = new Worker();
 	}
 	
 	private void ensureAdminRepoIsUpToDate() throws ServiceUnavailable, IOException {
-		synchronized (lock) {
-			try {
-				if (!new File(workingDirectory, ".git").exists()) {
-					git.clone(gitUri);
-				}
-				else {
-					git.pull();
-				}
+		try {
+			if (!new File(workingDirectory, ".git").exists()) {
+				log.info("Cloning from: {} to: {}", gitUri, workingDirectory);
+				git.clone(gitUri);
 			}
-			catch (IOException | ServiceUnavailable e) {
-				throw new ServiceUnavailable(e);
+			else {
+				log.info("Pulling from: {}", gitUri);
+				git.pull();
 			}
+		}
+		catch (IOException | ServiceUnavailable e) {
+			throw new ServiceUnavailable(e);
+		}
+	}
+	
+	private void ensureAdminRepoPresent() throws IOException, ServiceUnavailable {
+		if (!new File(workingDirectory, ".git").exists()) {
+			log.info("Cloning from: {} to: {}", gitUri, workingDirectory);
+			git.clone(gitUri);
+			readConfig();
 		}
 	}
 
@@ -144,56 +160,88 @@ public class ConfigManager {
 	 *            read.
 	 */
 	public Config get() throws IOException, ServiceUnavailable {
-		ensureAdminRepoIsUpToDate();
-		Config config = readConfig();
-		config.getRecorder().record();
-		return config;
+		ensureAdminRepoPresent();
+		Config copy = config.get().copy();
+		copy.getRecorder().record();
+		return copy;
 	}
 	
-	public ListenableFuture<Void> apply(Config config) {
+	public ListenableFuture<Void> applyAsync(Config config) {
 		List<Modification> recording = config.getRecorder().stop();
 		return worker.submit(recording);
 	}
 	
-	private void writeAndPush(Config config) throws IOException, ServiceUnavailable {
-		synchronized (lock) {
-			if (config == null) {
-				throw new IllegalStateException("Config has not yet been loaded!");
+	public void apply(Config config) throws ModificationException {
+		ListenableFuture<Void> future = applyAsync(config);
+		try {
+			future.get();
+		}
+		catch (InterruptedException e) {
+			log.error(e.getMessage(), e);
+			throw new RuntimeException(e);
+		}
+		catch (ExecutionException e) {
+			try {
+				throw e.getCause();
 			}
+			catch (ModificationException e1) {
+				throw e1;
+			}
+			catch (Throwable e1) {
+				log.error(e.getMessage(), e);
+				throw new RuntimeException(e1);
+			}
+		}
+	}
+	
+	private void writeAndPush() throws IOException, ServiceUnavailable {
+		Config newConfig = config.get();
+		if (newConfig == null) {
+			throw new IllegalStateException("Config has not yet been loaded!");
+		}
+		
+		synchronized (diskLock) {
+			log.info("Writing Config object to disk");
 			
-			ConfigWriter.write(config, new FileWriter(getConfigFile()));
-			Set<File> writtenKeys = KeyWriter.writeKeys(config, ensureKeyDirectory());
+			ConfigWriter.write(newConfig, new FileWriter(getConfigFile()));
+			Set<File> writtenKeys = KeyWriter.writeKeys(newConfig, ensureKeyDirectory());
 			Set<File> orphanedKeyFiles = listKeys();
 			orphanedKeyFiles.removeAll(writtenKeys);
 	
 			for (File orphanedKeyFile : orphanedKeyFiles) {
 				git.remove("keydir/" + orphanedKeyFile.getName());
 			}
-			git.commitChanges();
-	
-			try {
-				git.push();
-			} 
-			catch (IOException e) {
-				throw new ServiceUnavailable(e);
-			}
+		}
+		
+		log.info("Commiting changes to local git repo");
+		git.commitChanges();
+
+		try {
+			log.info("Pushing changes to remote git repo");
+			git.push();
+		} 
+		catch (IOException e) {
+			log.error(e.getMessage(), e);
+			throw new ServiceUnavailable(e);
 		}
 	}
 
 	private Set<File> listKeys() {
 		Set<File> keys = Sets.newHashSet();
 
-		File keyDir = new File(workingDirectory, "keydir");
-		if (keyDir.exists()) {
-			File[] keyFiles = keyDir.listFiles(new FileFilter() {
-				@Override
-				public boolean accept(File file) {
-					return file.getName().endsWith(".pub");
+		synchronized (diskLock) {
+			File keyDir = new File(workingDirectory, "keydir");
+			if (keyDir.exists()) {
+				File[] keyFiles = keyDir.listFiles(new FileFilter() {
+					@Override
+					public boolean accept(File file) {
+						return file.getName().endsWith(".pub");
+					}
+				});
+	
+				for (File keyFile : keyFiles) {
+					keys.add(keyFile);
 				}
-			});
-
-			for (File keyFile : keyFiles) {
-				keys.add(keyFile);
 			}
 		}
 
@@ -201,25 +249,32 @@ public class ConfigManager {
 	}
 
 	private Config readConfig() throws IOException {
-		Config config = ConfigReader.read(new FileReader(getConfigFile()));
-		KeyReader.readKeys(config, ensureKeyDirectory());
-		return config;
+		synchronized (diskLock) {
+			Config read = ConfigReader.read(new FileReader(getConfigFile()));
+			KeyReader.readKeys(read, ensureKeyDirectory());
+			config.set(read);
+			return read;
+		}
 	}
 
 	private File getConfigFile() {
-		File confDirectory = new File(workingDirectory, CONF_DIRECTORY_NAME);
-		if (!confDirectory.exists()) {
-			throw new IllegalStateException("Could not open " + CONF_DIRECTORY_NAME + "/ directory!");
+		synchronized (diskLock) {
+			File confDirectory = new File(workingDirectory, CONF_DIRECTORY_NAME);
+			if (!confDirectory.exists()) {
+				throw new IllegalStateException("Could not open " + CONF_DIRECTORY_NAME + "/ directory!");
+			}
+	
+			File confFile = new File(confDirectory, CONF_FILE_NAME);
+			return confFile;
 		}
-
-		File confFile = new File(confDirectory, CONF_FILE_NAME);
-		return confFile;
 	}
 
 	private File ensureKeyDirectory() {
-		File keyDir = new File(workingDirectory, KEY_DIRECTORY_NAME);
-		keyDir.mkdir();
-		return keyDir;
+		synchronized (diskLock) {
+			File keyDir = new File(workingDirectory, KEY_DIRECTORY_NAME);
+			keyDir.mkdir();
+			return keyDir;
+		}
 	}
 	
 	private class Worker {
@@ -243,41 +298,27 @@ public class ConfigManager {
 					try {
 						synchronized(modifications) {
 							while (modifications.isEmpty()) {
+								log.debug("Worker is waiting for changes...");
 								modifications.wait();
 							}
 						}
-						
-						ensureAdminRepoIsUpToDate();
-						Config current = readConfig();
-						
-						Collection<SettableFuture<Void>> succeeded = Lists.newArrayList();
-						
-						while (!modifications.isEmpty() && succeeded.size() < MAXIMUM_BATCH_SIZE) {
-							Config fallback = current.copy();
-							
-							UnitOfWork unit = modifications.poll();
-							try {
-								for (Modification change : unit.getModifications()) {
-									change.apply(current);
-								}
-								succeeded.add(unit.getFuture());
-							}
-							catch (ModificationException e) {
-								unit.getFuture().setException(e);
-								current = fallback;
-							}
-						}
+
+						log.debug("Worker found changes");
+						Collection<SettableFuture<Void>> succeeded = applyChanges(false);
 						
 						try {
-							writeAndPush(current);
+							log.info("Worker is pushing changes to remote repository");
+							writeAndPush();
 						}
 						catch (IOException | ServiceUnavailable e) {
+							log.error("Worker failed to push changes to remote repository, notifying changeset owners", e);
 							for (SettableFuture<Void> future : succeeded) {
 								future.setException(e);
 							}
 							return null;
 						}
 						
+						log.debug("Worker is notifying changeset owners");
 						for (SettableFuture<Void> future : succeeded) {
 							future.set(null);
 						}
@@ -288,10 +329,50 @@ public class ConfigManager {
 					
 					return null;
 				}
+				
+				private Collection<SettableFuture<Void>> applyChanges(boolean forceUpdate) throws ServiceUnavailable, IOException {
+					if (forceUpdate) {
+						log.info("Pulling changes from remote repository");
+						ensureAdminRepoIsUpToDate();
+					}
+					
+					Collection<SettableFuture<Void>> succeeded = Lists.newArrayList();
+					Config current = config.get().copy();
+					
+					log.info("Worker is applying {} changeset(s)", modifications.size());
+					while (!modifications.isEmpty() && succeeded.size() < MAXIMUM_BATCH_SIZE) {
+						Config fallback = current.copy();
+						
+						UnitOfWork unit = modifications.poll();
+						try {
+							log.info("Worker is applying {} change(s)", unit.getModifications().size());
+							for (Modification change : unit.getModifications()) {
+								change.apply(current);
+							}
+							succeeded.add(unit.getFuture());
+						}
+						catch (ModificationException e) {
+							log.error("Worker failed to apply a changeset, notifying owner");
+							unit.getFuture().setException(e);
+							current = fallback;
+						}
+					}
+					
+					log.info("Worker successfully applied {} changeset", succeeded.size());
+					config.set(current);
+					return succeeded;
+				}
 			});
 		}
 
 		public ListenableFuture<Void> submit(List<Modification> recording) {
+			if (recording == null || recording.isEmpty()) {
+				SettableFuture<Void> future = SettableFuture.create();
+				future.set(null);
+				return future;
+			}
+			
+			log.info("Submitting a new changeset, containing {} changes", recording.size());
 			UnitOfWork unit = new UnitOfWork(recording);
 			
 			synchronized (modifications) {
@@ -306,15 +387,15 @@ public class ConfigManager {
 	
 	private static class UnitOfWork {
 		
-		private final List<Modification> modifications;
+		private final ImmutableList<Modification> modifications;
 		private final SettableFuture<Void> future;
 		
 		public UnitOfWork(List<Modification> modifications) {
-			this.modifications = Collections.unmodifiableList(modifications);
+			this.modifications = ImmutableList.copyOf(modifications);
 			this.future = SettableFuture.create();
 		}
 		
-		public List<Modification> getModifications() {
+		public ImmutableList<Modification> getModifications() {
 			return modifications;
 		}
 		

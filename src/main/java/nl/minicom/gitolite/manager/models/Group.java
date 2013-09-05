@@ -1,6 +1,5 @@
 package nl.minicom.gitolite.manager.models;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.SortedSet;
@@ -12,6 +11,9 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.ImmutableSortedSet.Builder;
 import com.google.common.collect.Sets;
 
 /**
@@ -82,10 +84,12 @@ public final class Group implements Identifiable {
 		Preconditions.checkArgument(!isAllGroup());
 		Preconditions.checkNotNull(user);
 		
-		if (users.contains(user)) {
-			throw new IllegalArgumentException("Cannot add user: '" + user.getName() + "'. It's already added!");
+		synchronized (users) {
+			if (users.contains(user)) {
+				throw new IllegalArgumentException("Cannot add user: '" + user.getName() + "'. It's already added!");
+			}
+			users.add(user);
 		}
-		users.add(user);
 
 		final String childName = user.getName();
 		recorder.append(new Modification("Adding user: '%s' to group: '%s'", childName, getName()) {
@@ -110,10 +114,12 @@ public final class Group implements Identifiable {
 		Preconditions.checkArgument(!isAllGroup());
 		Preconditions.checkNotNull(group);
 		
-		if (groups.contains(group)) {
-			throw new IllegalArgumentException("Cannot add group: '" + group.getName() + "'. It's already added!");
+		synchronized (groups) {
+			if (groups.contains(group)) {
+				throw new IllegalArgumentException("Cannot add group: '" + group.getName() + "'. It's already added!");
+			}
+			groups.add(group);
 		}
-		groups.add(group);
 
 		final String groupName = group.getName();
 		recorder.append(new Modification("Adding group: '%s' to group: '%s'", groupName, getName()) {
@@ -168,27 +174,35 @@ public final class Group implements Identifiable {
 	 * @return
 	 * 	An {@link Set} of child {@link Group}s of this {@link Group}.
 	 */
-	public Set<Group> getGroups() {
-		return Collections.unmodifiableSortedSet(groups);
+	public ImmutableSet<Group> getGroups() {
+		synchronized (groups) {
+			return ImmutableSortedSet.copyOf(SORT_BY_NAME, groups);
+		}
 	}
 
 	/**
 	 * @return
 	 * 	An {@link Set} of child {@link User}s of this {@link Group}.
 	 */
-	public Set<User> getUsers() {
-		return Collections.unmodifiableSortedSet(users);
+	public ImmutableSet<User> getUsers() {
+		synchronized (users) {
+			return ImmutableSortedSet.copyOf(User.SORT_BY_NAME, users);
+		}
 	}
 
 	/**
 	 * @return
 	 * 	A {@link Set} containing all {@link User}s and {@link Group}s.
 	 */
-	public Set<Identifiable> getAllMembers() {
-		Set<Identifiable> members = Sets.newTreeSet(Identifiable.SORT_BY_TYPE_AND_NAME);
-		members.addAll(groups);
-		members.addAll(users);
-		return members;
+	public ImmutableSet<Identifiable> getAllMembers() {
+		Builder<Identifiable> builder = ImmutableSortedSet.orderedBy(Identifiable.SORT_BY_TYPE_AND_NAME);
+		synchronized (groups) {
+			builder.addAll(groups);
+		}
+		synchronized (users) {
+			builder.addAll(users);
+		}
+		return builder.build();
 	}
 	
 	private boolean isAllGroup() {

@@ -1,41 +1,49 @@
 package nl.minicom.gitolite.manager.models;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import nl.minicom.gitolite.manager.exceptions.ModificationException;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 public class Recorder {
 	
 	private final List<Modification> modifications;
-	private boolean recording;
+	private final AtomicBoolean recording;
 	
 	Recorder() {
 		this.modifications = Lists.newArrayList();
-		this.recording = false;
+		this.recording = new AtomicBoolean();
 	}
 	
 	void record() {
-		recording = true;
+		recording.set(true);
 	}
 	
 	void append(Modification modification) {
-		if (recording) {
-			modifications.add(modification);
+		if (recording.get()) {
+			synchronized (modifications) {
+				modifications.add(modification);
+			}
 		}
 	}
 
-	List<Modification> stop() {
-		recording = false;
-		return Lists.newArrayList(modifications);
+	ImmutableList<Modification> stop() {
+		recording.set(false);
+		synchronized (modifications) {
+			return ImmutableList.<Modification>builder().addAll(modifications).build();
+		}
 	}
 	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		for (Modification change : modifications) {
-			builder.append(change.toString() + '\n');
+		synchronized (modifications) {
+			for (Modification change : modifications) {
+				builder.append(change.toString() + '\n');
+			}
 		}
 		return builder.toString();
 	}

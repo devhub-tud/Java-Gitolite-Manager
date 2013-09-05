@@ -77,8 +77,10 @@ public final class User implements Identifiable {
 	public void setKey(final String name, final String content) {
 		Preconditions.checkNotNull(name);
 		Preconditions.checkNotNull(content);
-		
-		keys.put(name, content);
+
+		synchronized (keys) {
+			keys.put(name, content);
+		}
 		
 		recorder.append(new Modification("Setting key: '%s' for user: '%s'", name, getName()) {
 			@Override
@@ -93,8 +95,10 @@ public final class User implements Identifiable {
 	 * 	An {@link Map} of SSH keys for this user. The key of the {@link Map}
 	 * 	is the name of the key, and the value is the contents of the associated key file.
 	 */
-	public Map<String, String> getKeys() {
-		return ImmutableMap.copyOf(keys);
+	public ImmutableMap<String, String> getKeys() {
+		synchronized (keys) {
+			return ImmutableMap.copyOf(keys);
+		}
 	}
 
 	/**
@@ -105,8 +109,10 @@ public final class User implements Identifiable {
 	 */
 	public void removeKey(final String name) {
 		Preconditions.checkNotNull(name);
-		
-		keys.remove(name);
+
+		synchronized (keys) {
+			keys.remove(name);
+		}
 		
 		recorder.append(new Modification("Removing key: '%s' for user: '%s'", name, getName()) {
 			@Override

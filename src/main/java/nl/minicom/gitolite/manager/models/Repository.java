@@ -68,7 +68,10 @@ public final class Repository {
 	public void setPermission(User user, final Permission level) {
 		Preconditions.checkNotNull(user);
 		Preconditions.checkNotNull(level);
-		rights.put(level, user);
+		
+		synchronized (rights) {
+			rights.put(level, user);
+		}
 		
 		final String userName = user.getName();
 		recorder.append(new Modification("Setting permission for user: '%s' to repository: '%s'", userName, getName()) {
@@ -93,7 +96,10 @@ public final class Repository {
 	public void setPermission(Group group, final Permission level) {
 		Preconditions.checkNotNull(group);
 		Preconditions.checkNotNull(level);
-		rights.put(level, group);
+		
+		synchronized (rights) {
+			rights.put(level, group);
+		}
 		
 		final String groupName = group.getName();
 		recorder.append(new Modification("Setting permission for group: '%s' to repository: '%s'", groupName, getName()) {
@@ -114,8 +120,10 @@ public final class Repository {
 	 * 	The {@link User} whose permissions need to be revoked.
 	 */
 	public void revokePermissions(User user) {
-		for (Permission permission : Permission.values()) {
-			rights.remove(permission, user);
+		synchronized (rights) {
+			for (Permission permission : Permission.values()) {
+				rights.remove(permission, user);
+			}
 		}
 		
 		final String userName = user.getName();
@@ -145,8 +153,10 @@ public final class Repository {
 	 * 	The {@link Group} whose permissions need to be revoked.
 	 */
 	public void revokePermissions(Group group) {
-		for (Permission permission : Permission.values()) {
-			rights.remove(permission, group);
+		synchronized (rights) {
+			for (Permission permission : Permission.values()) {
+				rights.remove(permission, group);
+			}
 		}
 		
 		final String groupName = group.getName();
@@ -175,8 +185,10 @@ public final class Repository {
 	 * 	by highest {@link Permission} to lowest {@link Permission}, and each permission 
 	 * 	contains one or more {@link User}s and {@link Group}s.
 	 */
-	public Multimap<Permission, Identifiable> getPermissions() {
-		return ImmutableMultimap.copyOf(rights);
+	public ImmutableMultimap<Permission, Identifiable> getPermissions() {
+		synchronized (rights) {
+			return ImmutableMultimap.copyOf(rights);
+		}
 	}
 	
 	@Override

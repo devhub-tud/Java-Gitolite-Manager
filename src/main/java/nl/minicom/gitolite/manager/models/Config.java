@@ -1,7 +1,6 @@
 package nl.minicom.gitolite.manager.models;
 
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.SortedSet;
 
 import nl.minicom.gitolite.manager.exceptions.ModificationException;
@@ -9,6 +8,7 @@ import nl.minicom.gitolite.manager.models.Recorder.Modification;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -61,11 +61,14 @@ public final class Config {
 	 */
 	public Repository ensureRepositoryExists(String repoName) {
 		validateRepositoryName(repoName);
-		Repository repository = getRepository(repoName);
-		if (repository == null) {
-			repository = createRepository(repoName);
+		
+		synchronized (repositories) {
+			Repository repository = getRepository(repoName);
+			if (repository == null) {
+				repository = createRepository(repoName);
+			}
+			return repository;
 		}
-		return repository;
 	}
 
 	/**
@@ -81,12 +84,16 @@ public final class Config {
 	 */
 	public Repository createRepository(final String repoName) {
 		validateRepositoryName(repoName);
-		if (getRepository(repoName) != null) {
-			throw new IllegalArgumentException("The repository " + repoName + " has already been created!");
-		}
 		
-		Repository repository = new Repository(repoName, recorder);
-		repositories.add(repository);
+		Repository repository = null;
+		synchronized (repositories) {
+			if (getRepository(repoName) != null) {
+				throw new IllegalArgumentException("The repository " + repoName + " has already been created!");
+			}
+			
+			repository = new Repository(repoName, recorder);
+			repositories.add(repository);
+		}
 		
 		recorder.append(new Modification("Create repository: " + repoName) {
 			@Override
@@ -115,7 +122,11 @@ public final class Config {
 	 */
 	public boolean removeRepository(Repository repository) {
 		Preconditions.checkNotNull(repository);
-		boolean removed = repositories.remove(repository);
+
+		boolean removed = false;
+		synchronized (repositories) {
+			removed = repositories.remove(repository);
+		}
 		
 		final String repoName = repository.getName();
 		recorder.append(new Modification("Remove repository: " + repository.getName()) {
@@ -163,11 +174,15 @@ public final class Config {
 	 */
 	public Repository getRepository(String repoName) {
 		validateRepositoryName(repoName);
-		for (Repository repository : repositories) {
-			if (repository.getName().equals(repoName)) {
-				return repository;
+
+		synchronized (repositories) {
+			for (Repository repository : repositories) {
+				if (repository.getName().equals(repoName)) {
+					return repository;
+				}
 			}
 		}
+		
 		return null;
 	}
 	
@@ -176,8 +191,10 @@ public final class Config {
 	 * 	Am {@link ImmutableSet} of {@link Repository} objects currently 
 	 * 	registered in the {@link Config} object.
 	 */
-	public Set<Repository> getRepositories() {
-		return ImmutableSet.copyOf(repositories);
+	public ImmutableSet<Repository> getRepositories() {
+		synchronized (repositories) {
+			return ImmutableSortedSet.copyOf(Repository.SORT_BY_NAME, repositories);
+		}
 	}
 	
 	private void validateRepositoryName(String repoName) {
@@ -199,11 +216,14 @@ public final class Config {
 	 */
 	public Group ensureGroupExists(String groupName) {
 		validateGroupName(groupName);
-		Group group = getGroup(groupName);
-		if (group == null) {
-			group = createGroup(groupName);
+
+		synchronized (groups) {
+			Group group = getGroup(groupName);
+			if (group == null) {
+				group = createGroup(groupName);
+			}
+			return group;
 		}
-		return group;
 	}
 
 	/**
@@ -219,12 +239,16 @@ public final class Config {
 	 */
 	public Group createGroup(final String groupName) {
 		validateGroupName(groupName);
-		if (getGroup(groupName) != null) {
-			throw new IllegalArgumentException("The group " + groupName + " has already been created!");
+
+		Group group = null;
+		synchronized (groups) {
+			if (getGroup(groupName) != null) {
+				throw new IllegalArgumentException("The group " + groupName + " has already been created!");
+			}
+			
+			group = new Group(groupName, recorder);
+			groups.add(group);
 		}
-		
-		Group group = new Group(groupName, recorder);
-		groups.add(group);
 		
 		recorder.append(new Modification("Creating group: " + groupName) {
 			@Override
@@ -253,13 +277,19 @@ public final class Config {
 	 */
 	public boolean removeGroup(Group group) {
 		Preconditions.checkNotNull(group);
-		boolean remove = groups.remove(group);
-		
-		for (Repository repo : repositories) {
-			repo.revokePermissions(group);
+
+		boolean remove = false;
+		synchronized (groups) {
+			remove = groups.remove(group);
 		}
 		
 		if (remove) {
+			synchronized (repositories) {
+				for (Repository repo : repositories) {
+					repo.revokePermissions(group);
+				}
+			}
+			
 			final String groupName = group.getName();
 			recorder.append(new Modification("Removing group: " + groupName) {
 				@Override
@@ -305,9 +335,12 @@ public final class Config {
 	 */
 	public Group getGroup(String groupName) {
 		validateGroupName(groupName);
-		for (Group group : groups) {
-			if (group.getName().equals(groupName)) {
-				return group;
+		
+		synchronized (groups) {
+			for (Group group : groups) {
+				if (group.getName().equals(groupName)) {
+					return group;
+				}
 			}
 		}
 		return null;
@@ -318,8 +351,10 @@ public final class Config {
 	 * 	Am {@link ImmutableSet} of {@link Group} objects currently 
 	 * 	registered in the {@link Config} object. This includes the "@all" {@link Group}.
 	 */
-	public Set<Group> getGroups() {
-		return ImmutableSet.copyOf(groups);
+	public ImmutableSet<Group> getGroups() {
+		synchronized (groups) {
+			return ImmutableSortedSet.copyOf(Group.SORT_BY_NAME, groups);
+		}
 	}
 	
 	private void validateGroupName(String groupName) {
@@ -342,11 +377,14 @@ public final class Config {
 	 */
 	public User ensureUserExists(String userName) {
 		validateUserName(userName);
-		User user = getUser(userName);
-		if (user == null) {
-			user = createUser(userName);
+
+		synchronized (users) {
+			User user = getUser(userName);
+			if (user == null) {
+				user = createUser(userName);
+			}
+			return user;
 		}
-		return user;
 	}
 
 	/**
@@ -364,12 +402,16 @@ public final class Config {
 	 */
 	public User createUser(final String userName) {
 		validateUserName(userName);
-		if (getUser(userName) != null) {
-			throw new IllegalArgumentException("The user " + userName + " has already been created!");
+
+		User user = null;
+		synchronized (users) {
+			if (getUser(userName) != null) {
+				throw new IllegalArgumentException("The user " + userName + " has already been created!");
+			}
+			
+			user = new User(userName, recorder);
+			users.add(user);
 		}
-		
-		User user = new User(userName, recorder);
-		users.add(user);
 
 		recorder.append(new Modification("Creating user: " + userName) {
 			@Override
@@ -398,22 +440,30 @@ public final class Config {
 	 */
 	public boolean removeUser(User user) {
 		Preconditions.checkNotNull(user);
-		boolean success = users.remove(user);
-		
-		for (Repository repo : repositories) {
-			repo.revokePermissions(user);
-		}
 
-		final String userName = user.getName();
-		recorder.append(new Modification("Removing user: " + userName) {
-			@Override
-			public void apply(Config config) throws ModificationException {
-				User user = config.getUser(userName);
-				if (user == null || !config.removeUser(user)) {
-					throw new ModificationException();
+		boolean success = false;
+		synchronized (users) {
+			success = users.remove(user);
+		}
+		
+		if (success) {
+			synchronized (repositories) {
+				for (Repository repo : repositories) {
+					repo.revokePermissions(user);
 				}
 			}
-		});
+	
+			final String userName = user.getName();
+			recorder.append(new Modification("Removing user: " + userName) {
+				@Override
+				public void apply(Config config) throws ModificationException {
+					User user = config.getUser(userName);
+					if (user == null || !config.removeUser(user)) {
+						throw new ModificationException();
+					}
+				}
+			});
+		}
 		
 		return success;
 	}
@@ -448,9 +498,11 @@ public final class Config {
 	 */
 	public User getUser(String userName) {
 		validateUserName(userName);
-		for (User user : users) {
-			if (user.getName().equals(userName)) {
-				return user;
+		synchronized (users) {
+			for (User user : users) {
+				if (user.getName().equals(userName)) {
+					return user;
+				}
 			}
 		}
 		return null;
@@ -461,8 +513,10 @@ public final class Config {
 	 * 	Am {@link ImmutableSet} of {@link User} objects currently
 	 * 	registered in the {@link Config} object.
 	 */
-	public Set<User> getUsers() {
-		return ImmutableSet.copyOf(users);
+	public ImmutableSet<User> getUsers() {
+		synchronized (users) {
+			return ImmutableSortedSet.copyOf(User.SORT_BY_TYPE_AND_NAME, users);
+		}
 	}
 	
 	private void validateUserName(String userName) {
