@@ -1,7 +1,6 @@
 package nl.minicom.gitolite.manager.models;
 
 import java.util.Comparator;
-import java.util.Set;
 import java.util.SortedSet;
 
 import nl.minicom.gitolite.manager.exceptions.ModificationException;
@@ -50,6 +49,9 @@ public final class Group implements Identifiable {
 	 * 
 	 * @param name
 	 * 	The name of the group. The name must be a non-null, not-empty value.
+	 * 
+	 * @param recorder
+	 * 	The {@link Recorder} to use when recording changes of this {@link Group}. 
 	 */
 	Group(String name, Recorder recorder) {
 		Preconditions.checkNotNull(name);
@@ -172,7 +174,7 @@ public final class Group implements Identifiable {
 	
 	/**
 	 * @return
-	 * 	An {@link Set} of child {@link Group}s of this {@link Group}.
+	 * 	An {@link ImmutableSet} of child {@link Group}s of this {@link Group}.
 	 */
 	public ImmutableSet<Group> getGroups() {
 		synchronized (groups) {
@@ -182,7 +184,7 @@ public final class Group implements Identifiable {
 
 	/**
 	 * @return
-	 * 	An {@link Set} of child {@link User}s of this {@link Group}.
+	 * 	An {@link ImmutableSet} of child {@link User}s of this {@link Group}.
 	 */
 	public ImmutableSet<User> getUsers() {
 		synchronized (users) {
@@ -192,7 +194,7 @@ public final class Group implements Identifiable {
 
 	/**
 	 * @return
-	 * 	A {@link Set} containing all {@link User}s and {@link Group}s.
+	 * 	A {@link ImmutableSet} containing all {@link User}s and {@link Group}s.
 	 */
 	public ImmutableSet<Identifiable> getAllMembers() {
 		Builder<Identifiable> builder = ImmutableSortedSet.orderedBy(Identifiable.SORT_BY_TYPE_AND_NAME);

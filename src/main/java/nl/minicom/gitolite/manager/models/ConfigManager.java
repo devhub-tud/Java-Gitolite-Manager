@@ -148,16 +148,13 @@ public class ConfigManager {
 	}
 
 	/**
-	 * This method reads and interprets the configuration repository, and returns
-	 * a representation.
+	 * This method returns a representation of the current gitolite configuration.
 	 * 
-	 * @return A {@link ConfigRecorder} object, representing the configuration
-	 *         repository.
+	 * @return A {@link Config} object, representing the gitolite configuration.
 	 * 
 	 * @throws ServiceUnavailable If the service could not be reached.
 	 * 
-	 * @throws IOException If one or more files in the repository could not be
-	 *            read.
+	 * @throws IOException If one or more files in the repository could not be read.
 	 */
 	public Config get() throws IOException, ServiceUnavailable {
 		ensureAdminRepoPresent();
@@ -166,11 +163,34 @@ public class ConfigManager {
 		return copy;
 	}
 	
+	/**
+	 * This method applies any changes that were made to the specified {@link Config} 
+	 * object to the gitolite server. This method returns a {@link ListenableFuture} 
+	 * which can be used to get a notification when the changes have been applied, or 
+	 * if the changes could not be applied due to conflicts.
+	 * 
+	 * @param config
+	 * 	The {@link Config} object to apply the changes of to the gitolite server.
+	 * 
+	 * @return
+	 * 	A {@link ListenableFuture} which notifies the owner of completion or failure.
+	 */
 	public ListenableFuture<Void> applyAsync(Config config) {
 		List<Modification> recording = config.getRecorder().stop();
 		return worker.submit(recording);
 	}
 	
+	/**
+	 * This method applies any changes that were made to the specified {@link Config}
+	 * object to the gitolite server. This method blocks until the operation has completed
+	 * or failed.
+	 * 
+	 * @param config
+	 * 	The {@link Config} object to apply the changes of to the gitolite server.
+	 * 
+	 * @throws ModificationException
+	 * 	When the changes conflict to other changes, and thus could not be applied.
+	 */
 	public void apply(Config config) throws ModificationException {
 		ListenableFuture<Void> future = applyAsync(config);
 		try {
@@ -213,17 +233,8 @@ public class ConfigManager {
 			}
 		}
 		
-		log.info("Commiting changes to local git repo");
 		git.commitChanges();
-
-		try {
-			log.info("Pushing changes to remote git repo");
-			git.push();
-		} 
-		catch (IOException e) {
-			log.error(e.getMessage(), e);
-			throw new ServiceUnavailable(e);
-		}
+		git.push();
 	}
 
 	private Set<File> listKeys() {
@@ -277,6 +288,10 @@ public class ConfigManager {
 		}
 	}
 	
+	/**
+	 * The {@link Worker} class is a simple class which is notified of any incoming {@link Modification}s
+	 * and processes them in batches of at most 10.
+	 */
 	private class Worker {
 
 		protected static final int MAXIMUM_BATCH_SIZE = 10;
@@ -296,12 +311,7 @@ public class ConfigManager {
 				@Override
 				public Void call() throws Exception {
 					try {
-						synchronized(modifications) {
-							while (modifications.isEmpty()) {
-								log.debug("Worker is waiting for changes...");
-								modifications.wait();
-							}
-						}
+						waitUntilModificationsArePresent();
 
 						log.debug("Worker found changes");
 						Collection<SettableFuture<Void>> succeeded = applyChanges(false);
@@ -311,7 +321,7 @@ public class ConfigManager {
 							writeAndPush();
 						}
 						catch (IOException | ServiceUnavailable e) {
-							log.error("Worker failed to push changes to remote repository, notifying changeset owners", e);
+							log.error("Worker failed to push changes to remote repository, notifying owners", e);
 							for (SettableFuture<Void> future : succeeded) {
 								future.setException(e);
 							}
@@ -330,39 +340,49 @@ public class ConfigManager {
 					return null;
 				}
 				
-				private Collection<SettableFuture<Void>> applyChanges(boolean forceUpdate) throws ServiceUnavailable, IOException {
-					if (forceUpdate) {
-						log.info("Pulling changes from remote repository");
-						ensureAdminRepoIsUpToDate();
-					}
-					
-					Collection<SettableFuture<Void>> succeeded = Lists.newArrayList();
-					Config current = config.get().copy();
-					
-					log.info("Worker is applying {} changeset(s)", modifications.size());
-					while (!modifications.isEmpty() && succeeded.size() < MAXIMUM_BATCH_SIZE) {
-						Config fallback = current.copy();
-						
-						UnitOfWork unit = modifications.poll();
-						try {
-							log.info("Worker is applying {} change(s)", unit.getModifications().size());
-							for (Modification change : unit.getModifications()) {
-								change.apply(current);
-							}
-							succeeded.add(unit.getFuture());
-						}
-						catch (ModificationException e) {
-							log.error("Worker failed to apply a changeset, notifying owner");
-							unit.getFuture().setException(e);
-							current = fallback;
-						}
-					}
-					
-					log.info("Worker successfully applied {} changeset", succeeded.size());
-					config.set(current);
-					return succeeded;
-				}
 			});
+		}
+
+		private void waitUntilModificationsArePresent() throws InterruptedException {
+			synchronized (modifications) {
+				while (modifications.isEmpty()) {
+					log.debug("Worker is waiting for changes...");
+					modifications.wait();
+				}
+			}
+		}
+		
+		private Collection<SettableFuture<Void>> applyChanges(boolean update) throws ServiceUnavailable, IOException {
+			if (update) {
+				log.info("Pulling changes from remote repository");
+				ensureAdminRepoIsUpToDate();
+			}
+			
+			Collection<SettableFuture<Void>> succeeded = Lists.newArrayList();
+			Config current = config.get().copy();
+			
+			log.info("Worker is applying {} changeset(s)", modifications.size());
+			while (!modifications.isEmpty() && succeeded.size() < MAXIMUM_BATCH_SIZE) {
+				Config fallback = current.copy();
+				
+				UnitOfWork unit = modifications.poll();
+				try {
+					log.info("Worker is applying {} change(s)", unit.getModifications().size());
+					for (Modification change : unit.getModifications()) {
+						change.apply(current);
+					}
+					succeeded.add(unit.getFuture());
+				}
+				catch (ModificationException e) {
+					log.error("Worker failed to apply a changeset, notifying owner");
+					unit.getFuture().setException(e);
+					current = fallback;
+				}
+			}
+			
+			log.info("Worker successfully applied {} changeset", succeeded.size());
+			config.set(current);
+			return succeeded;
 		}
 
 		public ListenableFuture<Void> submit(List<Modification> recording) {
@@ -385,6 +405,12 @@ public class ConfigManager {
 		
 	}
 	
+	/**
+	 * The {@link UnitOfWork} class is a data object, which holds a reference to the
+	 * {@link ImmutableList} of {@link Modification}s which need to be applied, and
+	 * an internally created {@link SettableFuture} object, to which others can attach
+	 * listeners.
+	 */
 	private static class UnitOfWork {
 		
 		private final ImmutableList<Modification> modifications;

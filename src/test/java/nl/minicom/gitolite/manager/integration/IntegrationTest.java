@@ -1,10 +1,6 @@
 package nl.minicom.gitolite.manager.integration;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-
 import nl.minicom.gitolite.manager.exceptions.ModificationException;
-import nl.minicom.gitolite.manager.exceptions.ServiceUnavailable;
 import nl.minicom.gitolite.manager.models.Config;
 import nl.minicom.gitolite.manager.models.ConfigManager;
 import nl.minicom.gitolite.manager.models.Group;
@@ -24,7 +20,7 @@ public class IntegrationTest {
 	private ConfigManager manager;
 	
 	@Before
-	public void setUp() throws IOException, ServiceUnavailable, ModificationException, InterruptedException, ExecutionException {
+	public void setUp() throws Exception {
 		String gitUri = System.getProperty("gitUri");
 		boolean runTests = !Strings.isNullOrEmpty(gitUri);
 		Assume.assumeTrue(runTests);
@@ -34,11 +30,11 @@ public class IntegrationTest {
 	}
 
 	@After
-	public void tearDown() throws IOException, ServiceUnavailable, ModificationException, InterruptedException, ExecutionException {
+	public void tearDown() throws Exception {
 		clearEverything();
 	}
 	
-	private void clearEverything() throws IOException, ServiceUnavailable, ModificationException, InterruptedException, ExecutionException {
+	private void clearEverything() throws Exception {
 		Config config = manager.get();
 
 		for (User user : config.getUsers()) {
@@ -61,7 +57,7 @@ public class IntegrationTest {
 	}
 	
 	@Test
-	public void testSequentialRepositoryModification() throws IOException, ServiceUnavailable, ModificationException, InterruptedException, ExecutionException {
+	public void testSequentialRepositoryModification() throws Exception {
 		Config config = manager.get();
 		config.createRepository("test-repo");
 		manager.apply(config);
@@ -76,7 +72,7 @@ public class IntegrationTest {
 	}
 	
 	@Test(expected = ModificationException.class)
-	public void testConcurrentRepositoryCreation() throws IOException, ServiceUnavailable, ModificationException, InterruptedException, ExecutionException {
+	public void testConcurrentRepositoryCreation() throws Exception {
 		Config config1 = manager.get();
 		Config config2 = manager.get();
 		
@@ -88,7 +84,7 @@ public class IntegrationTest {
 	}
 	
 	@Test(expected = ModificationException.class)
-	public void testConcurrentRepositoryRemoval() throws IOException, ServiceUnavailable, ModificationException, InterruptedException, ExecutionException {
+	public void testConcurrentRepositoryRemoval() throws Exception {
 		Config config = manager.get();
 		config.createRepository("test-repo");
 		manager.apply(config);
@@ -104,7 +100,7 @@ public class IntegrationTest {
 	}
 	
 	@Test
-	public void testSequentialGroupModification() throws IOException, ServiceUnavailable, ModificationException, InterruptedException, ExecutionException {
+	public void testSequentialGroupModification() throws Exception {
 		Config config = manager.get();
 		config.createGroup("@test-group").add(config.getUser("git"));
 		manager.apply(config);
@@ -118,7 +114,7 @@ public class IntegrationTest {
 	}
 	
 	@Test(expected = ModificationException.class)
-	public void testConcurrentGroupCreation() throws IOException, ServiceUnavailable, ModificationException, InterruptedException, ExecutionException {
+	public void testConcurrentGroupCreation() throws Exception {
 		Config config1 = manager.get();
 		Config config2 = manager.get();
 		
@@ -130,7 +126,7 @@ public class IntegrationTest {
 	}
 	
 	@Test(expected = ModificationException.class)
-	public void testConcurrentGroupRemoval() throws IOException, ServiceUnavailable, ModificationException, InterruptedException, ExecutionException {
+	public void testConcurrentGroupRemoval() throws Exception {
 		Config config = manager.get();
 		config.createGroup("@test-group").add(config.getUser("git"));
 		manager.apply(config);
@@ -146,7 +142,7 @@ public class IntegrationTest {
 	}
 	
 	@Test
-	public void testSequentialUserModification() throws IOException, ServiceUnavailable, ModificationException, InterruptedException, ExecutionException {
+	public void testSequentialUserModification() throws Exception {
 		Config config = manager.get();
 		config.createUser("test-user").setKey("key", "value");
 		manager.apply(config);
@@ -160,7 +156,7 @@ public class IntegrationTest {
 	}
 	
 	@Test(expected = ModificationException.class)
-	public void testConcurrentUserCreation() throws IOException, ServiceUnavailable, ModificationException, InterruptedException, ExecutionException {
+	public void testConcurrentUserCreation() throws Exception {
 		Config config1 = manager.get();
 		Config config2 = manager.get();
 
@@ -172,7 +168,7 @@ public class IntegrationTest {
 	}
 	
 	@Test(expected = ModificationException.class)
-	public void testConcurrentUserRemoval() throws IOException, ServiceUnavailable, ModificationException, InterruptedException, ExecutionException {
+	public void testConcurrentUserRemoval() throws Exception {
 		Config config = manager.get();
 		config.createUser("test-user").setKey("key", "value");
 		manager.apply(config);

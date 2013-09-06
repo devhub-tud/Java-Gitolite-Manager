@@ -19,6 +19,8 @@ import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.NoFilepatternException;
 import org.eclipse.jgit.errors.UnmergedPathException;
 import org.eclipse.jgit.transport.CredentialsProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -30,6 +32,8 @@ import com.google.common.base.Preconditions;
  */
 public class JGitManager implements GitManager {
 
+	private static final Logger log = LoggerFactory.getLogger(JGitManager.class);
+	
 	private final File workingDirectory;
 	private final CredentialsProvider credentialProvider;
 
@@ -158,6 +162,7 @@ public class JGitManager implements GitManager {
 
 	private void commit(Git git, String message) throws IOException {
 		synchronized (gitLock) {
+			log.info("Commiting changes to local git repo");
 			CommitCommand commit = git.commit();
 			try {
 				commit.setMessage(message).call();
@@ -173,6 +178,7 @@ public class JGitManager implements GitManager {
 
 	private void add(Git git, String pathToAdd) throws IOException {
 		synchronized (gitLock) {
+			log.info("Adding changes to commit");
 			AddCommand add = git.add();
 			try {
 				add.addFilepattern(pathToAdd).call();
@@ -191,6 +197,7 @@ public class JGitManager implements GitManager {
 	public void push() throws IOException, ServiceUnavailable {
 		synchronized (gitLock) {
 			try {
+				log.info("Pushing changes to remote git repo");
 				PushCommand push = git.push();
 				push.setCredentialsProvider(credentialProvider);
 				push.call();

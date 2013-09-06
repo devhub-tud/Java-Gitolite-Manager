@@ -20,6 +20,12 @@ public final class ConfigWriter {
 	
 	private static final String PERMISSION_INDENT = "    ";
 	private static final int PADDING = 20;
+	
+	private static final Function<Identifiable, String> TO_NAME = new Function<Identifiable, String>() {
+		public String apply(Identifiable entity) {
+			return entity.getName();
+		}
+	};
 
 	/**
 	 * This method writes a configuration file based on the specified {@link ConfigModel} object,
@@ -53,12 +59,7 @@ public final class ConfigWriter {
 					continue;
 				}
 				
-				Collection<String> names = Collections2.transform(group.getAllMembers(), new Function<Identifiable, String>() {
-					public String apply(Identifiable entity) {
-						return entity.getName();
-					}
-				});
-				
+				Collection<String> names = Collections2.transform(group.getAllMembers(), TO_NAME);
 				writer.write(pad(group.getName(), PADDING) + " = " + Joiner.on(" ").join(names) + "\n");
 			}
 			writer.write("\n");

@@ -46,6 +46,9 @@ public final class User implements Identifiable {
 	 * 
 	 * @param name
 	 * 	The name of the user.
+	 * 
+	 * @param recorder
+	 * 	The {@link Recorder} to use when recording changes of this {@link User}.
 	 */
 	User(String name, Recorder recorder) {
 		Preconditions.checkNotNull(name);

@@ -33,6 +33,9 @@ public final class Config {
 	
 	/**
 	 * This constructs a new {@link ConfigModelModel} object.
+	 * 
+	 * @param recorder
+	 * 	The {@link Recorder} to use when modifying this {@link Config} object.
 	 */
 	Config(Recorder recorder) {
 		Preconditions.checkNotNull(recorder);
@@ -43,6 +46,9 @@ public final class Config {
 		this.users = Sets.newTreeSet(User.SORT_BY_TYPE_AND_NAME);
 	}
 	
+	/**
+	 * @return The {@link Recorder} used by this {@link Config} to record changes.
+	 */
 	Recorder getRecorder() {
 		return recorder;
 	}
@@ -524,6 +530,9 @@ public final class Config {
 		Preconditions.checkArgument(!userName.isEmpty());
 	}
 	
+	/**
+	 * @return The created deep copy of this {@link Config} object.
+	 */
 	Config copy() {
 		Config config = new Config();
 		
@@ -551,6 +560,7 @@ public final class Config {
 			}
 		}
 		
+		// Add repositories.
 		for (Repository repo : getRepositories()) {
 			Repository created = config.createRepository(repo.getName());
 			for (Entry<Permission, Identifiable> entry : repo.getPermissions().entries()) {

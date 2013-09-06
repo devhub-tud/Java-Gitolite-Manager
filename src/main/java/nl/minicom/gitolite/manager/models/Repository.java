@@ -10,7 +10,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 
 /**
@@ -37,6 +36,9 @@ public final class Repository {
 	 * 
 	 * @param name
 	 * 	The name of the {@link Repository}.
+	 * 
+	 * @param recorder
+	 * 	The {@link Recorder} to use when recording changes of this {@link Repository}.
 	 */
 	Repository(String name, Recorder recorder) {
 		Preconditions.checkNotNull(name);
@@ -59,7 +61,7 @@ public final class Repository {
 	/**
 	 * This method sets the {@link Permission} level for a specified {@link User}.
 	 * 
-	 * @param entity
+	 * @param user
 	 * 	The {@link User} to set the permission for.
 	 * 
 	 * @param level
@@ -87,7 +89,7 @@ public final class Repository {
 	/**
 	 * This method sets the {@link Permission} level for a specified {@link Group}.
 	 * 
-	 * @param entity
+	 * @param group
 	 * 	The {@link Group} to set the permission for.
 	 * 
 	 * @param level
@@ -102,7 +104,7 @@ public final class Repository {
 		}
 		
 		final String groupName = group.getName();
-		recorder.append(new Modification("Setting permission for group: '%s' to repository: '%s'", groupName, getName()) {
+		recorder.append(new Modification("Setting permission for: '%s' to: '%s'", groupName, getName()) {
 			@Override
 			public void apply(Config config) throws ModificationException {
 				Repository repo = config.getRepository(getName());
@@ -116,7 +118,7 @@ public final class Repository {
 	 * This method revokes all rights on this {@link Repository} for the 
 	 * specified {@link User}.
 	 * 
-	 * @param entity
+	 * @param user
 	 * 	The {@link User} whose permissions need to be revoked.
 	 */
 	public void revokePermissions(User user) {
@@ -127,7 +129,7 @@ public final class Repository {
 		}
 		
 		final String userName = user.getName();
-		recorder.append(new Modification("Revoking permission for user: '%s' to repository: '%s'", userName, getName()) {
+		recorder.append(new Modification("Revoking permission for: '%s' from: '%s'", userName, getName()) {
 			@Override
 			public void apply(Config config) throws ModificationException {
 				Repository repo = config.getRepository(getName());
@@ -149,7 +151,7 @@ public final class Repository {
 	 * This method revokes all rights on this {@link Repository} for the 
 	 * specified {@link Group}.
 	 * 
-	 * @param entity
+	 * @param group
 	 * 	The {@link Group} whose permissions need to be revoked.
 	 */
 	public void revokePermissions(Group group) {
@@ -160,7 +162,7 @@ public final class Repository {
 		}
 		
 		final String groupName = group.getName();
-		recorder.append(new Modification("Revoking permission for group: '%s' to repository: '%s'", groupName, getName()) {
+		recorder.append(new Modification("Revoking permission for: '%s' to: '%s'", groupName, getName()) {
 			@Override
 			public void apply(Config config) throws ModificationException {
 				Repository repo = config.getRepository(getName());
@@ -180,7 +182,7 @@ public final class Repository {
 
 	/**
 	 * @return
-	 * 	An {@link Multimap} containing all the {@link User}s and {@link Group}s 
+	 * 	An {@link ImmutableMultimap} containing all the {@link User}s and {@link Group}s 
 	 * 	who have some kind of access on this {@link Repository} object. They're ordered
 	 * 	by highest {@link Permission} to lowest {@link Permission}, and each permission 
 	 * 	contains one or more {@link User}s and {@link Group}s.

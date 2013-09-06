@@ -22,7 +22,9 @@
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <module name="JavadocStyle"/>
-    <module name="ConstantName"/>
+    <module name="ConstantName">
+      <property name="format" value="^([A-Z][A-Z0-9]*(_[A-Z0-9]+)*|log)$"/>
+    </module>
     <module name="LocalFinalVariableName"/>
     <module name="LocalVariableName"/>
     <module name="MemberName"/>
@@ -41,7 +43,7 @@
       <property name="max" value="120"/>
     </module>
     <module name="MethodLength">
-      <property name="max" value="30"/>
+      <property name="max" value="50"/>
     </module>
     <module name="ParameterNumber"/>
     <module name="EmptyForIteratorPad"/>
@@ -66,7 +68,6 @@
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <module name="AvoidInlineConditionals"/>
-    <module name="DoubleCheckedLocking"/>
     <module name="EmptyStatement"/>
     <module name="EqualsHashCode"/>
     <module name="HiddenField">
@@ -101,9 +102,6 @@
     </module>
     <module name="UpperEll"/>
     <module name="FallThrough"/>
-    <module name="MethodLength">
-      <property name="max" value="30"/>
-    </module>
   </module>
   <module name="NewlineAtEndOfFile">
     <property name="severity" value="ignore"/>
