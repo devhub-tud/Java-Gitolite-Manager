@@ -19,6 +19,8 @@ import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.NoFilepatternException;
 import org.eclipse.jgit.errors.UnmergedPathException;
 import org.eclipse.jgit.transport.CredentialsProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -30,9 +32,12 @@ import com.google.common.base.Preconditions;
  */
 public class JGitManager implements GitManager {
 
+	private static final Logger log = LoggerFactory.getLogger(JGitManager.class);
+	
 	private final File workingDirectory;
 	private final CredentialsProvider credentialProvider;
 
+	private final Object gitLock = new Object();
 	private Git git;
 
 	/**
@@ -58,7 +63,9 @@ public class JGitManager implements GitManager {
 	 */
 	@Override
 	public void open() throws IOException {
-		git = Git.open(workingDirectory);
+		synchronized (gitLock) {
+			git = Git.open(workingDirectory);
+		}
 	}
 
 	/*
@@ -68,12 +75,14 @@ public class JGitManager implements GitManager {
 	 */
 	@Override
 	public void remove(String filePattern) throws IOException {
-		RmCommand rm = git.rm();
-		rm.addFilepattern(filePattern);
-		try {
-			rm.call();
-		} catch (NoFilepatternException e) {
-			throw new IOException(e);
+		synchronized (gitLock) {
+			RmCommand rm = git.rm();
+			rm.addFilepattern(filePattern);
+			try {
+				rm.call();
+			} catch (NoFilepatternException e) {
+				throw new IOException(e);
+			}
 		}
 	}
 
@@ -86,16 +95,18 @@ public class JGitManager implements GitManager {
 	public void clone(String uri) throws IOException, ServiceUnavailable {
 		Preconditions.checkNotNull(uri);
 
-		CloneCommand clone = Git.cloneRepository();
-		clone.setDirectory(workingDirectory);
-		clone.setURI(uri);
-		clone.setCredentialsProvider(credentialProvider);
-		try {
-			git = clone.call();
-		} catch (NullPointerException e) {
-			throw new ServiceUnavailable(e);
-		} catch (JGitInternalException e) {
-			throw new IOException(e);
+		synchronized (gitLock) {
+			CloneCommand clone = Git.cloneRepository();
+			clone.setDirectory(workingDirectory);
+			clone.setURI(uri);
+			clone.setCredentialsProvider(credentialProvider);
+			try {
+				git = clone.call();
+			} catch (NullPointerException e) {
+				throw new ServiceUnavailable(e);
+			} catch (JGitInternalException e) {
+				throw new IOException(e);
+			}
 		}
 	}
 
@@ -106,12 +117,14 @@ public class JGitManager implements GitManager {
 	 */
 	@Override
 	public void init() throws IOException {
-		InitCommand initCommand = Git.init();
-		initCommand.setDirectory(workingDirectory);
-		try {
-			git = initCommand.call();
-		} catch (JGitInternalException e) {
-			throw new IOException(e);
+		synchronized (gitLock) {
+			InitCommand initCommand = Git.init();
+			initCommand.setDirectory(workingDirectory);
+			try {
+				git = initCommand.call();
+			} catch (JGitInternalException e) {
+				throw new IOException(e);
+			}
 		}
 	}
 
@@ -122,13 +135,15 @@ public class JGitManager implements GitManager {
 	 */
 	@Override
 	public boolean pull() throws IOException, ServiceUnavailable {
-		try {
-			PullCommand pull = git.pull();
-			return !pull.call().getFetchResult().getTrackingRefUpdates().isEmpty();
-		} catch (NullPointerException e) {
-			throw new ServiceUnavailable(e);
-		} catch (GitAPIException e) {
-			throw new IOException(e);
+		synchronized (gitLock) {
+			try {
+				PullCommand pull = git.pull();
+				return !pull.call().getFetchResult().getTrackingRefUpdates().isEmpty();
+			} catch (NullPointerException e) {
+				throw new ServiceUnavailable(e);
+			} catch (GitAPIException e) {
+				throw new IOException(e);
+			}
 		}
 	}
 
@@ -139,29 +154,37 @@ public class JGitManager implements GitManager {
 	 */
 	@Override
 	public void commitChanges() throws IOException {
-		add(git, ".");
-		commit(git, "Changed config...");
+		synchronized (gitLock) {
+			add(git, ".");
+			commit(git, "Changed config...");
+		}
 	}
 
 	private void commit(Git git, String message) throws IOException {
-		CommitCommand commit = git.commit();
-		try {
-			commit.setMessage(message).call();
-		} catch (GitAPIException e) {
-			throw new IOException(e);
-		} catch (UnmergedPathException e) {
-			throw new IOException(e);
-		} catch (JGitInternalException e) {
-			throw new IOException(e);
+		synchronized (gitLock) {
+			log.info("Commiting changes to local git repo");
+			CommitCommand commit = git.commit();
+			try {
+				commit.setMessage(message).call();
+			} catch (GitAPIException e) {
+				throw new IOException(e);
+			} catch (UnmergedPathException e) {
+				throw new IOException(e);
+			} catch (JGitInternalException e) {
+				throw new IOException(e);
+			}
 		}
 	}
 
 	private void add(Git git, String pathToAdd) throws IOException {
-		AddCommand add = git.add();
-		try {
-			add.addFilepattern(pathToAdd).call();
-		} catch (NoFilepatternException e) {
-			throw new IOException(e);
+		synchronized (gitLock) {
+			log.info("Adding changes to commit");
+			AddCommand add = git.add();
+			try {
+				add.addFilepattern(pathToAdd).call();
+			} catch (NoFilepatternException e) {
+				throw new IOException(e);
+			}
 		}
 	}
 
@@ -172,16 +195,19 @@ public class JGitManager implements GitManager {
 	 */
 	@Override
 	public void push() throws IOException, ServiceUnavailable {
-		try {
-			PushCommand push = git.push();
-			push.setCredentialsProvider(credentialProvider);
-			push.call();
-		} catch (NullPointerException e) {
-			throw new ServiceUnavailable(e);
-		} catch (JGitInternalException e) {
-			throw new IOException(e);
-		} catch (InvalidRemoteException e) {
-			throw new IOException(e);
+		synchronized (gitLock) {
+			try {
+				log.info("Pushing changes to remote git repo");
+				PushCommand push = git.push();
+				push.setCredentialsProvider(credentialProvider);
+				push.call();
+			} catch (NullPointerException e) {
+				throw new ServiceUnavailable(e);
+			} catch (JGitInternalException e) {
+				throw new IOException(e);
+			} catch (InvalidRemoteException e) {
+				throw new IOException(e);
+			}
 		}
 	}
 

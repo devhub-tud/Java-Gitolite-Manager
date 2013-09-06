@@ -1,14 +1,8 @@
-package nl.minicom.gitolite.manager.io;
+package nl.minicom.gitolite.manager.models;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-
-import nl.minicom.gitolite.manager.models.Config;
-import nl.minicom.gitolite.manager.models.Group;
-import nl.minicom.gitolite.manager.models.Identifiable;
-import nl.minicom.gitolite.manager.models.Permission;
-import nl.minicom.gitolite.manager.models.Repository;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
@@ -106,15 +100,14 @@ public final class ConfigReader {
 		Iterable<String> ids = Splitter.on(' ').omitEmptyStrings().split(identifiables);
 
 		for (String id : ids) {
-			Identifiable entity;
 			if (id.charAt(0) == '@') {
-				entity = config.ensureGroupExists(id);
+				Group group = config.ensureGroupExists(id);
+				currentRepo.setPermission(group, permission);
 			}
 			else {
-				entity = config.ensureUserExists(id);
+				User user = config.ensureUserExists(id);
+				currentRepo.setPermission(user, permission);
 			}
-			
-			currentRepo.setPermission(entity, permission);
 		}
 	}
 	

@@ -1,10 +1,11 @@
-package nl.minicom.gitolite.manager.io;
+package nl.minicom.gitolite.manager.models;
 
 import java.io.IOException;
 
 import nl.minicom.gitolite.manager.models.Config;
 import nl.minicom.gitolite.manager.models.Group;
 import nl.minicom.gitolite.manager.models.Permission;
+import nl.minicom.gitolite.manager.models.Recorder;
 import nl.minicom.gitolite.manager.models.Repository;
 import nl.minicom.gitolite.manager.models.User;
 
@@ -19,7 +20,7 @@ public class ConfigReaderTest extends ConfigReaderTestingUtils {
 	
 	@Test
 	public void testSimpleConfig() throws IOException {
-		Config expected = new Config();
+		Config expected = new Config(new Recorder());
 		Repository repo = expected.createRepository("test");
 		User user = expected.createUser("test-user");
 		repo.setPermission(user, Permission.ALL);
@@ -29,7 +30,7 @@ public class ConfigReaderTest extends ConfigReaderTestingUtils {
 	
 	@Test
 	public void testMultipleUsersAndGroupsConfig() throws IOException {
-		Config expected = new Config();
+		Config expected = new Config(new Recorder());
 		Repository repo = expected.createRepository("test");
 		User user1 = expected.createUser("test-user-1");
 		User user2 = expected.createUser("test-user-2");
@@ -51,7 +52,7 @@ public class ConfigReaderTest extends ConfigReaderTestingUtils {
 	
 	@Test
 	public void testEmbeddedGroupsConfig() throws IOException {
-		Config expected = new Config();
+		Config expected = new Config(new Recorder());
 		Repository repo = expected.createRepository("test");
 		User user1 = expected.createUser("test-user-1");
 		User user2 = expected.createUser("test-user-2");

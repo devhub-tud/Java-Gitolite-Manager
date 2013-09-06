@@ -41,7 +41,8 @@ public interface GitManager {
 	 * 
 	 * @throws IOException If the clone operation failed, or if the working
 	 *            directory is not ready for a new git repository.
-	 * @throws ServiceUnavailable
+	 *            
+	 * @throws ServiceUnavailable If the git server is unreachable or otherwise unavailable.
 	 */
 	void clone(String uri) throws IOException, ServiceUnavailable;
 
@@ -58,6 +59,8 @@ public interface GitManager {
 	 * @return True if new commits were found and pulled, false otherwise.
 	 * 
 	 * @throws IOException If the pull operation failed.
+	 * 
+	 * @throws ServiceUnavailable If the git server is unreachable or otherwise unavailable.
 	 */
 	boolean pull() throws IOException, ServiceUnavailable;
 
@@ -73,6 +76,8 @@ public interface GitManager {
 	 * repository.
 	 * 
 	 * @throws IOException If the push operation failed.
+	 * 
+	 * @throws ServiceUnavailable If the git server is unreachable or otherwise unavailable.
 	 */
 	void push() throws IOException, ServiceUnavailable;
 

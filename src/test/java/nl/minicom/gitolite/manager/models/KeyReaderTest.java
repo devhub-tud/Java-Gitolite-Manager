@@ -1,4 +1,4 @@
-package nl.minicom.gitolite.manager.io;
+package nl.minicom.gitolite.manager.models;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import nl.minicom.gitolite.manager.models.Config;
+import nl.minicom.gitolite.manager.models.KeyReader;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -51,7 +52,6 @@ public class KeyReaderTest {
 
 		KeyReader.readKeys(config, keyDir);
 		expectedKeys.put("", CONTENT);
-
 		Assert.assertEquals(expectedKeys, config.getUser("test-user-1").getKeys());
 	}
 

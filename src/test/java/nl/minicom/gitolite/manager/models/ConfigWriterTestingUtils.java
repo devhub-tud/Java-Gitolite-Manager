@@ -1,4 +1,4 @@
-package nl.minicom.gitolite.manager.io;
+package nl.minicom.gitolite.manager.models;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.StringWriter;
 
 import nl.minicom.gitolite.manager.models.Config;
+import nl.minicom.gitolite.manager.models.ConfigWriter;
 
 import org.junit.Assert;
 import org.junit.Ignore;

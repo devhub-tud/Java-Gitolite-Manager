@@ -1,4 +1,4 @@
-package nl.minicom.gitolite.manager.io;
+package nl.minicom.gitolite.manager.models;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import nl.minicom.gitolite.manager.models.Config;
-import nl.minicom.gitolite.manager.models.User;
 
 import org.apache.commons.lang3.StringUtils;
 

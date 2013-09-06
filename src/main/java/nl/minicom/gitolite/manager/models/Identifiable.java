@@ -9,7 +9,7 @@ import java.util.Comparator;
  */
 public interface Identifiable {
 	
-	Comparator<Identifiable> SORT_BY_TYPE_AND_ALPHABETICALLY = new Comparator<Identifiable>() {
+	Comparator<Identifiable> SORT_BY_TYPE_AND_NAME = new Comparator<Identifiable>() {
 		@Override
 		public int compare(Identifiable o1, Identifiable o2) {
 			boolean o1IsGroup = o1 instanceof Group;

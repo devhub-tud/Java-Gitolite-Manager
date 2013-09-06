@@ -1,13 +1,18 @@
 package nl.minicom.gitolite.manager.models;
 
+import java.util.Map.Entry;
 import java.util.SortedSet;
+
+import nl.minicom.gitolite.manager.exceptions.ModificationException;
+import nl.minicom.gitolite.manager.models.Recorder.Modification;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 
 /**
- * The {@link Config} class is a representation of a configuration of gitolite.
+ * The {@link ConfigModelModel} class is a representation of a configuration of gitolite.
  * If you wish to change your gitolite configuration, You will have to manipulate this object.
  * 
  * @author Michael de Jong <michaelj@minicom.nl>
@@ -17,18 +22,39 @@ public final class Config {
 	private final SortedSet<Repository> repositories;
 	private final SortedSet<Group> groups;
 	private final SortedSet<User> users;
+	private final Recorder recorder;
 
 	/**
-	 * This constructs a new {@link Config} object.
+	 * This constructs a new {@link ConfigModelModel} object.
 	 */
-	public Config() {
-		this.repositories = Sets.newTreeSet(Repository.SORT_ALPHABETICALLY);
-		this.groups = Sets.newTreeSet(Group.SORT_BY_DEPTH);
-		this.users = Sets.newTreeSet(User.SORT_BY_TYPE_AND_ALPHABETICALLY);
+	Config() {
+		this(new Recorder());
 	}
 	
 	/**
-	 * This method ensures that the {@link Config} object will contain a {@link Repository}
+	 * This constructs a new {@link ConfigModelModel} object.
+	 * 
+	 * @param recorder
+	 * 	The {@link Recorder} to use when modifying this {@link Config} object.
+	 */
+	Config(Recorder recorder) {
+		Preconditions.checkNotNull(recorder);
+		
+		this.recorder = recorder;
+		this.repositories = Sets.newTreeSet(Repository.SORT_BY_NAME);
+		this.groups = Sets.newTreeSet(Group.SORT_BY_NAME);
+		this.users = Sets.newTreeSet(User.SORT_BY_TYPE_AND_NAME);
+	}
+	
+	/**
+	 * @return The {@link Recorder} used by this {@link Config} to record changes.
+	 */
+	Recorder getRecorder() {
+		return recorder;
+	}
+
+	/**
+	 * This method ensures that the {@link ConfigModel} object will contain a {@link Repository}
 	 * with the specified name. This means that if no such {@link Repository} exists, it will
 	 * be created.
 	 * 
@@ -41,11 +67,14 @@ public final class Config {
 	 */
 	public Repository ensureRepositoryExists(String repoName) {
 		validateRepositoryName(repoName);
-		Repository repository = getRepository(repoName);
-		if (repository == null) {
-			repository = createRepository(repoName);
+		
+		synchronized (repositories) {
+			Repository repository = getRepository(repoName);
+			if (repository == null) {
+				repository = createRepository(repoName);
+			}
+			return repository;
 		}
-		return repository;
 	}
 
 	/**
@@ -54,24 +83,41 @@ public final class Config {
 	 * @param repoName
 	 * 	The name of the {@link Repository}. This may not be NULL or an empty {@link String}.
 	 * 	If the {@link Repository} already exists a {@link IllegalArgumentException} is thrown. 
-	 * 	Use the {@link Config#ensureRepositoryExists(String)} method in stead.
+	 * 	Use the {@link ConfigModel#ensureRepositoryExists(String)} method in stead.
 	 * 
 	 * @return
 	 * 	The created {@link Repository} object.
 	 */
-	public Repository createRepository(String repoName) {
+	public Repository createRepository(final String repoName) {
 		validateRepositoryName(repoName);
-		if (getRepository(repoName) != null) {
-			throw new IllegalArgumentException("The repository " + repoName + " has already been created!");
+		
+		Repository repository = null;
+		synchronized (repositories) {
+			if (getRepository(repoName) != null) {
+				throw new IllegalArgumentException("The repository " + repoName + " has already been created!");
+			}
+			
+			repository = new Repository(repoName, recorder);
+			repositories.add(repository);
 		}
 		
-		Repository repository = new Repository(repoName);
-		repositories.add(repository);
+		recorder.append(new Modification("Create repository: " + repoName) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				try {
+					config.createRepository(repoName);
+				}
+				catch (IllegalArgumentException e) {
+					throw new ModificationException();
+				}
+			}
+		});
+		
 		return repository;
 	}
-	
+
 	/**
-	 * This method removes the specified {@link Repository} from the {@link Config} object.
+	 * This method removes the specified {@link Repository} from the {@link ConfigModel} object.
 	 * 
 	 * @param repository
 	 * 	The {@link Repository} to remove. This may not be NULL.
@@ -82,11 +128,30 @@ public final class Config {
 	 */
 	public boolean removeRepository(Repository repository) {
 		Preconditions.checkNotNull(repository);
-		return repositories.remove(repository);
+
+		boolean removed = false;
+		synchronized (repositories) {
+			removed = repositories.remove(repository);
+		}
+		
+		final String repoName = repository.getName();
+		recorder.append(new Modification("Remove repository: " + repository.getName()) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				Repository repo = config.getRepository(repoName);
+				if (repo == null) {
+					throw new ModificationException();
+				}
+				
+				config.removeRepository(repo);
+			}
+		});
+		
+		return removed;
 	}
-	
+
 	/**
-	 * This method checks if the {@link Config} object contains a {@link Repository}
+	 * This method checks if the {@link ConfigModel} object contains a {@link Repository}
 	 * object with the specified name.
 	 * 
 	 * @param repoName
@@ -100,7 +165,7 @@ public final class Config {
 		validateRepositoryName(repoName);
 		return getRepository(repoName) != null;
 	}
-	
+
 	/**
 	 * This method fetches the {@link Repository} object with the specified name 
 	 * from the {@link Config} object.
@@ -115,11 +180,15 @@ public final class Config {
 	 */
 	public Repository getRepository(String repoName) {
 		validateRepositoryName(repoName);
-		for (Repository repository : repositories) {
-			if (repository.getName().equals(repoName)) {
-				return repository;
+
+		synchronized (repositories) {
+			for (Repository repository : repositories) {
+				if (repository.getName().equals(repoName)) {
+					return repository;
+				}
 			}
 		}
+		
 		return null;
 	}
 	
@@ -129,7 +198,9 @@ public final class Config {
 	 * 	registered in the {@link Config} object.
 	 */
 	public ImmutableSet<Repository> getRepositories() {
-		return ImmutableSet.copyOf(repositories);
+		synchronized (repositories) {
+			return ImmutableSortedSet.copyOf(Repository.SORT_BY_NAME, repositories);
+		}
 	}
 	
 	private void validateRepositoryName(String repoName) {
@@ -151,11 +222,14 @@ public final class Config {
 	 */
 	public Group ensureGroupExists(String groupName) {
 		validateGroupName(groupName);
-		Group group = getGroup(groupName);
-		if (group == null) {
-			group = createGroup(groupName);
+
+		synchronized (groups) {
+			Group group = getGroup(groupName);
+			if (group == null) {
+				group = createGroup(groupName);
+			}
+			return group;
 		}
-		return group;
 	}
 
 	/**
@@ -169,14 +243,31 @@ public final class Config {
 	 * @return
 	 * 	The created {@link Group} object.
 	 */
-	public Group createGroup(String groupName) {
+	public Group createGroup(final String groupName) {
 		validateGroupName(groupName);
-		if (getGroup(groupName) != null) {
-			throw new IllegalArgumentException("The group " + groupName + " has already been created!");
+
+		Group group = null;
+		synchronized (groups) {
+			if (getGroup(groupName) != null) {
+				throw new IllegalArgumentException("The group " + groupName + " has already been created!");
+			}
+			
+			group = new Group(groupName, recorder);
+			groups.add(group);
 		}
 		
-		Group group = new Group(groupName);
-		groups.add(group);
+		recorder.append(new Modification("Creating group: " + groupName) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				try {
+					config.createGroup(groupName);
+				}
+				catch (IllegalArgumentException e) {
+					throw new ModificationException();
+				}
+			}
+		});
+		
 		return group;
 	}
 
@@ -192,9 +283,34 @@ public final class Config {
 	 */
 	public boolean removeGroup(Group group) {
 		Preconditions.checkNotNull(group);
-		return groups.remove(group);
+
+		boolean remove = false;
+		synchronized (groups) {
+			remove = groups.remove(group);
+		}
+		
+		if (remove) {
+			synchronized (repositories) {
+				for (Repository repo : repositories) {
+					repo.revokePermissions(group);
+				}
+			}
+			
+			final String groupName = group.getName();
+			recorder.append(new Modification("Removing group: " + groupName) {
+				@Override
+				public void apply(Config config) throws ModificationException {
+					Group group = config.getGroup(groupName);
+					if (group == null || !config.removeGroup(group)) {
+						throw new ModificationException();
+					}
+				}
+			});
+		}
+		
+		return remove;
 	}
-	
+
 	/**
 	 * This method checks if the {@link Config} object contains a {@link Group}
 	 * object with the specified name.
@@ -210,7 +326,7 @@ public final class Config {
 		validateGroupName(groupName);
 		return getGroup(groupName) != null;
 	}
-	
+
 	/**
 	 * This method fetches the {@link Group} object with the specified name 
 	 * from the {@link Config} object.
@@ -225,9 +341,12 @@ public final class Config {
 	 */
 	public Group getGroup(String groupName) {
 		validateGroupName(groupName);
-		for (Group group : groups) {
-			if (group.getName().equals(groupName)) {
-				return group;
+		
+		synchronized (groups) {
+			for (Group group : groups) {
+				if (group.getName().equals(groupName)) {
+					return group;
+				}
 			}
 		}
 		return null;
@@ -239,7 +358,9 @@ public final class Config {
 	 * 	registered in the {@link Config} object. This includes the "@all" {@link Group}.
 	 */
 	public ImmutableSet<Group> getGroups() {
-		return ImmutableSet.copyOf(groups);
+		synchronized (groups) {
+			return ImmutableSortedSet.copyOf(Group.SORT_BY_NAME, groups);
+		}
 	}
 	
 	private void validateGroupName(String groupName) {
@@ -262,11 +383,14 @@ public final class Config {
 	 */
 	public User ensureUserExists(String userName) {
 		validateUserName(userName);
-		User user = getUser(userName);
-		if (user == null) {
-			user = createUser(userName);
+
+		synchronized (users) {
+			User user = getUser(userName);
+			if (user == null) {
+				user = createUser(userName);
+			}
+			return user;
 		}
-		return user;
 	}
 
 	/**
@@ -282,17 +406,34 @@ public final class Config {
 	 * 
 	 * @throws IllegalArgumentException
 	 */
-	public User createUser(String userName) {
+	public User createUser(final String userName) {
 		validateUserName(userName);
-		if (getUser(userName) != null) {
-			throw new IllegalArgumentException("The user " + userName + " has already been created!");
+
+		User user = null;
+		synchronized (users) {
+			if (getUser(userName) != null) {
+				throw new IllegalArgumentException("The user " + userName + " has already been created!");
+			}
+			
+			user = new User(userName, recorder);
+			users.add(user);
 		}
+
+		recorder.append(new Modification("Creating user: " + userName) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				try {
+					config.createUser(userName);
+				}
+				catch (IllegalArgumentException e) {
+					throw new ModificationException();
+				}
+			}
+		});
 		
-		User user = new User(userName);
-		users.add(user);
 		return user;
 	}
-	
+
 	/**
 	 * This method removes the specified {@link Repository} from the {@link User} object.
 	 * 
@@ -305,15 +446,34 @@ public final class Config {
 	 */
 	public boolean removeUser(User user) {
 		Preconditions.checkNotNull(user);
-		boolean success = users.remove(user);
+
+		boolean success = false;
+		synchronized (users) {
+			success = users.remove(user);
+		}
 		
-		for (Repository repo : repositories) {
-			repo.revokePermissions(user);
+		if (success) {
+			synchronized (repositories) {
+				for (Repository repo : repositories) {
+					repo.revokePermissions(user);
+				}
+			}
+	
+			final String userName = user.getName();
+			recorder.append(new Modification("Removing user: " + userName) {
+				@Override
+				public void apply(Config config) throws ModificationException {
+					User user = config.getUser(userName);
+					if (user == null || !config.removeUser(user)) {
+						throw new ModificationException();
+					}
+				}
+			});
 		}
 		
 		return success;
 	}
-	
+
 	/**
 	 * This method checks if the {@link Config} object contains a {@link User}
 	 * object with the specified name.
@@ -329,7 +489,7 @@ public final class Config {
 		validateUserName(userName);
 		return getUser(userName) != null;
 	}
-	
+
 	/**
 	 * This method fetches the {@link User} object with the specified name
 	 * from the {@link Config} object.
@@ -344,26 +504,78 @@ public final class Config {
 	 */
 	public User getUser(String userName) {
 		validateUserName(userName);
-		for (User user : users) {
-			if (user.getName().equals(userName)) {
-				return user;
+		synchronized (users) {
+			for (User user : users) {
+				if (user.getName().equals(userName)) {
+					return user;
+				}
 			}
 		}
 		return null;
 	}
-	
+
 	/**
 	 * @return
 	 * 	Am {@link ImmutableSet} of {@link User} objects currently
 	 * 	registered in the {@link Config} object.
 	 */
 	public ImmutableSet<User> getUsers() {
-		return ImmutableSet.copyOf(users);
+		synchronized (users) {
+			return ImmutableSortedSet.copyOf(User.SORT_BY_TYPE_AND_NAME, users);
+		}
 	}
 	
 	private void validateUserName(String userName) {
 		Preconditions.checkNotNull(userName);
 		Preconditions.checkArgument(!userName.isEmpty());
 	}
-
+	
+	/**
+	 * @return The created deep copy of this {@link Config} object.
+	 */
+	Config copy() {
+		Config config = new Config();
+		
+		// Add users.
+		for (User user : getUsers()) {
+			User created = config.createUser(user.getName());
+			for (Entry<String, String> entry : user.getKeys().entrySet()) {
+				created.setKey(entry.getKey(), entry.getValue());
+			}
+		}
+		
+		// Add groups and their users.
+		for (Group group : getGroups()) {
+			Group created = config.createGroup(group.getName());
+			for (User member : group.getUsers()) {
+				created.add(member);
+			}
+		}
+		
+		// Add sub groups to groups.
+		for (Group group : getGroups()) {
+			Group existing = config.getGroup(group.getName());
+			for (Group member : group.getGroups()) {
+				existing.add(config.getGroup(member.getName()));
+			}
+		}
+		
+		// Add repositories.
+		for (Repository repo : getRepositories()) {
+			Repository created = config.createRepository(repo.getName());
+			for (Entry<Permission, Identifiable> entry : repo.getPermissions().entries()) {
+				if (entry.getValue() instanceof User) {
+					User user = config.getUser(entry.getValue().getName());
+					created.setPermission(user, entry.getKey());
+				}
+				else {
+					Group group = config.getGroup(entry.getValue().getName());
+					created.setPermission(group, entry.getKey());
+				}
+			}
+		}
+		
+		return config;
+	}
+	
 }

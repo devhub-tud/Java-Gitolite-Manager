@@ -1,12 +1,6 @@
-package nl.minicom.gitolite.manager.io;
+package nl.minicom.gitolite.manager.models;
 
 import java.io.IOException;
-
-import nl.minicom.gitolite.manager.models.Config;
-import nl.minicom.gitolite.manager.models.Group;
-import nl.minicom.gitolite.manager.models.Permission;
-import nl.minicom.gitolite.manager.models.Repository;
-import nl.minicom.gitolite.manager.models.User;
 
 import org.junit.Test;
 

@@ -18,15 +18,15 @@ public class IdentifiableTest {
 
 	@Before
 	public void setUp() {
-		group1 = new Group("@group1");
-		group2 = new Group("@group2");
-		user1 = new User("user1");
-		user2 = new User("user2");
+		group1 = new Group("@group1", new Recorder());
+		group2 = new Group("@group2", new Recorder());
+		user1 = new User("user1", new Recorder());
+		user2 = new User("user2", new Recorder());
 	}
 
 	@Test
 	public void testComparatorWithGroupsOnly() {
-		SortedSet<Identifiable> identifiables = Sets.newTreeSet(Identifiable.SORT_BY_TYPE_AND_ALPHABETICALLY);
+		SortedSet<Identifiable> identifiables = Sets.newTreeSet(Identifiable.SORT_BY_TYPE_AND_NAME);
 		identifiables.add(group2);
 		identifiables.add(group1);
 
@@ -35,7 +35,7 @@ public class IdentifiableTest {
 
 	@Test
 	public void testComparatorWithUsersOnly() {
-		SortedSet<Identifiable> identifiables = Sets.newTreeSet(Identifiable.SORT_BY_TYPE_AND_ALPHABETICALLY);
+		SortedSet<Identifiable> identifiables = Sets.newTreeSet(Identifiable.SORT_BY_TYPE_AND_NAME);
 		identifiables.add(user2);
 		identifiables.add(user1);
 
@@ -44,7 +44,7 @@ public class IdentifiableTest {
 
 	@Test
 	public void testComparatorWithUsersAndGroups() {
-		SortedSet<Identifiable> identifiables = Sets.newTreeSet(Identifiable.SORT_BY_TYPE_AND_ALPHABETICALLY);
+		SortedSet<Identifiable> identifiables = Sets.newTreeSet(Identifiable.SORT_BY_TYPE_AND_NAME);
 		identifiables.add(group2);
 		identifiables.add(user2);
 		identifiables.add(group1);

@@ -14,6 +14,13 @@ import org.eclipse.jgit.transport.URIish;
  */
 public class PassphraseCredentialsProvider extends CredentialsProvider {
 
+	private static String ensureNotNull(String passphrase) {
+		if (passphrase == null) { 
+			return "";
+		}
+		return passphrase;
+	}
+
 	private final String passphrase;
 
 	/**
@@ -22,7 +29,7 @@ public class PassphraseCredentialsProvider extends CredentialsProvider {
 	 * @param passphrase The passphrase to use, to log in.
 	 */
 	public PassphraseCredentialsProvider(String passphrase) {
-		this.passphrase = (passphrase == null) ? "" : passphrase;
+		this.passphrase = ensureNotNull(passphrase);
 	}
 
 	/**

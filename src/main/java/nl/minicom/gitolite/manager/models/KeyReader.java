@@ -1,4 +1,4 @@
-package nl.minicom.gitolite.manager.io;
+package nl.minicom.gitolite.manager.models;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 
-import nl.minicom.gitolite.manager.models.Config;
 
 import com.google.common.base.Preconditions;
 
@@ -54,7 +53,7 @@ public final class KeyReader {
 			String keyName = fileName.substring(indexOfAt + 1, fileName.indexOf(".pub"));
 			String content = readKeyFile(keyFile);
 			
-			config.ensureUserExists(userName).defineKey(keyName, content);
+			config.ensureUserExists(userName).setKey(keyName, content);
 		}
 	}
 

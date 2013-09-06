@@ -12,7 +12,7 @@ ConfigManager manager = ConfigManager.create("git@hostname:gitolite-admin");
 The ConfigManager is responsible for loading the configuration and applying any changes you make to the configuration. To load the configuration you can do the following:
 
 ```
-Config config = manager.getConfig();
+Config config = manager.get();
 ```
 
 Now let's say we want to create a new repository 'my-first-repo' for a new group called 'devs', whose sole member is a new user called 'newbie'. We can achieve this by doing:
@@ -29,11 +29,17 @@ config.createRepository("my-first-repo")
 But before we're ready to send our new configuration to gitolite, we must first define a public SSH key for the user 'newbie'. We can do that like this:
 
 ```
-user.defineKey("desktop", "ssh-rsa AAAB3Nz...");
+user.setKey("desktop", "ssh-rsa AAAB3Nz...");
 ```
 
 Now our configuration is complete. We can use the following code to push it to gitolite, which will automatically create our new repository, group and user.
 
 ```
-manager.applyConfig();
+manager.apply();
+```
+
+Alternatively we can also perform this operation asynchronously by using the following code:
+
+```
+Future<Void> future = manager.applyAsync();
 ```
