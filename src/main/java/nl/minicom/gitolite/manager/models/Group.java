@@ -1,6 +1,7 @@
 package nl.minicom.gitolite.manager.models;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.SortedSet;
 
 import nl.minicom.gitolite.manager.exceptions.ModificationException;
@@ -13,6 +14,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.ImmutableSortedSet.Builder;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -105,6 +107,36 @@ public final class Group implements Identifiable {
 	}
 
 	/**
+	 * This method removes a {@link User} object from the {@link Group}.
+	 * 
+	 * @param user
+	 * 	The {@link User} to remove from this {@link Group}. This may not be NULL.
+	 * 	In case the {@link User} is not a member of this group an 
+	 * 	{@link IllegalArgumentException} is thrown.
+	 */
+	public void remove(User user) {
+		Preconditions.checkArgument(!isAllGroup());
+		Preconditions.checkNotNull(user);
+		
+		synchronized (users) {
+			if (!users.contains(user)) {
+				throw new IllegalArgumentException("Cannot remove user: '" + user.getName() + "'. It's not a member!");
+			}
+			users.remove(user);
+		}
+
+		final String childName = user.getName();
+		recorder.append(new Modification("Removing user: '%s' from group: '%s'", childName, getName()) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				Group parent = config.getGroup(getName());
+				User child = config.getUser(childName);
+				parent.remove(child);
+			}
+		});
+	}
+
+	/**
 	 * This method adds a child {@link Group} object to the {@link Group}.
 	 * 
 	 * @param group
@@ -120,7 +152,14 @@ public final class Group implements Identifiable {
 			if (groups.contains(group)) {
 				throw new IllegalArgumentException("Cannot add group: '" + group.getName() + "'. It's already added!");
 			}
+			if (group.isAllGroup()) {
+				throw new IllegalArgumentException("Cannot add group: '" + group.getName() + "'. The @all group cannot be a member!");
+			}
 			groups.add(group);
+			if (cycleDetected()) {
+				groups.remove(group);
+				throw new IllegalArgumentException("Cannot add group: '" + group.getName() + "'. This would create a cycle!");
+			}
 		}
 
 		final String groupName = group.getName();
@@ -130,6 +169,36 @@ public final class Group implements Identifiable {
 				Group parent = config.getGroup(getName());
 				Group child = config.getGroup(groupName);
 				parent.add(child);
+			}
+		});
+	}
+
+	/**
+	 * This method removes a child {@link Group} object from the {@link Group}.
+	 * 
+	 * @param group
+	 * 	The {@link Group} to remove from this {@link Group}. This may not be NULL.
+	 * 	In case the {@link Group} is already a member of this group an 
+	 * 	{@link IllegalArgumentException} is thrown.
+	 */
+	public void remove(Group group) {
+		Preconditions.checkArgument(!isAllGroup());
+		Preconditions.checkNotNull(group);
+		
+		synchronized (groups) {
+			if (!groups.contains(group)) {
+				throw new IllegalArgumentException("Cannot remove group: '" + group.getName() + "'. It's not a member!");
+			}
+			groups.remove(group);
+		}
+
+		final String groupName = group.getName();
+		recorder.append(new Modification("Removing group: '%s' from group: '%s'", groupName, getName()) {
+			@Override
+			public void apply(Config config) throws ModificationException {
+				Group parent = config.getGroup(getName());
+				Group child = config.getGroup(groupName);
+				parent.remove(child);
 			}
 		});
 	}
@@ -211,6 +280,18 @@ public final class Group implements Identifiable {
 		return name.equals("@all");
 	}
 
+	private boolean cycleDetected() {
+		List<Group> toVisit = Lists.newArrayList(groups);
+		while (!toVisit.isEmpty()) {
+			Group visiting = toVisit.remove(0);
+			if (visiting.equals(this)) {
+				return true;
+			}
+			toVisit.addAll(visiting.groups);
+		}
+		return false;
+	}
+	
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder()
