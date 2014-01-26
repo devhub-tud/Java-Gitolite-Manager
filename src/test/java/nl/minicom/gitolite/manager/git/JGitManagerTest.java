@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import nl.minicom.gitolite.manager.exceptions.GitException;
 import nl.minicom.gitolite.manager.exceptions.ServiceUnavailable;
 
 import org.junit.Assert;
@@ -32,7 +33,7 @@ public class JGitManagerTest {
 	}
 
 	@Test
-	public void testOpenExistingWorkingDirectory() throws IOException {
+	public void testOpenExistingWorkingDirectory() throws IOException, GitException {
 		File dir = Files.createTempDir();
 		new JGitManager(dir, null).init();
 
@@ -40,7 +41,7 @@ public class JGitManagerTest {
 	}
 
 	@Test
-	public void testRemoveFileFromWorkingDirectory() throws IOException {
+	public void testRemoveFileFromWorkingDirectory() throws IOException, GitException {
 		File dir = Files.createTempDir();
 		JGitManager jGitManager = new JGitManager(dir, null);
 		jGitManager.init();
@@ -58,7 +59,7 @@ public class JGitManagerTest {
 	}
 
 	@Test
-	public void testCloningExistingRepo() throws IOException, ServiceUnavailable {
+	public void testCloningExistingRepo() throws ServiceUnavailable, GitException {
 		File location = Files.createTempDir();
 		new JGitManager(location, null).init();
 
@@ -67,14 +68,14 @@ public class JGitManagerTest {
 	}
 
 	@Test
-	public void testInitializingNewRepo() throws IOException {
+	public void testInitializingNewRepo() throws GitException {
 		File dir = Files.createTempDir();
 		new JGitManager(dir, null).init();
 		Assert.assertTrue(new File(dir, ".git").exists());
 	}
 
 	@Test
-	public void testPullingFromExistingRepo() throws IOException, ServiceUnavailable {
+	public void testPullingFromExistingRepo() throws IOException, ServiceUnavailable, GitException {
 		File location = Files.createTempDir();
 		GitManager orig = new JGitManager(location, null);
 		orig.init();
@@ -93,7 +94,7 @@ public class JGitManagerTest {
 	}
 
 	@Test
-	public void testCommittingChangesToRepo() throws IOException {
+	public void testCommittingChangesToRepo() throws IOException, GitException {
 		File location = Files.createTempDir();
 		GitManager orig = new JGitManager(location, null);
 		orig.init();
@@ -101,7 +102,7 @@ public class JGitManagerTest {
 	}
 
 	@Test
-	public void testPushingToRemoteRepo() throws IOException, ServiceUnavailable {
+	public void testPushingToRemoteRepo() throws IOException, ServiceUnavailable, GitException {
 		File cloneDirectory = Files.createTempDir();
 		File workingDirectory = Files.createTempDir();
 		File location = Files.createTempDir();

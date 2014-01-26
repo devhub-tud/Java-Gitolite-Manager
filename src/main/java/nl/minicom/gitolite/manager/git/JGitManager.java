@@ -3,6 +3,7 @@ package nl.minicom.gitolite.manager.git;
 import java.io.File;
 import java.io.IOException;
 
+import nl.minicom.gitolite.manager.exceptions.GitException;
 import nl.minicom.gitolite.manager.exceptions.ServiceUnavailable;
 
 import org.eclipse.jgit.api.AddCommand;
@@ -14,10 +15,8 @@ import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.NoFilepatternException;
-import org.eclipse.jgit.errors.UnmergedPathException;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +73,7 @@ public class JGitManager implements GitManager {
 	 * @see nl.minicom.gitolite.manager.git.GitManager#remove(java.lang.String)
 	 */
 	@Override
-	public void remove(String filePattern) throws IOException {
+	public void remove(String filePattern) throws IOException, GitException {
 		synchronized (gitLock) {
 			RmCommand rm = git.rm();
 			rm.addFilepattern(filePattern);
@@ -82,6 +81,8 @@ public class JGitManager implements GitManager {
 				rm.call();
 			} catch (NoFilepatternException e) {
 				throw new IOException(e);
+			} catch (GitAPIException e) {
+				throw new GitException(e);
 			}
 		}
 	}
@@ -92,7 +93,7 @@ public class JGitManager implements GitManager {
 	 * @see nl.minicom.gitolite.manager.git.GitManager#clone(java.lang.String)
 	 */
 	@Override
-	public void clone(String uri) throws IOException, ServiceUnavailable {
+	public void clone(String uri) throws ServiceUnavailable, GitException {
 		Preconditions.checkNotNull(uri);
 
 		synchronized (gitLock) {
@@ -104,8 +105,8 @@ public class JGitManager implements GitManager {
 				git = clone.call();
 			} catch (NullPointerException e) {
 				throw new ServiceUnavailable(e);
-			} catch (JGitInternalException e) {
-				throw new IOException(e);
+			} catch (GitAPIException e) {
+				throw new GitException(e);
 			}
 		}
 	}
@@ -116,14 +117,14 @@ public class JGitManager implements GitManager {
 	 * @see nl.minicom.gitolite.manager.git.GitManager#init()
 	 */
 	@Override
-	public void init() throws IOException {
+	public void init() throws GitException {
 		synchronized (gitLock) {
 			InitCommand initCommand = Git.init();
 			initCommand.setDirectory(workingDirectory);
 			try {
 				git = initCommand.call();
-			} catch (JGitInternalException e) {
-				throw new IOException(e);
+			} catch (GitAPIException e) {
+				throw new GitException(e);
 			}
 		}
 	}
@@ -134,7 +135,7 @@ public class JGitManager implements GitManager {
 	 * @see nl.minicom.gitolite.manager.git.GitManager#pull()
 	 */
 	@Override
-	public boolean pull() throws IOException, ServiceUnavailable {
+	public boolean pull() throws ServiceUnavailable, GitException {
 		synchronized (gitLock) {
 			try {
 				PullCommand pull = git.pull();
@@ -142,7 +143,7 @@ public class JGitManager implements GitManager {
 			} catch (NullPointerException e) {
 				throw new ServiceUnavailable(e);
 			} catch (GitAPIException e) {
-				throw new IOException(e);
+				throw new GitException(e);
 			}
 		}
 	}
@@ -153,30 +154,26 @@ public class JGitManager implements GitManager {
 	 * @see nl.minicom.gitolite.manager.git.GitManager#commitChanges()
 	 */
 	@Override
-	public void commitChanges() throws IOException {
+	public void commitChanges() throws IOException, GitException {
 		synchronized (gitLock) {
 			add(git, ".");
 			commit(git, "Changed config...");
 		}
 	}
 
-	private void commit(Git git, String message) throws IOException {
+	private void commit(Git git, String message) throws GitException {
 		synchronized (gitLock) {
 			log.info("Commiting changes to local git repo");
 			CommitCommand commit = git.commit();
 			try {
 				commit.setMessage(message).call();
 			} catch (GitAPIException e) {
-				throw new IOException(e);
-			} catch (UnmergedPathException e) {
-				throw new IOException(e);
-			} catch (JGitInternalException e) {
-				throw new IOException(e);
+				throw new GitException(e);
 			}
 		}
 	}
 
-	private void add(Git git, String pathToAdd) throws IOException {
+	private void add(Git git, String pathToAdd) throws IOException, GitException {
 		synchronized (gitLock) {
 			log.info("Adding changes to commit");
 			AddCommand add = git.add();
@@ -184,6 +181,8 @@ public class JGitManager implements GitManager {
 				add.addFilepattern(pathToAdd).call();
 			} catch (NoFilepatternException e) {
 				throw new IOException(e);
+			} catch (GitAPIException e) {
+				throw new GitException(e);
 			}
 		}
 	}
@@ -194,7 +193,7 @@ public class JGitManager implements GitManager {
 	 * @see nl.minicom.gitolite.manager.git.GitManager#push()
 	 */
 	@Override
-	public void push() throws IOException, ServiceUnavailable {
+	public void push() throws ServiceUnavailable, GitException {
 		synchronized (gitLock) {
 			try {
 				log.info("Pushing changes to remote git repo");
@@ -203,10 +202,8 @@ public class JGitManager implements GitManager {
 				push.call();
 			} catch (NullPointerException e) {
 				throw new ServiceUnavailable(e);
-			} catch (JGitInternalException e) {
-				throw new IOException(e);
-			} catch (InvalidRemoteException e) {
-				throw new IOException(e);
+			} catch (GitAPIException | JGitInternalException e) {
+				throw new GitException(e);
 			}
 		}
 	}
