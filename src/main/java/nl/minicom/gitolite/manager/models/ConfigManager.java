@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicReference;
 
+import nl.minicom.gitolite.manager.exceptions.GitException;
 import nl.minicom.gitolite.manager.exceptions.ModificationException;
 import nl.minicom.gitolite.manager.exceptions.ServiceUnavailable;
 import nl.minicom.gitolite.manager.git.GitManager;
@@ -123,23 +124,18 @@ public class ConfigManager {
 		this.worker = new Worker();
 	}
 	
-	private void ensureAdminRepoIsUpToDate() throws ServiceUnavailable, IOException {
-		try {
-			if (!new File(workingDirectory, ".git").exists()) {
-				log.info("Cloning from: {} to: {}", gitUri, workingDirectory);
-				git.clone(gitUri);
-			}
-			else {
-				log.info("Pulling from: {}", gitUri);
-				git.pull();
-			}
+	private void ensureAdminRepoIsUpToDate() throws ServiceUnavailable, GitException {
+		if (!new File(workingDirectory, ".git").exists()) {
+			log.info("Cloning from: {} to: {}", gitUri, workingDirectory);
+			git.clone(gitUri);
 		}
-		catch (IOException | ServiceUnavailable e) {
-			throw new ServiceUnavailable(e);
+		else {
+			log.info("Pulling from: {}", gitUri);
+			git.pull();
 		}
 	}
 	
-	private void ensureAdminRepoPresent() throws IOException, ServiceUnavailable {
+	private void ensureAdminRepoPresent() throws IOException, ServiceUnavailable, GitException {
 		if (!new File(workingDirectory, ".git").exists()) {
 			log.info("Cloning from: {} to: {}", gitUri, workingDirectory);
 			git.clone(gitUri);
@@ -152,11 +148,13 @@ public class ConfigManager {
 	 * 
 	 * @return A {@link Config} object, representing the gitolite configuration.
 	 * 
+	 * @throws IOException If one or more files in the repository could not be read.
+	 * 
 	 * @throws ServiceUnavailable If the service could not be reached.
 	 * 
-	 * @throws IOException If one or more files in the repository could not be read.
+	 * @throws GitException If an exception occurred while using the Git API.
 	 */
-	public Config get() throws IOException, ServiceUnavailable {
+	public Config get() throws IOException, ServiceUnavailable, GitException {
 		ensureAdminRepoPresent();
 		Config copy = config.get().copy();
 		copy.getRecorder().record();
@@ -188,7 +186,7 @@ public class ConfigManager {
 	 * @param config
 	 * 	The {@link Config} object to apply the changes of to the gitolite server.
 	 * 
-	 * @throws ModificationException
+	 * @throws ModificationException 
 	 * 	When the changes conflict to other changes, and thus could not be applied.
 	 */
 	public void apply(Config config) throws ModificationException {
@@ -214,7 +212,7 @@ public class ConfigManager {
 		}
 	}
 	
-	private void writeAndPush() throws IOException, ServiceUnavailable {
+	private void writeAndPush() throws IOException, ServiceUnavailable, GitException {
 		Config newConfig = config.get();
 		if (newConfig == null) {
 			throw new IllegalStateException("Config has not yet been loaded!");
@@ -352,7 +350,7 @@ public class ConfigManager {
 			}
 		}
 		
-		private Collection<SettableFuture<Void>> applyChanges(boolean update) throws ServiceUnavailable, IOException {
+		private Collection<SettableFuture<Void>> applyChanges(boolean update) throws ServiceUnavailable, IOException, GitException {
 			if (update) {
 				log.info("Pulling changes from remote repository");
 				ensureAdminRepoIsUpToDate();
