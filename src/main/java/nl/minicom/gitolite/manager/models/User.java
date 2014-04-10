@@ -80,7 +80,7 @@ public final class User implements Identifiable {
 	public void setKey(final String name, final String content) {
 		Preconditions.checkNotNull(name);
 		Preconditions.checkNotNull(content);
-		Preconditions.checkArgument(name.matches("^[a-zA-Z0-9]+$"), "\"" + name + "\" is not a valid key name");
+		Preconditions.checkArgument(name.matches("^[a-zA-Z0-9]*$"), "\"" + name + "\" is not a valid key name");
 		Preconditions.checkArgument(content.matches("^ssh-rsa\\s.+$"), "\"" + content + "\" is not a valid ssh key");
 
 		synchronized (keys) {
