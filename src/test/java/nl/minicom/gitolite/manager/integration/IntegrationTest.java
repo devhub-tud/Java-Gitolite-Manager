@@ -19,9 +19,12 @@ public class IntegrationTest {
 
 	private ConfigManager manager;
 	
+	private String adminUsername;
+	
 	@Before
 	public void setUp() throws Exception {
 		String gitUri = System.getProperty("gitUri");
+		adminUsername = System.getProperty("gitAdmin", "git");
 		boolean runTests = !Strings.isNullOrEmpty(gitUri);
 		Assume.assumeTrue(runTests);
 		
@@ -38,7 +41,7 @@ public class IntegrationTest {
 		Config config = manager.get();
 
 		for (User user : config.getUsers()) {
-			if (!"git".equals(user.getName())) {
+			if (!adminUsername.equals(user.getName())) {
 				config.removeUser(user);
 			}
 		}
@@ -102,7 +105,7 @@ public class IntegrationTest {
 	@Test
 	public void testSequentialGroupModification() throws Exception {
 		Config config = manager.get();
-		config.createGroup("@test-group").add(config.getUser("git"));
+		config.createGroup("@test-group").add(config.getUser(adminUsername));
 		manager.apply(config);
 		
 		config = manager.get();
@@ -118,8 +121,8 @@ public class IntegrationTest {
 		Config config1 = manager.get();
 		Config config2 = manager.get();
 		
-		config1.createGroup("@test-group").add(config1.getUser("git"));
-		config2.createGroup("@test-group").add(config2.getUser("git"));
+		config1.createGroup("@test-group").add(config1.getUser(adminUsername));
+		config2.createGroup("@test-group").add(config2.getUser(adminUsername));
 		
 		manager.applyAsync(config1);
 		manager.apply(config2);
@@ -128,7 +131,7 @@ public class IntegrationTest {
 	@Test(expected = ModificationException.class)
 	public void testConcurrentGroupRemoval() throws Exception {
 		Config config = manager.get();
-		config.createGroup("@test-group").add(config.getUser("git"));
+		config.createGroup("@test-group").add(config.getUser(adminUsername));
 		manager.apply(config);
 		
 		Config config1 = manager.get();
