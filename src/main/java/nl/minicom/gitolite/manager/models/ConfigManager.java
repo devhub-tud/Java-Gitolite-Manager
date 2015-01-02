@@ -38,7 +38,7 @@ import com.google.common.util.concurrent.SettableFuture;
  * The {@link ConfigManager} class is designed to be used by developers who wish
  * to manage their gitolite configuration.
  * 
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public class ConfigManager {
 	

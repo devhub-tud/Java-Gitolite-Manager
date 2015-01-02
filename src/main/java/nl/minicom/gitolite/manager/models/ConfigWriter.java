@@ -12,9 +12,9 @@ import com.google.common.collect.Multimap;
 
 /**
  * This class contains a method to write a configuration file 
- * based on a specified {@link ConfigModel} object.
+ * based on a specified {@link Config} object.
  *
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public final class ConfigWriter {
 	
@@ -28,11 +28,11 @@ public final class ConfigWriter {
 	};
 
 	/**
-	 * This method writes a configuration file based on the specified {@link ConfigModel} object,
+	 * This method writes a configuration file based on the specified {@link Config} object,
 	 * to the specified {@link Writer}.
 	 * 
 	 * @param config
-	 * 	The {@link ConfigModel} object to write. This cannot be NULL.
+	 * 	The {@link Config} object to write. This cannot be NULL.
 	 * 
 	 * @param writer
 	 * 	The {@link Writer} to write the configuration to. This cannot be NULL.

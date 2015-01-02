@@ -27,7 +27,7 @@ import com.google.common.base.Preconditions;
  * The {@link JGitManager} class is responsible for communicating with the
  * remote git repository containing the gitolite configuration.
  * 
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public class JGitManager implements GitManager {
 

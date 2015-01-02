@@ -13,7 +13,7 @@ import com.google.common.base.Preconditions;
  * This class contains a method to read all SSH keys from a specific directory
  * and register them with a provided {@link Config} object.
  * 
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public final class KeyReader {
 

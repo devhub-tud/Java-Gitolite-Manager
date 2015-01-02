@@ -16,7 +16,7 @@ import com.google.common.collect.Sets;
  * This class contains a method to write all registered SSH keys in 
  * a specified {@link Config} object, to a specified directory.
  * 
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public final class KeyWriter {
 

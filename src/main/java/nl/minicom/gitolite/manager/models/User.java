@@ -16,7 +16,7 @@ import com.google.common.collect.Maps;
 /**
  * This class represents a user in Gitolite.
  * 
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public final class User implements Identifiable {
 

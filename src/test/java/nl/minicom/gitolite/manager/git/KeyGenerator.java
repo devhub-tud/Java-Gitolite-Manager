@@ -32,6 +32,7 @@ public class KeyGenerator {
 	 *            username for output authorized_keys like string
 	 * @return authorized_keys like string
 	 * @throws IOException
+	 *             if an I/O error occurs.
 	 */
 	public static String encodePublicKey(final PublicKey publicKey, final String user)
 			throws IOException {

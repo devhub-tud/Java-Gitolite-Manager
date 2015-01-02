@@ -10,7 +10,7 @@ import nl.minicom.gitolite.manager.exceptions.ServiceUnavailable;
  * This interface is designed to be extended to support different java-git
  * libraries.
  * 
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public interface GitManager {
 

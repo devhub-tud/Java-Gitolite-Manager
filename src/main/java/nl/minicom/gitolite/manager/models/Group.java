@@ -20,7 +20,7 @@ import com.google.common.collect.Sets;
 /**
  * This class represents a {@link Group} in the gitolite configuration.
  * 
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public final class Group implements Identifiable {
 
