@@ -1,11 +1,15 @@
 package nl.minicom.gitolite.manager.models;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
+import nl.minicom.gitolite.manager.git.KeyGenerator;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.collect.Maps;
@@ -14,7 +18,12 @@ public class UserTest {
 
 	private static final String NAME = "test-user";
 	private static final String KEY_NAME = "test-key";
-	private static final String KEY_CONTENT = "Content of SSH key...";
+	private static String KEY_CONTENTS;
+	
+	@BeforeClass
+	public static void setKeyContents() throws NoSuchAlgorithmException, IOException {
+		KEY_CONTENTS  = KeyGenerator.generateRandomPublicKey();
+	}
 	
 	@Test
 	public void testConstructorWithValidInput() {
@@ -39,10 +48,10 @@ public class UserTest {
 	@Test
 	public void testAddingKey() {
 		User user = new User(NAME);
-		user.setKey(KEY_NAME, KEY_CONTENT);
+		user.setKey(KEY_NAME, KEY_CONTENTS);
 		
 		Map<String, String> expected = Maps.newTreeMap();
-		expected.put(KEY_NAME, KEY_CONTENT);
+		expected.put(KEY_NAME, KEY_CONTENTS);
 		
 		Assert.assertEquals(expected, user.getKeys());
 	}
@@ -50,7 +59,7 @@ public class UserTest {
 	@Test(expected = NullPointerException.class)
 	public void testAddingKeyWithNameNull() {
 		User user = new User(NAME);
-		user.setKey(null, KEY_CONTENT);
+		user.setKey(null, KEY_CONTENTS);
 	}
 	
 	@Test(expected = NullPointerException.class)
@@ -62,11 +71,11 @@ public class UserTest {
 	@Test
 	public void testOverridingKey() {
 		User user = new User(NAME);
-		user.setKey(KEY_NAME, KEY_CONTENT);
-		user.setKey(KEY_NAME, KEY_CONTENT + "...");
+		user.setKey(KEY_NAME, KEY_CONTENTS);
+		user.setKey(KEY_NAME, KEY_CONTENTS + "...");
 		
 		Map<String, String> expected = Maps.newTreeMap();
-		expected.put(KEY_NAME, KEY_CONTENT + "...");
+		expected.put(KEY_NAME, KEY_CONTENTS + "...");
 		
 		Assert.assertEquals(expected, user.getKeys());
 	}
@@ -74,7 +83,7 @@ public class UserTest {
 	@Test
 	public void testRemovingKey() {
 		User user = new User(NAME);
-		user.setKey(KEY_NAME, KEY_CONTENT);
+		user.setKey(KEY_NAME, KEY_CONTENTS);
 		user.removeKey(KEY_NAME);
 		
 		Map<String, String> expected = Maps.newTreeMap();

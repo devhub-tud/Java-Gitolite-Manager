@@ -1,6 +1,7 @@
 package nl.minicom.gitolite.manager.integration;
 
 import nl.minicom.gitolite.manager.exceptions.ModificationException;
+import nl.minicom.gitolite.manager.git.KeyGenerator;
 import nl.minicom.gitolite.manager.models.Config;
 import nl.minicom.gitolite.manager.models.ConfigManager;
 import nl.minicom.gitolite.manager.models.Group;
@@ -147,7 +148,7 @@ public class IntegrationTest {
 	@Test
 	public void testSequentialUserModification() throws Exception {
 		Config config = manager.get();
-		config.createUser("test-user").setKey("key", "value");
+		config.createUser("test-user").setKey("key", KeyGenerator.generateRandomPublicKey());
 		manager.apply(config);
 		
 		config = manager.get();
@@ -163,8 +164,8 @@ public class IntegrationTest {
 		Config config1 = manager.get();
 		Config config2 = manager.get();
 
-		config1.createUser("test-user").setKey("key", "value");
-		config2.createUser("test-user").setKey("key", "value");
+		config1.createUser("test-user").setKey("key", KeyGenerator.generateRandomPublicKey());
+		config2.createUser("test-user").setKey("key", KeyGenerator.generateRandomPublicKey());
 		
 		manager.applyAsync(config1);
 		manager.apply(config2);
@@ -173,7 +174,7 @@ public class IntegrationTest {
 	@Test(expected = ModificationException.class)
 	public void testConcurrentUserRemoval() throws Exception {
 		Config config = manager.get();
-		config.createUser("test-user").setKey("key", "value");
+		config.createUser("test-user").setKey("key", KeyGenerator.generateRandomPublicKey());
 		manager.apply(config);
 		
 		Config config1 = manager.get();
