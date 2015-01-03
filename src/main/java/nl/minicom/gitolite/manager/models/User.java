@@ -53,6 +53,7 @@ public final class User implements Identifiable {
 	User(String name, Recorder recorder) {
 		Preconditions.checkNotNull(name);
 		Preconditions.checkArgument(!name.isEmpty());
+		Preconditions.checkArgument(name.matches("^\\w[\\w._\\@+-]+$"), "\"" + name + "\" is not a valid user name");
 		Preconditions.checkNotNull(recorder);
 		
 		this.name = name;
