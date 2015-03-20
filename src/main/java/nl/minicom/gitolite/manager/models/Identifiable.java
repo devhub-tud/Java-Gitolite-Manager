@@ -5,7 +5,7 @@ import java.util.Comparator;
 /**
  * This interface represents either a gitolite {@link User} or {@link Group}.
  * 
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public interface Identifiable {
 	

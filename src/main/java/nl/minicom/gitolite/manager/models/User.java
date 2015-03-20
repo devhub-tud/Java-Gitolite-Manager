@@ -16,7 +16,7 @@ import com.google.common.collect.Maps;
 /**
  * This class represents a user in Gitolite.
  * 
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public final class User implements Identifiable {
 
@@ -80,7 +80,7 @@ public final class User implements Identifiable {
 	public void setKey(final String name, final String content) {
 		Preconditions.checkNotNull(name);
 		Preconditions.checkNotNull(content);
-		Preconditions.checkArgument(name.matches("^[a-zA-Z0-9]*$"), "\"" + name + "\" is not a valid key name");
+		Preconditions.checkArgument(name.matches("^[\\w._+-]*$"), "\"" + name + "\" is not a valid key name");
 		Preconditions.checkArgument(content.matches("^ssh-rsa\\s.+$"), "\"" + content + "\" is not a valid ssh key");
 
 		synchronized (keys) {

@@ -159,7 +159,7 @@ public class GroupTest {
 	 * <pre>
 	 *          B
 	 *        /
-	 *      -->     A
+	 *      --&gt;     A
 	 *        \
 	 *          C - D
 	 * </pre>

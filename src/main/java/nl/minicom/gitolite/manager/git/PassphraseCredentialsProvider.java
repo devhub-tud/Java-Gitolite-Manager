@@ -10,7 +10,7 @@ import org.eclipse.jgit.transport.URIish;
  * This class is a very basic {@link CredentialsProvider} which attempts to
  * login with a passphrase.
  * 
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public class PassphraseCredentialsProvider extends CredentialsProvider {
 

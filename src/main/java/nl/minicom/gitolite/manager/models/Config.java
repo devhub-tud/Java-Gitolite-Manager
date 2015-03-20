@@ -12,10 +12,10 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 
 /**
- * The {@link ConfigModelModel} class is a representation of a configuration of gitolite.
+ * The {@code Config} class is a representation of a configuration of gitolite.
  * If you wish to change your gitolite configuration, You will have to manipulate this object.
  * 
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public final class Config {
 
@@ -25,17 +25,17 @@ public final class Config {
 	private final Recorder recorder;
 
 	/**
-	 * This constructs a new {@link ConfigModelModel} object.
+	 * This constructs a new {@code Config} object.
 	 */
 	Config() {
 		this(new Recorder());
 	}
 	
 	/**
-	 * This constructs a new {@link ConfigModelModel} object.
+	 * This constructs a new {@code Config} object.
 	 * 
 	 * @param recorder
-	 * 	The {@link Recorder} to use when modifying this {@link Config} object.
+	 * 	The {@link Recorder} to use when modifying this {@code Config} object.
 	 */
 	Config(Recorder recorder) {
 		Preconditions.checkNotNull(recorder);
@@ -47,14 +47,14 @@ public final class Config {
 	}
 	
 	/**
-	 * @return The {@link Recorder} used by this {@link Config} to record changes.
+	 * @return The {@link Recorder} used by this {@code Config} to record changes.
 	 */
 	Recorder getRecorder() {
 		return recorder;
 	}
 
 	/**
-	 * This method ensures that the {@link ConfigModel} object will contain a {@link Repository}
+	 * This method ensures that the {@code Config} object will contain a {@link Repository}
 	 * with the specified name. This means that if no such {@link Repository} exists, it will
 	 * be created.
 	 * 
@@ -83,7 +83,7 @@ public final class Config {
 	 * @param repoName
 	 * 	The name of the {@link Repository}. This may not be NULL or an empty {@link String}.
 	 * 	If the {@link Repository} already exists a {@link IllegalArgumentException} is thrown. 
-	 * 	Use the {@link ConfigModel#ensureRepositoryExists(String)} method in stead.
+	 * 	Use the {@link Config#ensureRepositoryExists(String)} method in stead.
 	 * 
 	 * @return
 	 * 	The created {@link Repository} object.
@@ -117,7 +117,7 @@ public final class Config {
 	}
 
 	/**
-	 * This method removes the specified {@link Repository} from the {@link ConfigModel} object.
+	 * This method removes the specified {@link Repository} from the {@code Config} object.
 	 * 
 	 * @param repository
 	 * 	The {@link Repository} to remove. This may not be NULL.
@@ -151,7 +151,7 @@ public final class Config {
 	}
 
 	/**
-	 * This method checks if the {@link ConfigModel} object contains a {@link Repository}
+	 * This method checks if the {@code Config} object contains a {@link Repository}
 	 * object with the specified name.
 	 * 
 	 * @param repoName
@@ -168,7 +168,7 @@ public final class Config {
 
 	/**
 	 * This method fetches the {@link Repository} object with the specified name 
-	 * from the {@link Config} object.
+	 * from the {@code Config} object.
 	 * 
 	 * @param repoName
 	 * 	The name of the {@link Repository} to look for.
@@ -195,7 +195,7 @@ public final class Config {
 	/**
 	 * @return
 	 * 	Am {@link ImmutableSet} of {@link Repository} objects currently 
-	 * 	registered in the {@link Config} object.
+	 * 	registered in the {@code Config} object.
 	 */
 	public ImmutableSet<Repository> getRepositories() {
 		synchronized (repositories) {
@@ -209,7 +209,7 @@ public final class Config {
 	}
 
 	/**
-	 * This method ensures that the {@link Config} object will contain a {@link Group}
+	 * This method ensures that the {@code Config} object will contain a {@link Group}
 	 * with the specified name. This means that if no such {@link Group} exists, it will
 	 * be created.
 	 * 
@@ -312,7 +312,7 @@ public final class Config {
 	}
 
 	/**
-	 * This method checks if the {@link Config} object contains a {@link Group}
+	 * This method checks if the {@code Config} object contains a {@link Group}
 	 * object with the specified name.
 	 * 
 	 * @param groupName
@@ -329,7 +329,7 @@ public final class Config {
 
 	/**
 	 * This method fetches the {@link Group} object with the specified name 
-	 * from the {@link Config} object.
+	 * from the {@code Config} object.
 	 * 
 	 * @param groupName
 	 * 	The name of the {@link Group} to look for.
@@ -355,7 +355,7 @@ public final class Config {
 	/**
 	 * @return
 	 * 	Am {@link ImmutableSet} of {@link Group} objects currently 
-	 * 	registered in the {@link Config} object. This includes the "@all" {@link Group}.
+	 * 	registered in the {@code Config} object. This includes the "@all" {@link Group}.
 	 */
 	public ImmutableSet<Group> getGroups() {
 		synchronized (groups) {
@@ -370,7 +370,7 @@ public final class Config {
 	}
 
 	/**
-	 * This method ensures that the {@link Config} object will contain a {@link User}
+	 * This method ensures that the {@code Config} object will contain a {@link User}
 	 * with the specified name. This means that if no such {@link User} exists, it will
 	 * be created.
 	 * 
@@ -405,6 +405,7 @@ public final class Config {
 	 * 	The created {@link User} object.
 	 * 
 	 * @throws IllegalArgumentException
+	 *  If the user has already been created, or the given username is null.
 	 */
 	public User createUser(final String userName) {
 		validateUserName(userName);
@@ -475,7 +476,7 @@ public final class Config {
 	}
 
 	/**
-	 * This method checks if the {@link Config} object contains a {@link User}
+	 * This method checks if the {@code Config} object contains a {@link User}
 	 * object with the specified name.
 	 * 
 	 * @param userName
@@ -492,7 +493,7 @@ public final class Config {
 
 	/**
 	 * This method fetches the {@link User} object with the specified name
-	 * from the {@link Config} object.
+	 * from the {@code Config} object.
 	 * 
 	 * @param userName
 	 * 	The name of the {@link User} to look for.
@@ -517,7 +518,7 @@ public final class Config {
 	/**
 	 * @return
 	 * 	Am {@link ImmutableSet} of {@link User} objects currently
-	 * 	registered in the {@link Config} object.
+	 * 	registered in the {@code Config} object.
 	 */
 	public ImmutableSet<User> getUsers() {
 		synchronized (users) {
@@ -531,7 +532,7 @@ public final class Config {
 	}
 	
 	/**
-	 * @return The created deep copy of this {@link Config} object.
+	 * @return The created deep copy of this {@code Config} object.
 	 */
 	Config copy() {
 		Config config = new Config();

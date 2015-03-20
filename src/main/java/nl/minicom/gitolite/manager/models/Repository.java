@@ -16,7 +16,7 @@ import com.google.common.collect.TreeMultimap;
  * This class represents a repository in Gitolite. You can set access permissions 
  * for {@link User}s who should be able to access the represented repository.
  * 
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public final class Repository {
 

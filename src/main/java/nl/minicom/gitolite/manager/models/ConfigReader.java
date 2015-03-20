@@ -12,7 +12,7 @@ import com.google.common.base.Splitter;
  * parsing it. This allows you to obtain a {@link Config} object based on the
  * configuration file
  * 
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public final class ConfigReader {
 

@@ -1,6 +1,7 @@
 package nl.minicom.gitolite.manager.integration;
 
 import nl.minicom.gitolite.manager.exceptions.ModificationException;
+import nl.minicom.gitolite.manager.git.KeyGenerator;
 import nl.minicom.gitolite.manager.models.Config;
 import nl.minicom.gitolite.manager.models.ConfigManager;
 import nl.minicom.gitolite.manager.models.Group;
@@ -19,9 +20,12 @@ public class IntegrationTest {
 
 	private ConfigManager manager;
 	
+	private String adminUsername;
+	
 	@Before
 	public void setUp() throws Exception {
 		String gitUri = System.getProperty("gitUri");
+		adminUsername = System.getProperty("gitAdmin", "git");
 		boolean runTests = !Strings.isNullOrEmpty(gitUri);
 		Assume.assumeTrue(runTests);
 		
@@ -38,7 +42,7 @@ public class IntegrationTest {
 		Config config = manager.get();
 
 		for (User user : config.getUsers()) {
-			if (!"git".equals(user.getName())) {
+			if (!adminUsername.equals(user.getName())) {
 				config.removeUser(user);
 			}
 		}
@@ -102,7 +106,7 @@ public class IntegrationTest {
 	@Test
 	public void testSequentialGroupModification() throws Exception {
 		Config config = manager.get();
-		config.createGroup("@test-group").add(config.getUser("git"));
+		config.createGroup("@test-group").add(config.getUser(adminUsername));
 		manager.apply(config);
 		
 		config = manager.get();
@@ -118,8 +122,8 @@ public class IntegrationTest {
 		Config config1 = manager.get();
 		Config config2 = manager.get();
 		
-		config1.createGroup("@test-group").add(config1.getUser("git"));
-		config2.createGroup("@test-group").add(config2.getUser("git"));
+		config1.createGroup("@test-group").add(config1.getUser(adminUsername));
+		config2.createGroup("@test-group").add(config2.getUser(adminUsername));
 		
 		manager.applyAsync(config1);
 		manager.apply(config2);
@@ -128,7 +132,7 @@ public class IntegrationTest {
 	@Test(expected = ModificationException.class)
 	public void testConcurrentGroupRemoval() throws Exception {
 		Config config = manager.get();
-		config.createGroup("@test-group").add(config.getUser("git"));
+		config.createGroup("@test-group").add(config.getUser(adminUsername));
 		manager.apply(config);
 		
 		Config config1 = manager.get();
@@ -144,7 +148,7 @@ public class IntegrationTest {
 	@Test
 	public void testSequentialUserModification() throws Exception {
 		Config config = manager.get();
-		config.createUser("test-user").setKey("key", "value");
+		config.createUser("test-user").setKey("key", KeyGenerator.generateRandomPublicKey());
 		manager.apply(config);
 		
 		config = manager.get();
@@ -160,8 +164,8 @@ public class IntegrationTest {
 		Config config1 = manager.get();
 		Config config2 = manager.get();
 
-		config1.createUser("test-user").setKey("key", "value");
-		config2.createUser("test-user").setKey("key", "value");
+		config1.createUser("test-user").setKey("key", KeyGenerator.generateRandomPublicKey());
+		config2.createUser("test-user").setKey("key", KeyGenerator.generateRandomPublicKey());
 		
 		manager.applyAsync(config1);
 		manager.apply(config2);
@@ -170,7 +174,7 @@ public class IntegrationTest {
 	@Test(expected = ModificationException.class)
 	public void testConcurrentUserRemoval() throws Exception {
 		Config config = manager.get();
-		config.createUser("test-user").setKey("key", "value");
+		config.createUser("test-user").setKey("key", KeyGenerator.generateRandomPublicKey());
 		manager.apply(config);
 		
 		Config config1 = manager.get();

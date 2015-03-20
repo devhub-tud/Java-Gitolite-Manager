@@ -7,7 +7,7 @@ import com.google.common.base.Preconditions;
 /**
  * This enum represents all the available permissions in Gitolite.
  *
- * @author Michael de Jong <michaelj@minicom.nl>
+ * @author Michael de Jong &lt;<a href="mailto:michaelj@minicom.nl">michaelj@minicom.nl</a>&gt;
  */
 public enum Permission {
 
