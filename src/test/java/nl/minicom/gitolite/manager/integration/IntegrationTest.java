@@ -24,11 +24,10 @@ public class IntegrationTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		String gitUri = System.getProperty("gitUri");
+		Assume.assumeTrue(Strings.isNullOrEmpty(System.getProperty("skipIntegrationTests")));
+		String gitUri = System.getProperty("gitUri", "ssh://git@localhost:2222/gitolite-admin");
 		adminUsername = System.getProperty("gitAdmin", "git");
-		boolean runTests = !Strings.isNullOrEmpty(gitUri);
-		Assume.assumeTrue(runTests);
-		
+
 		manager = ConfigManager.create(gitUri);
 		clearEverything();
 	}
@@ -39,6 +38,10 @@ public class IntegrationTest {
 	}
 	
 	private void clearEverything() throws Exception {
+		if(!Strings.isNullOrEmpty(System.getProperty("skipIntegrationTests"))) {
+			return;
+		}
+
 		Config config = manager.get();
 
 		for (User user : config.getUsers()) {
