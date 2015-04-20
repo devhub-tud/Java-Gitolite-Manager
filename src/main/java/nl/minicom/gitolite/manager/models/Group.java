@@ -58,7 +58,7 @@ public final class Group implements Identifiable {
 	Group(String name, Recorder recorder) {
 		Preconditions.checkNotNull(name);
 		Preconditions.checkArgument(!name.isEmpty());
-		Preconditions.checkArgument(name.startsWith("@"));
+		Preconditions.checkArgument(name.matches("^\\@\\w[\\w._\\@+-]+$"), "\"" + name + "\" is not a valid group name");
 		Preconditions.checkNotNull(recorder);
 		
 		this.name = name;
