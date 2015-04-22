@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>nl.minicom</groupId>
 	<artifactId>java-gitolite-manager</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.4-SNAPSHOT</version>
 
 	<prerequisites>
 		<maven>3.0.4</maven>
@@ -16,6 +16,13 @@
 	<scm>
 		<url>https://github.com/michaeldejong/java-gitolite-manager</url>
 	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>devhub</id>
+			<url>https://devhub.ewi.tudelft.nl/nexus/content/repositories/releases/</url>
+		</repository>
+	</distributionManagement>
 
 	<developers>
 		<developer>
