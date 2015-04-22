@@ -69,13 +69,15 @@ public class UserTest {
 	}
 	
 	@Test
-	public void testOverridingKey() {
+	public void testOverridingKey() throws IOException, NoSuchAlgorithmException {
+		String newKey = KeyGenerator.generateRandomPublicKey();
+
 		User user = new User(NAME);
 		user.setKey(KEY_NAME, KEY_CONTENTS);
-		user.setKey(KEY_NAME, KEY_CONTENTS + "...");
+		user.setKey(KEY_NAME, newKey);
 		
 		Map<String, String> expected = Maps.newTreeMap();
-		expected.put(KEY_NAME, KEY_CONTENTS + "...");
+		expected.put(KEY_NAME, newKey);
 		
 		Assert.assertEquals(expected, user.getKeys());
 	}

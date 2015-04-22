@@ -318,7 +318,7 @@ public class ConfigManager {
 							log.info("Worker is pushing changes to remote repository");
 							writeAndPush();
 						}
-						catch (IOException | ServiceUnavailable e) {
+						catch (IOException | ServiceUnavailable | IllegalStateException e) {
 							log.error("Worker failed to push changes to remote repository, notifying owners", e);
 							for (SettableFuture<Void> future : succeeded) {
 								future.setException(e);

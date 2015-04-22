@@ -2,7 +2,10 @@ package nl.minicom.gitolite.manager.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 
+import com.google.common.collect.Lists;
 import nl.minicom.gitolite.manager.exceptions.GitException;
 import nl.minicom.gitolite.manager.exceptions.ServiceUnavailable;
 
@@ -12,12 +15,13 @@ import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.InitCommand;
 import org.eclipse.jgit.api.PullCommand;
-import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.NoFilepatternException;
 import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,6 +140,7 @@ public class JGitManager implements GitManager {
 	 */
 	@Override
 	public boolean pull() throws ServiceUnavailable, GitException {
+		log.info("Pulling changes from remote git repo");
 		synchronized (gitLock) {
 			try {
 				PullCommand pull = git.pull();
@@ -197,15 +202,33 @@ public class JGitManager implements GitManager {
 		synchronized (gitLock) {
 			try {
 				log.info("Pushing changes to remote git repo");
-				PushCommand push = git.push();
-				push.setCredentialsProvider(credentialProvider);
-				push.call();
+				PushResult pushResult = git.push()
+						.setCredentialsProvider(credentialProvider)
+						.call().iterator().next();
+
+				for(RemoteRefUpdate update : pushResult.getRemoteUpdates()) {
+					checkPushSuccess(update);
+				}
 			} catch (NullPointerException e) {
 				throw new ServiceUnavailable(e);
 			} catch (GitAPIException | JGitInternalException e) {
 				throw new GitException(e);
 			}
 		}
+	}
+
+	/**
+	 * Check if the push succedded (remote is either up to date or the push could be fast forwarded)
+	 * @param update {@code RemoteRefUpdate} to check
+	 */
+	private void checkPushSuccess(RemoteRefUpdate update) {
+		switch(update.getStatus()){
+            case OK:
+            case UP_TO_DATE:
+				return;
+            default:
+                throw new IllegalStateException("Cannot push config to gitolite config: " + update.getStatus());
+        }
 	}
 
 	/*

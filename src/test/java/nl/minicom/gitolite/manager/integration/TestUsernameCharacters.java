@@ -16,6 +16,7 @@ import org.eclipse.jgit.util.FS;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -43,6 +44,18 @@ public class TestUsernameCharacters {
 	private static final Logger log = LoggerFactory.getLogger(TestUsernameCharacters.class);
 	
 	private static final String CLONE_URL = "https://github.com/devhub-tud/Java-Gitolite-Manager.git";
+
+	private static String baseUrl;
+	private static String gitUri;
+	private static String adminUsername;
+
+	@BeforeClass
+	public static void beforeClass() {
+		Assume.assumeTrue(Strings.isNullOrEmpty(System.getProperty("skipIntegrationTests")));
+		baseUrl = System.getProperty("gitUri", "ssh://git@localhost:2222/");
+		gitUri = baseUrl.concat("gitolite-admin");
+		adminUsername = System.getProperty("gitAdmin", "git");
+	}
 	
     @Parameters(name = "{index}: testUsername({0})")
     public static Collection<Object[]> data() {
@@ -54,23 +67,11 @@ public class TestUsernameCharacters {
 	
 	private ConfigManager manager;
 
-	private String adminUsername;
-	
-	private String baseUrl;
-
 	private File stagingDirectory;
 
 	@Before
 	public void setUp() throws Exception {
 		resetSshSessionFactory();
-		
-		String gitUri = System.getProperty("gitUri");
-		baseUrl = gitUri.substring(0, gitUri.indexOf("gitolite-admin"));
-		
-		adminUsername = System.getProperty("gitAdmin", "git");
-		boolean runTests = !Strings.isNullOrEmpty(gitUri);
-		Assume.assumeTrue(runTests);
-		
 		manager = ConfigManager.create(gitUri);
 		stagingDirectory = Files.createTempDir();
 		clearEverything();
@@ -113,7 +114,6 @@ public class TestUsernameCharacters {
 
 	@Test
 	public void testUsername() throws Exception {
-		
 		final KeyPair keyPair = KeyPair.genKeyPair( new JSch(), KeyPair.RSA);
 		
 		Config config = manager.get();
@@ -123,10 +123,7 @@ public class TestUsernameCharacters {
 		Repository repository = config.createRepository("bliep");
 		repository.setPermission(user, Permission.READ_WRITE);
 		manager.apply(config);
-		
-		
-		String repoUrl = baseUrl + repository.getName();
-		
+
 		Git repo = Git.cloneRepository()
 			.setBare(false)
 			.setDirectory(stagingDirectory)
@@ -135,12 +132,14 @@ public class TestUsernameCharacters {
 			.call();
 		
 		setKeyForSsh(keyPair);
+
+		String repoUrl = baseUrl + repository.getName();
 		
 		repo.push()
 			.setRemote(repoUrl)
 			.setPushAll()
 			.setPushTags()
-			.setProgressMonitor(new LogProgressMonitor("pushing to " + repoUrl))
+			.setProgressMonitor(new LogProgressMonitor("pushing to " + baseUrl))
 			.call();
 	}
 	

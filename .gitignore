@@ -51,3 +51,6 @@ bin/*
 /.externalToolBuilders
 
 bin/
+.idea/
+*.iml
+pom.xml.versionsBackup
