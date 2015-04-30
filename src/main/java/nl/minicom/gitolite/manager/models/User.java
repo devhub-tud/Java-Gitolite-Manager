@@ -85,16 +85,16 @@ public final class User implements Identifiable {
 		Preconditions.checkNotNull(name);
 		Preconditions.checkNotNull(content);
 		Preconditions.checkArgument(name.matches("^[\\w._+-]*$"), "\"" + name + "\" is not a valid key name");
-		Preconditions.checkArgument(content.matches("^ssh-rsa\\s.+$"), "\"" + content + "\" is not a valid ssh key");
+		Preconditions.checkArgument(content.matches("ssh-rsa AAAA[0-9A-Za-z+/]+[=]{0,3}(\\s([^@]+@[^@]+))?[\\r\\n\\s]*"), "\"" + content + "\" is not a valid ssh key");
 
 		try {
-			String[] parts = content.split(" ");
+			String[] parts = content.split("[\\r\\n\\s]+");
 			String keyPart = parts[1];
 			final byte[] bin = Base64.decodeBase64(keyPart);
 			new Buffer(bin).getRawPublicKey();
 		}
 		catch (Exception e) {
-			throw new IllegalArgumentException("\"" + content + "\" is not a valid ssh key", e);
+			throw new IllegalArgumentException("Validation failed for key \"" + content + "\"", e);
 		}
 
 		synchronized (keys) {

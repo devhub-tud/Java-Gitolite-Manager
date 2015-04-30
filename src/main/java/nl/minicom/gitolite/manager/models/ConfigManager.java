@@ -134,14 +134,6 @@ public class ConfigManager {
 			git.pull();
 		}
 	}
-	
-	private void ensureAdminRepoPresent() throws IOException, ServiceUnavailable, GitException {
-		if (!new File(workingDirectory, ".git").exists()) {
-			log.info("Cloning from: {} to: {}", gitUri, workingDirectory);
-			git.clone(gitUri);
-			readConfig();
-		}
-	}
 
 	/**
 	 * This method returns a representation of the current gitolite configuration.
@@ -155,7 +147,8 @@ public class ConfigManager {
 	 * @throws GitException If an exception occurred while using the Git API.
 	 */
 	public Config get() throws IOException, ServiceUnavailable, GitException {
-		ensureAdminRepoPresent();
+		ensureAdminRepoIsUpToDate();
+		readConfig();
 		Config copy = config.get().copy();
 		copy.getRecorder().record();
 		return copy;
@@ -312,13 +305,13 @@ public class ConfigManager {
 						waitUntilModificationsArePresent();
 
 						log.debug("Worker found changes");
-						Collection<SettableFuture<Void>> succeeded = applyChanges(false);
+						Collection<SettableFuture<Void>> succeeded = applyChanges(true);
 						
 						try {
 							log.info("Worker is pushing changes to remote repository");
 							writeAndPush();
 						}
-						catch (IOException | ServiceUnavailable e) {
+						catch (IOException | ServiceUnavailable | IllegalStateException e) {
 							log.error("Worker failed to push changes to remote repository, notifying owners", e);
 							for (SettableFuture<Void> future : succeeded) {
 								future.setException(e);

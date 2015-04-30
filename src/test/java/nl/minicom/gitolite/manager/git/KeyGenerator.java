@@ -14,7 +14,7 @@ public class KeyGenerator {
 
 	public static void main(String... args) throws NoSuchAlgorithmException, IOException {
         KeyPair keyPair = generateKeyPair();
-		System.out.println(encodePublicKey(keyPair.getPublic(),""));
+		System.out.println(encodePublicKey(keyPair.getPublic()));
 	}
 	
 	public static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
@@ -28,13 +28,11 @@ public class KeyGenerator {
 	 *
 	 * @param publicKey
 	 *            DSA or RSA encoded
-	 * @param user
-	 *            username for output authorized_keys like string
 	 * @return authorized_keys like string
 	 * @throws IOException
 	 *             if an I/O error occurs.
 	 */
-	public static String encodePublicKey(final PublicKey publicKey, final String user)
+	public static String encodePublicKey(final PublicKey publicKey)
 			throws IOException {
 		if (publicKey.getAlgorithm().equals("RSA")) {
 			RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
@@ -47,7 +45,7 @@ public class KeyGenerator {
 			dos.writeInt(rsaPublicKey.getModulus().toByteArray().length);
 			dos.write(rsaPublicKey.getModulus().toByteArray());
 			return "ssh-rsa " + new String(Base64.getEncoder().encode(byteOs
-					.toByteArray())) + " " + user;
+					.toByteArray()));
 		} else {
 			throw new IllegalArgumentException("Unknown public key encoding: "
 					+ publicKey.getAlgorithm());
@@ -55,6 +53,6 @@ public class KeyGenerator {
 	}
 	
 	public static String generateRandomPublicKey() throws NoSuchAlgorithmException, IOException {
-		return encodePublicKey(generateKeyPair().getPublic(), "");
+		return encodePublicKey(generateKeyPair().getPublic());
 	}
 }

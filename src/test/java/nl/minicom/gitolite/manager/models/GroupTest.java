@@ -169,10 +169,10 @@ public class GroupTest {
 	 */
 	@Test
 	public void testGroupOrdering() {
-		Group a = new Group("@a");
-		Group b = new Group("@b");
-		Group c = new Group("@c");
-		Group d = new Group("@d");
+		Group a = new Group("@aa");
+		Group b = new Group("@bb");
+		Group c = new Group("@cc");
+		Group d = new Group("@dd");
 
 		a.add(b);
 		a.add(c);
