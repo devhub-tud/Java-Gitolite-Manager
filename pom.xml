@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>nl.minicom</groupId>
 	<artifactId>java-gitolite-manager</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.5</version>
 
 	<prerequisites>
 		<maven>3.0.4</maven>
@@ -16,6 +16,13 @@
 	<scm>
 		<url>https://github.com/michaeldejong/java-gitolite-manager</url>
 	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>devhub</id>
+			<url>https://devhub.ewi.tudelft.nl/nexus/content/repositories/releases/</url>
+		</repository>
+	</distributionManagement>
 
 	<developers>
 		<developer>
@@ -41,6 +48,14 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+					</archive>
+				</configuration>
 				<executions>
 					<execution>
 						<id>attach-test-jar</id>
@@ -152,17 +167,6 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>1.0.13</version>
-		</dependency>
-		<!-- SSH Key validation -->
-		<dependency>
-			<groupId>commons-codec</groupId>
-			<artifactId>commons-codec</artifactId>
-			<version>1.10</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.sshd</groupId>
-			<artifactId>sshd-core</artifactId>
-			<version>0.14.0</version>
 		</dependency>
 	</dependencies>
 

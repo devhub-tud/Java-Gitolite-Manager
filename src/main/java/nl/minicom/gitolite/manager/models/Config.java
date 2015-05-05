@@ -578,5 +578,26 @@ public final class Config {
 		
 		return config;
 	}
-	
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Config config = (Config) o;
+
+		if (repositories != null ? !repositories.equals(config.repositories) : config.repositories != null)
+			return false;
+		if (groups != null ? !groups.equals(config.groups) : config.groups != null) return false;
+		return !(users != null ? !users.equals(config.users) : config.users != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = repositories != null ? repositories.hashCode() : 0;
+		result = 31 * result + (groups != null ? groups.hashCode() : 0);
+		result = 31 * result + (users != null ? users.hashCode() : 0);
+		return result;
+	}
 }

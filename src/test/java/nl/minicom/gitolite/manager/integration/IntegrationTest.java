@@ -1,6 +1,9 @@
 package nl.minicom.gitolite.manager.integration;
 
+import com.google.common.io.Files;
 import nl.minicom.gitolite.manager.exceptions.ModificationException;
+import nl.minicom.gitolite.manager.git.GitManager;
+import nl.minicom.gitolite.manager.git.JGitManager;
 import nl.minicom.gitolite.manager.git.KeyGenerator;
 import nl.minicom.gitolite.manager.models.Config;
 import nl.minicom.gitolite.manager.models.ConfigManager;
@@ -12,22 +15,31 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.base.Strings;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.util.concurrent.Future;
+
 public class IntegrationTest {
 
+	private static String gitUri;
+	private static String adminUsername;
+
+	@BeforeClass
+	public static void beforeClass() {
+		Assume.assumeTrue(Strings.isNullOrEmpty(System.getProperty("skipIntegrationTests")));
+		gitUri = System.getProperty("gitUri", "ssh://git@localhost:2222/gitolite-admin");
+		adminUsername = System.getProperty("gitAdmin", "git");
+	}
+
 	private ConfigManager manager;
-	
-	private String adminUsername;
-	
+
 	@Before
 	public void setUp() throws Exception {
-		Assume.assumeTrue(Strings.isNullOrEmpty(System.getProperty("skipIntegrationTests")));
-		String gitUri = System.getProperty("gitUri", "ssh://git@localhost:2222/gitolite-admin");
-		adminUsername = System.getProperty("gitAdmin", "git");
-
 		manager = ConfigManager.create(gitUri);
 		clearEverything();
 	}
@@ -76,6 +88,7 @@ public class IntegrationTest {
 		
 		config = manager.get();
 		Assert.assertNull(config.getRepository("test-repo"));
+		assertConfigPushedCorrectly(config);
 	}
 	
 	@Test(expected = ModificationException.class)
@@ -85,9 +98,10 @@ public class IntegrationTest {
 		
 		config1.createRepository("test-repo");
 		config2.createRepository("test-repo");
-		
-		manager.applyAsync(config1);
+
+		Future<?> future = manager.applyAsync(config1);
 		manager.apply(config2);
+		future.get();
 	}
 	
 	@Test(expected = ModificationException.class)
@@ -118,6 +132,7 @@ public class IntegrationTest {
 		
 		config = manager.get();
 		Assert.assertNull(config.getGroup("@test-group"));
+		assertConfigPushedCorrectly(config);
 	}
 	
 	@Test(expected = ModificationException.class)
@@ -127,9 +142,10 @@ public class IntegrationTest {
 		
 		config1.createGroup("@test-group").add(config1.getUser(adminUsername));
 		config2.createGroup("@test-group").add(config2.getUser(adminUsername));
-		
-		manager.applyAsync(config1);
+
+		Future<?> future = manager.applyAsync(config1);
 		manager.apply(config2);
+		future.get();
 	}
 	
 	@Test(expected = ModificationException.class)
@@ -143,9 +159,10 @@ public class IntegrationTest {
 		
 		config1.removeGroup(config1.getGroup("@test-group"));
 		config2.removeGroup(config2.getGroup("@test-group"));
-		
-		manager.applyAsync(config1);
+
+		Future<?> future = manager.applyAsync(config1);
 		manager.apply(config2);
+		future.get();
 	}
 	
 	@Test
@@ -160,6 +177,31 @@ public class IntegrationTest {
 		
 		config = manager.get();
 		Assert.assertNull(config.getUser("test-user"));
+		assertConfigPushedCorrectly(config);
+	}
+
+	@Test
+	public void testMoreUserModification() throws Exception {
+		Config config = manager.get();
+		config.createUser("test-user").setKey("key", KeyGenerator.generateRandomPublicKey());
+		manager.apply(config);
+
+		config = manager.get();
+		config.removeUser(config.getUser("test-user"));
+		manager.apply(config);
+
+		config = manager.get();
+		config.createUser("test-user2").setKey("key", KeyGenerator.generateRandomPublicKey());
+		manager.apply(config);
+
+		config = manager.get();
+		Assert.assertNull(config.getUser("test-user"));
+		Assert.assertNotNull(config.getUser("test-user2"));
+		assertConfigPushedCorrectly(config);
+	}
+
+	public static void assertConfigPushedCorrectly(Config config) throws Exception {
+		Assert.assertEquals(config, ConfigManager.create(gitUri).get());
 	}
 	
 	@Test(expected = ModificationException.class)
@@ -169,9 +211,10 @@ public class IntegrationTest {
 
 		config1.createUser("test-user").setKey("key", KeyGenerator.generateRandomPublicKey());
 		config2.createUser("test-user").setKey("key", KeyGenerator.generateRandomPublicKey());
-		
-		manager.applyAsync(config1);
+
+		Future<?> future = manager.applyAsync(config1);
 		manager.apply(config2);
+		future.get();
 	}
 	
 	@Test(expected = ModificationException.class)
@@ -186,8 +229,29 @@ public class IntegrationTest {
 		config1.removeUser(config.getUser("test-user"));
 		config2.removeUser(config.getUser("test-user"));
 		
-		manager.applyAsync(config1);
+		Future<?> future = manager.applyAsync(config1);
 		manager.apply(config2);
+		future.get();
+	}
+
+	@Test(expected = Exception.class)
+	public void testApplyConfigOnAheadRemote() throws Exception {
+		Config config = manager.get();
+
+		File copyWorkingDirectory = Files.createTempDir();
+		GitManager gitManager = new JGitManager(copyWorkingDirectory, null);
+		gitManager.clone(gitUri);
+
+		FileWriter writer = new FileWriter(new File(copyWorkingDirectory, "test.txt"));
+		writer.write("Hello world");
+		writer.close();
+
+		gitManager.commitChanges();
+		gitManager.push();
+		// The remote is now ahead
+
+		config.createRepository("test-repo");
+		manager.apply(config);
 	}
 	
 }

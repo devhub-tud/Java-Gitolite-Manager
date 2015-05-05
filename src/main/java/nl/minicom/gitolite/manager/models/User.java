@@ -9,9 +9,6 @@ import nl.minicom.gitolite.manager.models.Recorder.Modification;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.sshd.common.util.Buffer;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -85,17 +82,7 @@ public final class User implements Identifiable {
 		Preconditions.checkNotNull(name);
 		Preconditions.checkNotNull(content);
 		Preconditions.checkArgument(name.matches("^[\\w._+-]*$"), "\"" + name + "\" is not a valid key name");
-		Preconditions.checkArgument(content.matches("^ssh-rsa\\s.+$"), "\"" + content + "\" is not a valid ssh key");
-
-		try {
-			String[] parts = content.split(" ");
-			String keyPart = parts[1];
-			final byte[] bin = Base64.decodeBase64(keyPart);
-			new Buffer(bin).getRawPublicKey();
-		}
-		catch (Exception e) {
-			throw new IllegalArgumentException("\"" + content + "\" is not a valid ssh key", e);
-		}
+		Preconditions.checkArgument(content.matches("^ssh-rsa\\s.+$"));
 
 		synchronized (keys) {
 			keys.put(name, content);
