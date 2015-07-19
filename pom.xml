@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>nl.tudelft.ewi</groupId>
+    <artifactId>gitolite</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <url>http://devhub.ewi.tudelft.nl</url>
+    <name>DevHub</name>
+    <description>DevHub is a Continuous Integration system designed to give students a simple practical introduction into modern software development</description>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <guice.version>3.0</guice.version>
+        <hibernate.version>4.3.8.Final</hibernate.version>
+        <hibernate.validator.version>5.0.1.Final</hibernate.validator.version>
+        <jackson.version>2.5.4</jackson.version>
+        <jetty.version>9.2.11.v20150529</jetty.version>
+        <resteasy.version>3.0.11.Final</resteasy.version>
+        <freemarker.version>2.3.21</freemarker.version>
+        <slf4j.version>1.7.12</slf4j.version>
+        <httpclient.version>4.3.6</httpclient.version>
+        <liquibase.version>3.3.1</liquibase.version>
+        <liquibase.slf4j.version>1.7.7</liquibase.slf4j.version>
+        <querydsl.version>3.6.0</querydsl.version>
+        <logback.version>1.1.3</logback.version>
+        <lombok.version>1.16.4</lombok.version>
+
+        <!-- TEST -->
+        <junit.version>4.12</junit.version>
+        <mockito.version>1.10.19</mockito.version>
+        <h2.version>1.3.173</h2.version>
+
+        <!-- REPORT -->
+        <pmd.version>3.4</pmd.version>
+        <findbugs.version>3.0.1</findbugs.version>
+        <jacoco.version>0.7.5.201505241946</jacoco.version>
+        <maven.javadoc.version>2.10.3</maven.javadoc.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>devhub</id>
+            <url>https://devhub.ewi.tudelft.nl/nexus/content/repositories/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>devhub</id>
+            <url>https://devhub.ewi.tudelft.nl/nexus/content/repositories/releases/</url>
+        </repository>
+    </distributionManagement>
+
+    <organization>
+        <name>TU Delft</name>
+        <url>http://ewi.tudelft.nl</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>Michael de Jong</name>
+            <email>M.deJong-2@student.tudelft.nl</email>
+        </developer>
+        <developer>
+            <name>Jan-Willem Gmelig Meyling</name>
+            <email>j.gmeligmeyling@student.tudelft.nl</email>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+
+    <dependencies>
+        <!-- Utilities -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <version>1.3</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>
