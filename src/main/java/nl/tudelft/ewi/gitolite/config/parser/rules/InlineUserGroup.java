@@ -14,6 +14,8 @@ import nl.tudelft.ewi.gitolite.config.objects.Writable;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -31,16 +33,16 @@ public class InlineUserGroup implements RecursiveGroupDefinition<GroupRule, Iden
 	private final List<Identifiable> members;
 
 	public InlineUserGroup(GroupRule... groups) {
-		this(Arrays.asList(groups), Lists.newArrayList());
+		this(Arrays.asList(groups), Collections.emptyList());
 	}
 
 	public InlineUserGroup(Identifiable... identifiable) {
-		this(Lists.newArrayList(), Arrays.asList(identifiable));
+		this(Collections.emptyList(), Arrays.asList(identifiable));
 	}
 
-	public InlineUserGroup(List<GroupRule> groups, List<Identifiable> members) {
-		this.groups = groups;
-		this.members = members;
+	public InlineUserGroup(Collection<? extends GroupRule> groups, Collection<? extends Identifiable> members) {
+		this.groups = Lists.newArrayList(groups);
+		this.members = Lists.newArrayList(members);
 	}
 
 	@Override

@@ -31,13 +31,12 @@ public class ConfigKey implements Rule {
 	 * @param key
 	 * @param value
 	 */
-	public ConfigKey(String key, String value) {
-		if(UNSAFE_PATT.matcher(value).find()) {
+	public ConfigKey(String key, Object value) {
+		this.key = key;
+		this.value = value.toString();
+		if(UNSAFE_PATT.matcher(this.value).find()) {
 			throw new IllegalArgumentException(String.format("Value contains unsafe characters!"));
 		}
-		this.key = key;
-		this.value = value;
-
 	}
 
 	@Override
@@ -46,9 +45,19 @@ public class ConfigKey implements Rule {
 		writer.write('\n');
 	}
 
+	protected String escapeValue() {
+		if(!value.contains(" ")) {
+			return value;
+		}
+		return String.format(
+			value.contains("\"") ? "'%s'" : "\"%s\"",
+			value
+		);
+	}
+
 	@Override
 	public String toString() {
-		return String.format("config %s = \"%s\"", key, value);
+		return String.format("    config %s = %s", key, escapeValue());
 	}
 
 }

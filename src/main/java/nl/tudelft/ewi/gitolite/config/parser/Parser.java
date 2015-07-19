@@ -3,14 +3,18 @@ package nl.tudelft.ewi.gitolite.config.parser;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import jdk.nashorn.internal.runtime.regexp.joni.Config;
+import nl.tudelft.ewi.gitolite.config.parser.rules.ConfigKey;
 import nl.tudelft.ewi.gitolite.config.parser.rules.GroupRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.InlineUserGroup;
+import nl.tudelft.ewi.gitolite.config.parser.rules.Option;
 import nl.tudelft.ewi.gitolite.config.parser.rules.RepositoryRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.RepositoryRuleBlock;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
 import nl.tudelft.ewi.gitolite.config.objects.IdentifiableImpl;
 import nl.tudelft.ewi.gitolite.config.permission.Permission;
 
+import java.text.CharacterIterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -86,6 +90,22 @@ public class Parser {
 		return new RepositoryRule(permission, refex, inlineUserGroup);
 	}
 
+	public ConfigKey parseConfigRule(Scanner scanner) {
+		scanner.next("config");
+		String key = scanner.next();
+		scanner.next("=");
+		String value = removeQuotes(scanner.nextLine());
+		return new ConfigKey(key, value);
+	}
+
+	public Option parseOptionRule(Scanner scanner) {
+		scanner.next("option");
+		String option = scanner.next();
+		scanner.next("=");
+		String value = removeQuotes(scanner.nextLine());
+		return new Option(option, value);
+	}
+
 	public RepositoryRuleBlock parseRepositoryRuleBlock(Scanner scanner) {
 		List<Identifiable> identifiables = Lists.newArrayList();
 		Scanner sc = new Scanner(readLine(scanner));
@@ -93,13 +113,27 @@ public class Parser {
 		parseInlineGroup(sc, identifiables, identifiables);
 
 		List<RepositoryRule> rules = Lists.newArrayList();
+		List<ConfigKey> configKeys = Lists.newArrayList();
+
 		while(scanner.hasNext()) {
 			sc = new Scanner(readLine(scanner));
-			RepositoryRule rule = parseRepositoryRule(sc);
-			rules.add(rule);
+			boolean hasOption;
+			if((hasOption = sc.hasNext("option")) || sc.hasNext("config")) {
+				ConfigKey configKey;
+				if(hasOption) {
+					configKey = parseOptionRule(sc);
+				} else {
+					configKey = parseConfigRule(sc);
+				}
+				configKeys.add(configKey);
+			}
+			else {
+				RepositoryRule rule = parseRepositoryRule(sc);
+				rules.add(rule);
+			}
 		}
 
-		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock(identifiables, rules);
+		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock(identifiables, rules, configKeys);
 		return repositoryRuleBlock;
 	}
 
@@ -109,6 +143,32 @@ public class Parser {
 			line = sc.nextLine();
 		}
 		return line;
+	}
+
+	private static String removeQuotes(String input) {
+		for(int i = 0, l = input.length(); i < l; i++) {
+			switch(input.charAt(i)) {
+				case ' ':
+					continue;
+				case '\'':
+					return input.substring(i + 1, readUntil(input, i, '\''));
+				case '"':
+					return input.substring(i + 1, readUntil(input, i, '"'));
+				default:
+					return input.substring(i, readUntil(input, i, ' '));
+			}
+		}
+		return input;
+	}
+
+	private static int readUntil(final String input, final int from, final char toRead) {
+		int l = input.length();
+		for(int i = from + 1; i < l; i++) {
+			if(input.charAt(i) == toRead) {
+				return i;
+			}
+		}
+		return l;
 	}
 
 }

@@ -2,6 +2,7 @@ package nl.tudelft.ewi.gitolite.config.parser.rules;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.sun.istack.internal.Nullable;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -15,6 +16,7 @@ import nl.tudelft.ewi.gitolite.config.util.PrototypeGroupDefinition;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -38,7 +40,9 @@ public class GroupRule implements PrototypeGroupDefinition<GroupRule, Identifiab
 	@Singular
 	private final List<GroupRule> groups;
 
-	public GroupRule(final String pattern, @Nullable final GroupRule parent, final List<Identifiable> members, final List<GroupRule> groups) {
+	public GroupRule(final String pattern, @Nullable final GroupRule parent,
+	                 final Collection<? extends Identifiable> members,
+	                 final Collection<? extends GroupRule> groups) {
 		Preconditions.checkNotNull(pattern);
 		Preconditions.checkNotNull(groups);
 		Preconditions.checkNotNull(members);
@@ -46,8 +50,8 @@ public class GroupRule implements PrototypeGroupDefinition<GroupRule, Identifiab
 
 		this.pattern = pattern;
 		this.parent = parent;
-		this.groups = groups;
-		this.members = members;
+		this.groups = Lists.newArrayList(groups);
+		this.members = Lists.newArrayList(members);
 	}
 
 	@Override
@@ -77,16 +81,17 @@ public class GroupRule implements PrototypeGroupDefinition<GroupRule, Identifiab
 
 	@Override
 	public void write(Writer writer) throws IOException {
-		writer.write(String.format("%-20s=   %s", pattern, Joiner.on(' ').join(Stream.concat(getOwnGroups(), getOwnMembers())
+		writer.write(String.format("%-20s=   %s\n", pattern, Joiner.on(' ').join(Stream.concat(getOwnGroups(), getOwnMembers())
 			.map(Identifiable::getPattern)
 			.iterator())));
+		writer.flush();
 	}
 
 
 	@Override
 	@SneakyThrows
 	public String toString() {
-		try(StringWriter stringWriter = new StringWriter();) {
+		try(StringWriter stringWriter = new StringWriter()) {
 			write(stringWriter);
 			return stringWriter.toString();
 		}

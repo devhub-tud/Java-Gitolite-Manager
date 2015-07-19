@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.gitolite.config.parser.rules;
 
+import com.google.common.collect.Lists;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
@@ -10,6 +11,8 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -32,6 +35,11 @@ public class RepositoryRuleBlock implements Rule {
 	private final List<RepositoryRule> rules;
 
 	/**
+	 * Configuration keys.
+	 */
+	private final List<ConfigKey> configKeys;
+
+	/**
 	 * Helper method to quickly initialize rules in the following way:
 	 *
 	 * {@code
@@ -43,7 +51,7 @@ public class RepositoryRuleBlock implements Rule {
 	 * @param rules {@see rules}
 	 */
 	public RepositoryRuleBlock(String pattern, RepositoryRule... rules) {
-		this(Arrays.asList(new IdentifiableImpl(pattern)), Arrays.asList(rules));
+		this(Collections.singletonList(new IdentifiableImpl(pattern)), Arrays.asList(rules), Collections.emptyList());
 	}
 
 	/**
@@ -51,10 +59,18 @@ public class RepositoryRuleBlock implements Rule {
 	 *
 	 * @param patterns {@see identifiables}
 	 * @param rules {@see rules}
+	 * @param configKeys {@see configKeys}
 	 */
-	public RepositoryRuleBlock(List<Identifiable> patterns, List<RepositoryRule> rules) {
-		this.identifiables = patterns;
-		this.rules = rules;
+	public RepositoryRuleBlock(final Collection<? extends Identifiable> patterns,
+	                           final Collection<? extends RepositoryRule> rules,
+	                           final Collection<? extends ConfigKey> configKeys) {
+		assert patterns != null;
+		assert rules != null;
+		assert configKeys != null;
+
+		this.identifiables = Lists.newArrayList(patterns);
+		this.rules = Lists.newArrayList(rules);
+		this.configKeys = Lists.newArrayList(configKeys);
 	}
 
 	public RepositoryRuleBlock addRule(RepositoryRule repositoryRule) {
@@ -72,6 +88,10 @@ public class RepositoryRuleBlock implements Rule {
 		writer.write('\n');
 		for(RepositoryRule rule : rules) {
 			rule.write(writer);
+		}
+		writer.write('\n');
+		for(ConfigKey config : configKeys) {
+			config.write(writer);
 		}
 		writer.flush();
 	}

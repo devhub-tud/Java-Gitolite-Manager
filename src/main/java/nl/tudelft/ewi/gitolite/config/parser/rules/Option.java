@@ -10,14 +10,14 @@ public class Option extends ConfigKey {
 	@Getter
 	private final String option;
 
-	public Option(String option, String value) {
+	public Option(String option, Object value) {
 		super("gitolite-options." + option, value);
 		this.option = option;
 	}
 
 	@Override
 	public String toString() {
-		return String.format("option %s = \"%s\"", getOption(), getValue());
+		return String.format("    option %s = %s", getOption(), escapeValue());
 	}
 
 }
