@@ -20,6 +20,7 @@ public class Permission {
 	public static Permission R = new Permission(BasePermission.R);
 	public static Permission RW = new Permission(BasePermission.RW);
 	public static Permission RW_PLUS = new Permission(BasePermission.RW_PLUS);
+	public static Permission DENY = new Permission(BasePermission.DENY);
 
 	public static Permission valueOf(String input) {
 		Matcher matcher = pattern.matcher(input);

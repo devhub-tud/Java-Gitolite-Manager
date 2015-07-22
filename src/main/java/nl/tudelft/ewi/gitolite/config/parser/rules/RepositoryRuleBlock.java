@@ -1,7 +1,9 @@
 package nl.tudelft.ewi.gitolite.config.parser.rules;
 
 import com.google.common.collect.Lists;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
+import lombok.Singular;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
 import nl.tudelft.ewi.gitolite.config.objects.IdentifiableImpl;
@@ -18,6 +20,7 @@ import java.util.List;
 /**
  * @author Jan-Willem Gmelig Meyling
  */
+@Builder
 @EqualsAndHashCode
 public class RepositoryRuleBlock implements Rule {
 
@@ -27,16 +30,19 @@ public class RepositoryRuleBlock implements Rule {
 	 * Therefore, a regex like foo/.+ does not look like a regex to gitolite. Use foo/..* if you want that.
 	 * Also, ..* by itself is not considered a valid repo regex. Try [a-zA-Z0-9].*. CREATOR/..* will also work.
 	 */
+	@Singular
 	private final List<Identifiable> identifiables;
 
 	/**
 	 * Rules active for the repositories that match this pattern.
 	 */
+	@Singular
 	private final List<RepositoryRule> rules;
 
 	/**
 	 * Configuration keys.
 	 */
+	@Singular
 	private final List<ConfigKey> configKeys;
 
 	/**
