@@ -1,14 +1,14 @@
 import com.google.common.collect.Lists;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
 import nl.tudelft.ewi.gitolite.config.objects.IdentifiableImpl;
-import nl.tudelft.ewi.gitolite.config.objects.Rule;
+import nl.tudelft.ewi.gitolite.config.parser.rules.Rule;
 import nl.tudelft.ewi.gitolite.config.parser.TokenizerBasedParser;
 import nl.tudelft.ewi.gitolite.config.parser.rules.ConfigKey;
 import nl.tudelft.ewi.gitolite.config.parser.rules.GroupRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.Option;
 import nl.tudelft.ewi.gitolite.config.parser.rules.RepositoryRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.RepositoryRuleBlock;
-import nl.tudelft.ewi.gitolite.config.permission.Permission;
+import nl.tudelft.ewi.gitolite.config.permission.BasePermission;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
@@ -65,7 +65,7 @@ public class TestTokenizedBasedParser {
 		String in = "RW+ = foo bar";
 		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
 
-		RepositoryRule repositoryRule = new RepositoryRule(Permission.RW_PLUS, foo, bar);
+		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, foo, bar);
 
 		RepositoryRule actual = parser.parseRepositoryRule();
 		actual.write(System.out);
@@ -77,7 +77,7 @@ public class TestTokenizedBasedParser {
 		String in = "RW+ master = foo bar";
 		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
 
-		RepositoryRule repositoryRule = new RepositoryRule(Permission.RW_PLUS, "master", foo, bar);
+		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, "master", foo, bar);
 
 		RepositoryRule actual = parser.parseRepositoryRule();
 		actual.write(System.out);
@@ -90,7 +90,7 @@ public class TestTokenizedBasedParser {
 						"    RW+ = foo bar";
 		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
 
-		RepositoryRule repositoryRule = new RepositoryRule(Permission.RW_PLUS, foo, bar);
+		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, foo, bar);
 		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock("yolo", repositoryRule);
 
 		RepositoryRuleBlock actual = parser.parseRepositoryRuleBlock();
@@ -105,8 +105,8 @@ public class TestTokenizedBasedParser {
 						"    RW = bar";
 		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
 
-		RepositoryRule repositoryRule = new RepositoryRule(Permission.RW_PLUS, foo);
-		RepositoryRule repositoryRule2 = new RepositoryRule(Permission.RW, bar);
+		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, foo);
+		RepositoryRule repositoryRule2 = new RepositoryRule(BasePermission.RW, bar);
 		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock("yolo", repositoryRule, repositoryRule2);
 
 		RepositoryRuleBlock actual = parser.parseRepositoryRuleBlock();
@@ -121,8 +121,8 @@ public class TestTokenizedBasedParser {
 						"    RW = bar\n\n";
 		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
 
-		RepositoryRule repositoryRule = new RepositoryRule(Permission.RW_PLUS, foo);
-		RepositoryRule repositoryRule2 = new RepositoryRule(Permission.RW, bar);
+		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, foo);
+		RepositoryRule repositoryRule2 = new RepositoryRule(BasePermission.RW, bar);
 		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock("yolo", repositoryRule, repositoryRule2);
 
 		RepositoryRuleBlock actual = parser.parseRepositoryRuleBlock();
@@ -137,8 +137,8 @@ public class TestTokenizedBasedParser {
 						"    RW = bar\n\n";
 		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
 
-		RepositoryRule repositoryRule = new RepositoryRule(Permission.RW_PLUS, foo);
-		RepositoryRule repositoryRule2 = new RepositoryRule(Permission.RW, bar);
+		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, foo);
+		RepositoryRule repositoryRule2 = new RepositoryRule(BasePermission.RW, bar);
 		List<Identifiable> identifiables = Lists.newArrayList(new IdentifiableImpl("yolo"), new IdentifiableImpl("swag"));
 		List<RepositoryRule> rules = Lists.newArrayList(repositoryRule, repositoryRule2);
 		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock(identifiables, rules, Collections.emptyList());
@@ -158,7 +158,7 @@ public class TestTokenizedBasedParser {
 		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
 
 		GroupRule inhouse = parser.parseGroupRule();
-		RepositoryRule repositoryRule = new RepositoryRule(Permission.RW_PLUS, foo, bar);
+		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, foo, bar);
 		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock(
 			Collections.singletonList(inhouse),
 			Collections.singletonList(repositoryRule),
@@ -215,7 +215,7 @@ public class TestTokenizedBasedParser {
 
 		GroupRule inhouse = parser.parseGroupRule();
 
-		RepositoryRule repositoryRule = new RepositoryRule(Permission.RW_PLUS, foo, bar);
+		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, foo, bar);
 		Option denyRules = new Option("deny-rules", 1);
 		ConfigKey emailPrefix = new ConfigKey("hooks.emailprefix", "[%GL_REPO] ");
 		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock(
@@ -254,10 +254,10 @@ public class TestTokenizedBasedParser {
 		RepositoryRuleBlock repo = RepositoryRuleBlock.builder()
 			.identifiable(projects)
 			.identifiable(baz)
-			.rule(new RepositoryRule(Permission.RW_PLUS, staff))
-			.rule(new RepositoryRule(Permission.DENY, "master", ashok))
-			.rule(new RepositoryRule(Permission.RW, ashok))
-			.rule(new RepositoryRule(Permission.R, wally))
+			.rule(new RepositoryRule(BasePermission.RW_PLUS, staff))
+			.rule(new RepositoryRule(BasePermission.DENY, "master", ashok))
+			.rule(new RepositoryRule(BasePermission.RW, ashok))
+			.rule(new RepositoryRule(BasePermission.R, wally))
 			.configKey(new Option("deny-rules", 1))
 			.configKey(new ConfigKey("hooks.emailprefix", "[%GL_REPO] "))
 			.build();
@@ -270,6 +270,38 @@ public class TestTokenizedBasedParser {
 		projects.write(System.out);
 		repo.write(System.out);
 		assertThat(actual, Matchers.equalTo(expected));
+
+	}
+
+	@Test
+	public void devhubTest()  {
+		String in = "@ti1705ta = liam carsten\n" +
+
+			"repo courses/ti1705/*\n" +
+				"RW+ = @ti1705ta\n" +
+				"-   VREF/MAX_FILE_SIZE/50 = @all\n" +
+
+			"repo courses/ti1705/group-1\n" +
+				"RW = student1 student2\n";
+
+		GroupRule groupRule = GroupRule.builder()
+			.pattern("@ti1705ta")
+			.member(new IdentifiableImpl("liam"))
+			.member(new IdentifiableImpl("carsten"))
+			.build();
+
+		RepositoryRuleBlock repositoryRuleBlock = RepositoryRuleBlock.builder()
+			.identifiable(new IdentifiableImpl("courses/ti1705/*"))
+			.rule(new RepositoryRule(BasePermission.RW_PLUS, groupRule))
+			.rule(new RepositoryRule(BasePermission.DENY, "VREF/MAX_FILE_SIZE/50", new IdentifiableImpl("@all")))
+			.build();
+
+		RepositoryRuleBlock second = RepositoryRuleBlock.builder()
+			.identifiable(new IdentifiableImpl("courses/ti1705/group-1"))
+			.rule(new RepositoryRule(BasePermission.RW, new IdentifiableImpl("student1"), new IdentifiableImpl("student2")))
+			.build();
+
+
 
 	}
 

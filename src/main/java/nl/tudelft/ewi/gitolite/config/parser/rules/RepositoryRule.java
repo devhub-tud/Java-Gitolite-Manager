@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
 import nl.tudelft.ewi.gitolite.config.permission.Permission;
-import nl.tudelft.ewi.gitolite.config.objects.Writable;
 
 import java.io.IOException;
 import java.io.StringWriter;

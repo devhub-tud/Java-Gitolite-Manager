@@ -1,4 +1,4 @@
-package nl.tudelft.ewi.gitolite.config.objects;
+package nl.tudelft.ewi.gitolite.config.parser.rules;
 
 /**
  * @author Jan-Willem Gmelig Meyling

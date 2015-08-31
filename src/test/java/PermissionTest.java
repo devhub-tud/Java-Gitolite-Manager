@@ -1,11 +1,14 @@
+import lombok.SneakyThrows;
 import nl.tudelft.ewi.gitolite.config.permission.BasePermission;
 import nl.tudelft.ewi.gitolite.config.permission.Permission;
+import nl.tudelft.ewi.gitolite.config.permission.PermissionWithModifier;
 import nl.tudelft.ewi.gitolite.config.permission.PermissionModifier;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -18,20 +21,21 @@ public class PermissionTest {
 	@Parameterized.Parameters(name = "Test Parse {0}")
 	public static Collection primeNumbers() {
 		return Arrays.asList(new Object[][]{
-			{"R", new Permission(BasePermission.R)},
-			{"RW", new Permission(BasePermission.RW)},
-			{"RWM", new Permission(BasePermission.RW, PermissionModifier.M)},
-			{"RWC", new Permission(BasePermission.RW, PermissionModifier.C)},
-			{"RWCM", new Permission(BasePermission.RW, PermissionModifier.C, PermissionModifier.M)},
-			{"RWD", new Permission(BasePermission.RW, PermissionModifier.D)},
-			{"RWDM", new Permission(BasePermission.RW, PermissionModifier.D, PermissionModifier.M)},
-			{"RWCD", new Permission(BasePermission.RW, PermissionModifier.C, PermissionModifier.D)},
-			{"RWCDM", new Permission(BasePermission.RW, PermissionModifier.C, PermissionModifier.D, PermissionModifier.M)},
-			{"RW+", new Permission(BasePermission.RW_PLUS)},
-			{"RW+D", new Permission(BasePermission.RW_PLUS, PermissionModifier.D)},
-			{"RW+C", new Permission(BasePermission.RW_PLUS, PermissionModifier.C)},
-			{"RW+CD", new Permission(BasePermission.RW_PLUS, PermissionModifier.C, PermissionModifier.D)},
-			{"RW+M", new Permission(BasePermission.RW_PLUS, PermissionModifier.M)},
+			{"R", BasePermission.R},
+			{"RW", BasePermission.RW},
+			{"C", BasePermission.C},
+			{"RWM", new PermissionWithModifier(BasePermission.RW, PermissionModifier.M)},
+			{"RWC", new PermissionWithModifier(BasePermission.RW, PermissionModifier.C)},
+			{"RWCM", new PermissionWithModifier(BasePermission.RW, PermissionModifier.C, PermissionModifier.M)},
+			{"RWD", new PermissionWithModifier(BasePermission.RW, PermissionModifier.D)},
+			{"RWDM", new PermissionWithModifier(BasePermission.RW, PermissionModifier.D, PermissionModifier.M)},
+			{"RWCD", new PermissionWithModifier(BasePermission.RW, PermissionModifier.C, PermissionModifier.D)},
+			{"RWCDM", new PermissionWithModifier(BasePermission.RW, PermissionModifier.C, PermissionModifier.D, PermissionModifier.M)},
+			{"RW+", BasePermission.RW_PLUS},
+			{"RW+D", new PermissionWithModifier(BasePermission.RW_PLUS, PermissionModifier.D)},
+			{"RW+C", new PermissionWithModifier(BasePermission.RW_PLUS, PermissionModifier.C)},
+			{"RW+CD", new PermissionWithModifier(BasePermission.RW_PLUS, PermissionModifier.C, PermissionModifier.D)},
+			{"RW+M", new PermissionWithModifier(BasePermission.RW_PLUS, PermissionModifier.M)},
 		});
 	}
 
@@ -51,8 +55,11 @@ public class PermissionTest {
 	}
 
 	@Test
+	@SneakyThrows
 	public void testToString() {
-		Assert.assertEquals(type, expected.toString());
+		StringWriter stringWriter = new StringWriter();
+		expected.write(stringWriter);
+		Assert.assertEquals(type, stringWriter.toString());
 	}
 
 }

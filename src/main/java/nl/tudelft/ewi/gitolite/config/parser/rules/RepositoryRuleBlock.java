@@ -7,7 +7,6 @@ import lombok.Singular;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
 import nl.tudelft.ewi.gitolite.config.objects.IdentifiableImpl;
-import nl.tudelft.ewi.gitolite.config.objects.Rule;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -86,7 +85,7 @@ public class RepositoryRuleBlock implements Rule {
 
 	@Override
 	public void write(Writer writer) throws IOException {
-		writer.write("repo");
+		writer.write("\nrepo");
 		for(Identifiable identifiable : identifiables) {
 			writer.write(' ');
 			writer.write(identifiable.getPattern());

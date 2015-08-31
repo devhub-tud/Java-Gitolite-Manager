@@ -2,7 +2,6 @@ package nl.tudelft.ewi.gitolite.config.parser.rules;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import nl.tudelft.ewi.gitolite.config.objects.Rule;
 
 import java.io.IOException;
 import java.io.Writer;

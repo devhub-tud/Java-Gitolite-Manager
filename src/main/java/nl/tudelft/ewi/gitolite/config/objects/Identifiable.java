@@ -11,4 +11,8 @@ public interface Identifiable {
 		return input.matches(getPattern());
 	}
 
+	static Identifiable valueOf(String input) {
+		return new IdentifiableImpl(input);
+	}
+
 }

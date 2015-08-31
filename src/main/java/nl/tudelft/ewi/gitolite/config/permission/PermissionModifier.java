@@ -1,7 +1,7 @@
 package nl.tudelft.ewi.gitolite.config.permission;
 
 import com.google.common.collect.Sets;
-import nl.tudelft.ewi.gitolite.config.objects.Writable;
+import nl.tudelft.ewi.gitolite.config.parser.rules.Writable;
 
 import java.io.IOException;
 import java.io.Writer;

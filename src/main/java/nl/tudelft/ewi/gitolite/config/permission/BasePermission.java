@@ -1,14 +1,14 @@
 package nl.tudelft.ewi.gitolite.config.permission;
 
-import nl.tudelft.ewi.gitolite.config.objects.Writable;
-
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author Jan-Willem Gmelig Meyling
  */
-public enum BasePermission implements Writable {
+public enum BasePermission implements Permission {
 
 	/**
 	 * Allow pretty much anything -- fast-forward, rewind or delete branches or tags.
@@ -46,8 +46,6 @@ public enum BasePermission implements Writable {
 		return field;
 	}
 
-
-
 	public static BasePermission parse(String input) {
 		for(BasePermission basePermission : values()) {
 			if(basePermission.field.equals(input)) {
@@ -60,6 +58,16 @@ public enum BasePermission implements Writable {
 	@Override
 	public void write(Writer writer) throws IOException {
 		writer.write(getField());
+	}
+
+	@Override
+	public BasePermission getBasePermission() {
+		return this;
+	}
+
+	@Override
+	public Collection<PermissionModifier> getModifiers() {
+		return Collections.emptyList();
 	}
 
 }

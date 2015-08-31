@@ -9,7 +9,6 @@ import com.google.common.base.Joiner;
 import lombok.Singular;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
 import nl.tudelft.ewi.gitolite.config.util.RecursiveGroupDefinition;
-import nl.tudelft.ewi.gitolite.config.objects.Writable;
 
 import java.io.IOException;
 import java.io.Writer;

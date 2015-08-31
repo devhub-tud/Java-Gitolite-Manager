@@ -10,13 +10,13 @@ import lombok.Getter;
 import lombok.Singular;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
-import nl.tudelft.ewi.gitolite.config.objects.Rule;
 import nl.tudelft.ewi.gitolite.config.util.PrototypeGroupDefinition;
 
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -40,7 +40,12 @@ public class GroupRule implements PrototypeGroupDefinition<GroupRule, Identifiab
 	@Singular
 	private final List<GroupRule> groups;
 
-	public GroupRule(final String pattern, @Nullable final GroupRule parent,
+	public GroupRule(final String pattern, final Identifiable... members) {
+		this(pattern, null, Lists.newArrayList(members), Collections.emptyList());
+	}
+
+	public GroupRule(final String pattern,
+	                 @Nullable final GroupRule parent,
 	                 final Collection<? extends Identifiable> members,
 	                 final Collection<? extends GroupRule> groups) {
 		Preconditions.checkNotNull(pattern);
