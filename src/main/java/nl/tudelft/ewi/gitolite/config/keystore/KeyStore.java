@@ -11,6 +11,11 @@ import java.util.Collection;
 public interface KeyStore {
 
 	/**
+	 * The empty key name
+	 */
+	String EMPTY_KEY_NAME = "";
+
+	/**
 	 * Get a specific key from the {@code KeyStore}.
 	 * @param identifiable {@code Identifiable} to store a key for.
 	 * @param name name for the key.
@@ -24,6 +29,16 @@ public interface KeyStore {
 	 * @return a collection of keys.
 	 */
 	Collection<? extends Key> getKeys(Identifiable identifiable);
+
+	/**
+	 * Put a key into the key store
+	 * @param identifiable {@code Identifiable} to store a key for.
+	 * @param contents key contents.
+	 * @return the persisted key.
+	 */
+	default Key put(Identifiable identifiable, String contents) throws IOException {
+		return put(identifiable, EMPTY_KEY_NAME, contents);
+	}
 
 	/**
 	 * Put a key into the key store

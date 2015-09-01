@@ -1,13 +1,13 @@
 import com.google.common.collect.Lists;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
-import nl.tudelft.ewi.gitolite.config.objects.IdentifiableImpl;
+import nl.tudelft.ewi.gitolite.config.objects.Identifier;
 import nl.tudelft.ewi.gitolite.config.parser.rules.Rule;
 import nl.tudelft.ewi.gitolite.config.parser.TokenizerBasedParser;
 import nl.tudelft.ewi.gitolite.config.parser.rules.ConfigKey;
 import nl.tudelft.ewi.gitolite.config.parser.rules.GroupRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.Option;
+import nl.tudelft.ewi.gitolite.config.parser.rules.AccessRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.RepositoryRule;
-import nl.tudelft.ewi.gitolite.config.parser.rules.RepositoryRuleBlock;
 import nl.tudelft.ewi.gitolite.config.permission.BasePermission;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -26,13 +26,13 @@ import static org.junit.Assert.assertThat;
  */
 public class TestTokenizedBasedParser {
 
-	private final static Identifiable foo = new IdentifiableImpl("foo");
-	private final static Identifiable bar = new IdentifiableImpl("bar");
-	private final static Identifiable baz = new IdentifiableImpl("baz");
-	private final static Identifiable ashok = new IdentifiableImpl("ashok");
-	private final static Identifiable wally = new IdentifiableImpl("wally");
-	private final static Identifiable dilbert = new IdentifiableImpl("dilbert");
-	private final static Identifiable alice = new IdentifiableImpl("alice");
+	private final static Identifier foo = new Identifier("foo");
+	private final static Identifier bar = new Identifier("bar");
+	private final static Identifier baz = new Identifier("baz");
+	private final static Identifier ashok = new Identifier("ashok");
+	private final static Identifier wally = new Identifier("wally");
+	private final static Identifier dilbert = new Identifier("dilbert");
+	private final static Identifier alice = new Identifier("alice");
 
 	@Test
 	public void basicParseTest() throws IOException {
@@ -65,11 +65,11 @@ public class TestTokenizedBasedParser {
 		String in = "RW+ = foo bar";
 		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
 
-		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, foo, bar);
+		AccessRule accessRule = new AccessRule(BasePermission.RW_PLUS, foo, bar);
 
-		RepositoryRule actual = parser.parseRepositoryRule();
+		AccessRule actual = parser.parseRepositoryRule();
 		actual.write(System.out);
-		assertEquals(repositoryRule, actual);
+		assertEquals(accessRule, actual);
 	}
 
 	@Test
@@ -77,11 +77,11 @@ public class TestTokenizedBasedParser {
 		String in = "RW+ master = foo bar";
 		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
 
-		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, "master", foo, bar);
+		AccessRule accessRule = new AccessRule(BasePermission.RW_PLUS, "master", foo, bar);
 
-		RepositoryRule actual = parser.parseRepositoryRule();
+		AccessRule actual = parser.parseRepositoryRule();
 		actual.write(System.out);
-		assertEquals(repositoryRule, actual);
+		assertEquals(accessRule, actual);
 	}
 
 	@Test
@@ -90,12 +90,12 @@ public class TestTokenizedBasedParser {
 						"    RW+ = foo bar";
 		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
 
-		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, foo, bar);
-		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock("yolo", repositoryRule);
+		AccessRule accessRule = new AccessRule(BasePermission.RW_PLUS, foo, bar);
+		RepositoryRule repositoryRule = new RepositoryRule("yolo", accessRule);
 
-		RepositoryRuleBlock actual = parser.parseRepositoryRuleBlock();
+		RepositoryRule actual = parser.parseRepositoryRuleBlock();
 		actual.write(System.out);
-		assertEquals(repositoryRuleBlock, actual);
+		assertEquals(repositoryRule, actual);
 	}
 
 	@Test
@@ -105,13 +105,13 @@ public class TestTokenizedBasedParser {
 						"    RW = bar";
 		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
 
-		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, foo);
-		RepositoryRule repositoryRule2 = new RepositoryRule(BasePermission.RW, bar);
-		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock("yolo", repositoryRule, repositoryRule2);
+		AccessRule accessRule = new AccessRule(BasePermission.RW_PLUS, foo);
+		AccessRule accessRule2 = new AccessRule(BasePermission.RW, bar);
+		RepositoryRule repositoryRule = new RepositoryRule("yolo", accessRule, accessRule2);
 
-		RepositoryRuleBlock actual = parser.parseRepositoryRuleBlock();
+		RepositoryRule actual = parser.parseRepositoryRuleBlock();
 		actual.write(System.out);
-		assertEquals(repositoryRuleBlock, actual);
+		assertEquals(repositoryRule, actual);
 	}
 
 	@Test
@@ -121,13 +121,13 @@ public class TestTokenizedBasedParser {
 						"    RW = bar\n\n";
 		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
 
-		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, foo);
-		RepositoryRule repositoryRule2 = new RepositoryRule(BasePermission.RW, bar);
-		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock("yolo", repositoryRule, repositoryRule2);
+		AccessRule accessRule = new AccessRule(BasePermission.RW_PLUS, foo);
+		AccessRule accessRule2 = new AccessRule(BasePermission.RW, bar);
+		RepositoryRule repositoryRule = new RepositoryRule("yolo", accessRule, accessRule2);
 
-		RepositoryRuleBlock actual = parser.parseRepositoryRuleBlock();
+		RepositoryRule actual = parser.parseRepositoryRuleBlock();
 		actual.write(System.out);
-		assertEquals(repositoryRuleBlock, actual);
+		assertEquals(repositoryRule, actual);
 	}
 
 	@Test
@@ -137,15 +137,15 @@ public class TestTokenizedBasedParser {
 						"    RW = bar\n\n";
 		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
 
-		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, foo);
-		RepositoryRule repositoryRule2 = new RepositoryRule(BasePermission.RW, bar);
-		List<Identifiable> identifiables = Lists.newArrayList(new IdentifiableImpl("yolo"), new IdentifiableImpl("swag"));
-		List<RepositoryRule> rules = Lists.newArrayList(repositoryRule, repositoryRule2);
-		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock(identifiables, rules, Collections.emptyList());
+		AccessRule accessRule = new AccessRule(BasePermission.RW_PLUS, foo);
+		AccessRule accessRule2 = new AccessRule(BasePermission.RW, bar);
+		List<Identifiable> identifiables = Lists.newArrayList(new Identifier("yolo"), new Identifier("swag"));
+		List<AccessRule> rules = Lists.newArrayList(accessRule, accessRule2);
+		RepositoryRule repositoryRule = new RepositoryRule(identifiables, rules, Collections.emptyList());
 
-		RepositoryRuleBlock actual = parser.parseRepositoryRuleBlock();
+		RepositoryRule actual = parser.parseRepositoryRuleBlock();
 		actual.write(System.out);
-		assertEquals(repositoryRuleBlock, actual);
+		assertEquals(repositoryRule, actual);
 	}
 
 	@Test
@@ -158,16 +158,16 @@ public class TestTokenizedBasedParser {
 		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
 
 		GroupRule inhouse = parser.parseGroupRule();
-		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, foo, bar);
-		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock(
+		AccessRule accessRule = new AccessRule(BasePermission.RW_PLUS, foo, bar);
+		RepositoryRule repositoryRule = new RepositoryRule(
 			Collections.singletonList(inhouse),
-			Collections.singletonList(repositoryRule),
+			Collections.singletonList(accessRule),
 			Collections.emptyList()
 		);
 
-		RepositoryRuleBlock actual = parser.parseRepositoryRuleBlock();
+		RepositoryRule actual = parser.parseRepositoryRuleBlock();
 		actual.write(System.out);
-		assertEquals(repositoryRuleBlock, actual);
+		assertEquals(repositoryRule, actual);
 	}
 
 	@Test
@@ -215,18 +215,18 @@ public class TestTokenizedBasedParser {
 
 		GroupRule inhouse = parser.parseGroupRule();
 
-		RepositoryRule repositoryRule = new RepositoryRule(BasePermission.RW_PLUS, foo, bar);
+		AccessRule accessRule = new AccessRule(BasePermission.RW_PLUS, foo, bar);
 		Option denyRules = new Option("deny-rules", 1);
 		ConfigKey emailPrefix = new ConfigKey("hooks.emailprefix", "[%GL_REPO] ");
-		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock(
+		RepositoryRule repositoryRule = new RepositoryRule(
 			Collections.singletonList(inhouse),
-			Collections.singletonList(repositoryRule),
+			Collections.singletonList(accessRule),
 			Arrays.asList(denyRules, emailPrefix)
 		);
 
-		RepositoryRuleBlock actual = parser.parseRepositoryRuleBlock();
+		RepositoryRule actual = parser.parseRepositoryRuleBlock();
 		actual.write(System.out);
-		assertEquals(repositoryRuleBlock, actual);
+		assertEquals(repositoryRule, actual);
 	}
 
 	@Test
@@ -251,13 +251,13 @@ public class TestTokenizedBasedParser {
 		GroupRule projects = GroupRule.builder()
 			.pattern("@projects").member(foo).member(bar).build();
 
-		RepositoryRuleBlock repo = RepositoryRuleBlock.builder()
+		RepositoryRule repo = RepositoryRule.builder()
 			.identifiable(projects)
 			.identifiable(baz)
-			.rule(new RepositoryRule(BasePermission.RW_PLUS, staff))
-			.rule(new RepositoryRule(BasePermission.DENY, "master", ashok))
-			.rule(new RepositoryRule(BasePermission.RW, ashok))
-			.rule(new RepositoryRule(BasePermission.R, wally))
+			.rule(new AccessRule(BasePermission.RW_PLUS, staff))
+			.rule(new AccessRule(BasePermission.DENY, "master", ashok))
+			.rule(new AccessRule(BasePermission.RW, ashok))
+			.rule(new AccessRule(BasePermission.R, wally))
 			.configKey(new Option("deny-rules", 1))
 			.configKey(new ConfigKey("hooks.emailprefix", "[%GL_REPO] "))
 			.build();
@@ -286,19 +286,19 @@ public class TestTokenizedBasedParser {
 
 		GroupRule groupRule = GroupRule.builder()
 			.pattern("@ti1705ta")
-			.member(new IdentifiableImpl("liam"))
-			.member(new IdentifiableImpl("carsten"))
+			.member(new Identifier("liam"))
+			.member(new Identifier("carsten"))
 			.build();
 
-		RepositoryRuleBlock repositoryRuleBlock = RepositoryRuleBlock.builder()
-			.identifiable(new IdentifiableImpl("courses/ti1705/*"))
-			.rule(new RepositoryRule(BasePermission.RW_PLUS, groupRule))
-			.rule(new RepositoryRule(BasePermission.DENY, "VREF/MAX_FILE_SIZE/50", new IdentifiableImpl("@all")))
+		RepositoryRule repositoryRule = RepositoryRule.builder()
+			.identifiable(new Identifier("courses/ti1705/*"))
+			.rule(new AccessRule(BasePermission.RW_PLUS, groupRule))
+			.rule(new AccessRule(BasePermission.DENY, "VREF/MAX_FILE_SIZE/50", new Identifier("@all")))
 			.build();
 
-		RepositoryRuleBlock second = RepositoryRuleBlock.builder()
-			.identifiable(new IdentifiableImpl("courses/ti1705/group-1"))
-			.rule(new RepositoryRule(BasePermission.RW, new IdentifiableImpl("student1"), new IdentifiableImpl("student2")))
+		RepositoryRule second = RepositoryRule.builder()
+			.identifiable(new Identifier("courses/ti1705/group-1"))
+			.rule(new AccessRule(BasePermission.RW, new Identifier("student1"), new Identifier("student2")))
 			.build();
 
 

@@ -16,12 +16,6 @@ import java.util.regex.Pattern;
  */
 public interface Permission extends Writable {
 
-	Permission RW = BasePermission.RW;
-	Permission R = BasePermission.R;
-	Permission C = BasePermission.C;
-	Permission DENY = BasePermission.DENY;
-	Permission RW_PLUS = BasePermission.RW_PLUS;
-
 	/**
 	 * @return the {@link BasePermission} for this {@link Permission}.
 	 */

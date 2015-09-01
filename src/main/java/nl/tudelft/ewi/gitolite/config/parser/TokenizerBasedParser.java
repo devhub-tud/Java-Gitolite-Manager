@@ -4,14 +4,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
-import nl.tudelft.ewi.gitolite.config.objects.IdentifiableImpl;
+import nl.tudelft.ewi.gitolite.config.objects.Identifier;
 import nl.tudelft.ewi.gitolite.config.parser.rules.Rule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.ConfigKey;
 import nl.tudelft.ewi.gitolite.config.parser.rules.GroupRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.InlineUserGroup;
 import nl.tudelft.ewi.gitolite.config.parser.rules.Option;
+import nl.tudelft.ewi.gitolite.config.parser.rules.AccessRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.RepositoryRule;
-import nl.tudelft.ewi.gitolite.config.parser.rules.RepositoryRuleBlock;
 import nl.tudelft.ewi.gitolite.config.permission.Permission;
 
 import java.io.IOException;
@@ -29,7 +29,7 @@ public class TokenizerBasedParser {
 
 	private final StreamTokenizer streamTokenizer;
 	private final Map<String, GroupRule> groupRuleMap = Maps.newHashMap();
-	private final Map<String, Identifiable> identifiableMap = Maps.newHashMap();
+	private final Map<String, Identifier> identifiableMap = Maps.newHashMap();
 	private boolean eof = false;
 
 	public TokenizerBasedParser(final Reader reader) {
@@ -46,10 +46,10 @@ public class TokenizerBasedParser {
 		streamTokenizer.commentChar('#');
 	}
 
-	public Identifiable getIdentifiable(String name) {
-		Identifiable identifiable = identifiableMap.get(name);
+	public Identifier getIdentifiable(String name) {
+		Identifier identifiable = identifiableMap.get(name);
 		if(identifiable == null) {
-			identifiable = new IdentifiableImpl(name);
+			identifiable = new Identifier(name);
 			identifiableMap.put(name, identifiable);
 		}
 		return identifiable;
@@ -175,7 +175,7 @@ public class TokenizerBasedParser {
 	 * @param members {@code List} for {@link Identifiable} references.
 	 * @throws IOException  if the next token could not be read.
 	 */
-	public void parseInlineGroup(final List<? super GroupRule> groups, final List<? super Identifiable> members) throws IOException {
+	public void parseInlineGroup(final List<? super GroupRule> groups, final List<? super Identifier> members) throws IOException {
 		while(hasNext(true)) {
 			String idName = next();
 			if(idName.startsWith("@")) {
@@ -200,7 +200,7 @@ public class TokenizerBasedParser {
 
 		GroupRule parent = groupRuleMap.get(name);
 		List<GroupRule> groups = Lists.newArrayList();
-		List<Identifiable> members = Lists.newArrayList();
+		List<Identifier> members = Lists.newArrayList();
 		parseInlineGroup(groups, members);
 
 		GroupRule rule = new GroupRule(name, parent, members, groups);
@@ -239,7 +239,7 @@ public class TokenizerBasedParser {
 	 * @return the parsed RepositoryRule
 	 * @throws IOException  if the next token could not be read.
 	 */
-	public RepositoryRule parseRepositoryRule() throws IOException {
+	public AccessRule parseRepositoryRule() throws IOException {
 		Permission permission = Permission.valueOf(next());
 		String next = next();
 		String refex = null;
@@ -248,7 +248,7 @@ public class TokenizerBasedParser {
 			next("=");
 		}
 		InlineUserGroup inlineUserGroup = parseInlineUserGroup();
-		return new RepositoryRule(permission, refex, inlineUserGroup);
+		return new AccessRule(permission, refex, inlineUserGroup);
 	}
 
 	/**
@@ -256,13 +256,13 @@ public class TokenizerBasedParser {
 	 * @return the parsed RepositoryRuleBlock
 	 * @throws IOException  if the next token could not be read.
 	 */
-	public RepositoryRuleBlock parseRepositoryRuleBlock() throws IOException {
+	public RepositoryRule parseRepositoryRuleBlock() throws IOException {
 		next("repo");
 
 		List<Identifiable> identifiables = Lists.newArrayList();
 		parseInlineGroup(identifiables, identifiables);
 
-		List<RepositoryRule> rules = Lists.newArrayList();
+		List<AccessRule> rules = Lists.newArrayList();
 		List<ConfigKey> configKeys = Lists.newArrayList();
 
 		for(;;) {
@@ -273,8 +273,8 @@ public class TokenizerBasedParser {
 			else break;
 		}
 
-		RepositoryRuleBlock repositoryRuleBlock = new RepositoryRuleBlock(identifiables, rules, configKeys);
-		return repositoryRuleBlock;
+		RepositoryRule repositoryRule = new RepositoryRule(identifiables, rules, configKeys);
+		return repositoryRule;
 	}
 
 	/**
@@ -288,11 +288,11 @@ public class TokenizerBasedParser {
 
 	/**
 	 * Parse rules and put them in a collection.
-	 * @param repositoryRules Collection to add the parsed {@link RepositoryRuleBlock} rules to.
+	 * @param repositoryRules Collection to add the parsed {@link RepositoryRule} rules to.
 	 * @param groupRules Collection to add the parsed {@link GroupRule} rules to.
 	 * @throws IOException if the document could not be parsed.
 	 */
-	public void parse(final Collection<? super RepositoryRuleBlock> repositoryRules, final Collection<? super GroupRule> groupRules) throws IOException {
+	public void parse(final Collection<? super RepositoryRule> repositoryRules, final Collection<? super GroupRule> groupRules) throws IOException {
 		for(;;) {
 			if(hasNext("repo")) repositoryRules.add(parseRepositoryRuleBlock());
 			else if(hasNext("@")) groupRules.add(parseGroupRule());

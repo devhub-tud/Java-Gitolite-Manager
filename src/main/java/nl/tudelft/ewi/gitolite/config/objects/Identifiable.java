@@ -1,18 +1,17 @@
 package nl.tudelft.ewi.gitolite.config.objects;
 
+import java.io.Serializable;
+
 /**
  * @author Jan-Willem Gmelig Meyling
  */
-public interface Identifiable {
+public interface Identifiable extends Comparable<Identifiable>, Serializable {
 
 	String getPattern();
 
-	default boolean matches(String input) {
-		return input.matches(getPattern());
-	}
-
-	static Identifiable valueOf(String input) {
-		return new IdentifiableImpl(input);
+	@Override
+	default int compareTo(Identifiable o) {
+		return getPattern().compareTo(o.getPattern());
 	}
 
 }

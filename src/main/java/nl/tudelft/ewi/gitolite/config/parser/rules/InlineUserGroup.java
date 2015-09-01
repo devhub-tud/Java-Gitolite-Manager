@@ -8,7 +8,7 @@ import com.google.common.base.Joiner;
 
 import lombok.Singular;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
-import nl.tudelft.ewi.gitolite.config.util.RecursiveGroupDefinition;
+import nl.tudelft.ewi.gitolite.config.util.RecursiveStreamingGroup;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -23,7 +23,7 @@ import java.util.stream.Stream;
  */
 @Builder
 @EqualsAndHashCode(doNotUseGetters = true)
-public class InlineUserGroup implements RecursiveGroupDefinition<GroupRule, Identifiable>, Writable {
+public class InlineUserGroup implements RecursiveStreamingGroup<GroupRule, Identifiable>, Writable {
 
 	@Singular
 	private final List<GroupRule> groups;
@@ -45,7 +45,7 @@ public class InlineUserGroup implements RecursiveGroupDefinition<GroupRule, Iden
 	}
 
 	@Override
-	public Stream<GroupRule> getGroups() {
+	public Stream<GroupRule> getOwnGroupsStream() {
 		return groups.stream();
 	}
 
@@ -55,13 +55,18 @@ public class InlineUserGroup implements RecursiveGroupDefinition<GroupRule, Iden
 	}
 
 	@Override
-	public Stream<Identifiable> getMembers() {
+	public Stream<Identifiable> getOwnMembersStream() {
 		return members.stream();
 	}
 
 	@Override
 	public boolean remove(Identifiable value) {
 		return members.remove(value);
+	}
+
+	@Override
+	public boolean delete(GroupRule group) {
+		return groups.remove(group);
 	}
 
 	@Override
@@ -75,7 +80,7 @@ public class InlineUserGroup implements RecursiveGroupDefinition<GroupRule, Iden
 	}
 
 	private String writeString() {
-		return Joiner.on(' ').join(Stream.concat(getGroups(), getMembers())
+		return Joiner.on(' ').join(Stream.concat(getOwnGroupsStream(), getOwnMembersStream())
 			.map(Identifiable::getPattern)
 			.iterator());
 	}

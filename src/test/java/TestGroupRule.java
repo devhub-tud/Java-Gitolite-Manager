@@ -1,7 +1,7 @@
 
 import nl.tudelft.ewi.gitolite.config.parser.rules.GroupRule;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
-import nl.tudelft.ewi.gitolite.config.objects.IdentifiableImpl;
+import nl.tudelft.ewi.gitolite.config.objects.Identifier;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -18,8 +18,8 @@ public class TestGroupRule {
 
 	@Test
 	public void test1() throws IOException {
-		Identifiable foo = new IdentifiableImpl("foo");
-		Identifiable bar = new IdentifiableImpl("bar");
+		Identifier foo = new Identifier("foo");
+		Identifier bar = new Identifier("bar");
 
 		GroupRule test = GroupRule.builder()
 			.pattern("@test")
@@ -35,7 +35,7 @@ public class TestGroupRule {
 		test.write(System.out);
 		other.write(System.out);
 
-		List<Identifiable> members = other.getInheritedMembers().collect(Collectors.toList());
+		List<Identifiable> members = other.getMembersStream().collect(Collectors.toList());
 		members.forEach(System.out::println);
 		assertThat(members, contains(foo, bar));
 	}

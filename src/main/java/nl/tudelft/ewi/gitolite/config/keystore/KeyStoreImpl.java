@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.Value;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
-import nl.tudelft.ewi.gitolite.config.objects.IdentifiableImpl;
+import nl.tudelft.ewi.gitolite.config.objects.Identifier;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -30,6 +30,9 @@ import java.util.stream.StreamSupport;
 @EqualsAndHashCode
 public class KeyStoreImpl implements KeyStore {
 
+	public static final String PUB_FILE_EXT = ".pub";
+	public static final String KEY_NAME_SEPARATOR = "@";
+
 	private final Path folder;
 
 	private final Multimap<Identifiable, KeyImpl> keyMultimap;
@@ -43,7 +46,7 @@ public class KeyStoreImpl implements KeyStore {
 	public void scan() {
 		keyMultimap.clear();
 		filesAsStream(folder)
-			.filter(path -> path.getFileName().toString().contains(".pub"))
+			.filter(path -> path.getFileName().toString().contains(PUB_FILE_EXT))
 			.map(KeyImpl::new).forEach(key -> keyMultimap.put(key.getIdentifiable(), key));
 	}
 
@@ -84,7 +87,7 @@ public class KeyStoreImpl implements KeyStore {
 		if (!Strings.isNullOrEmpty(name)) {
 			builder.append('@').append(name);
 		}
-		builder.append(".pub");
+		builder.append(PUB_FILE_EXT);
 
 
 		Path path = folder.resolve(builder.toString());
@@ -110,11 +113,11 @@ public class KeyStoreImpl implements KeyStore {
 		public KeyImpl(Path path) {
 			this.path = path;
 			String fileName = path.getFileName().toString();
-			fileName = fileName.substring(0, fileName.indexOf(".pub"));
-			String[] parts = fileName.split("@");
+			fileName = fileName.substring(0, fileName.indexOf(PUB_FILE_EXT));
+			String[] parts = fileName.split(KEY_NAME_SEPARATOR);
 			String username = parts[0];
-			this.identifiable = new IdentifiableImpl(username);
-			this.name = parts.length > 1 ? parts[1] : "";
+			this.identifiable = new Identifier(username);
+			this.name = parts.length > 1 ? parts[1] : KeyStore.EMPTY_KEY_NAME;
 		}
 
 		@Override

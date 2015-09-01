@@ -115,6 +115,7 @@ public class PathRepositoriesManager implements RepositoriesManager {
 		@Override
 		public void delete() throws IOException {
 			Files.delete(path);
+			repositories.remove(getURI(), this);
 		}
 
 	}
