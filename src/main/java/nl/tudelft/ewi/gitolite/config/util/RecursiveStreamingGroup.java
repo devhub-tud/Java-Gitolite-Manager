@@ -32,9 +32,9 @@ public interface RecursiveStreamingGroup<R extends RecursiveStreamingGroup<? ext
 
 	/**
 	 * Delete a group from this group.
-	 * @param group group to delete.
+	 * @param group group to remove.
 	 */
-	boolean delete(R group);
+	boolean remove(R group);
 
 	/**
 	 * @return the members inherited from the groups.

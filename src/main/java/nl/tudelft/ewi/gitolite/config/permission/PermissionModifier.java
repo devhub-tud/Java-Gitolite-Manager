@@ -8,7 +8,7 @@ import java.io.Writer;
 import java.util.SortedSet;
 
 /**
- * Sometimes you want to allow people to push, but not create a ref. Or rewind, but not delete a ref. The C and D qualifiers help here.
+ * Sometimes you want to allow people to push, but not create a ref. Or rewind, but not remove a ref. The C and D qualifiers help here.
  * Note: These two can be combined, so you can have RWCD and RW+CD as well.
  *
  * @author Jan-Willem Gmelig Meyling

@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.gitolite.config.parser.rules;
 
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -8,6 +9,7 @@ import com.google.common.base.Joiner;
 
 import lombok.Singular;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
+import nl.tudelft.ewi.gitolite.config.objects.Identifier;
 import nl.tudelft.ewi.gitolite.config.util.RecursiveStreamingGroup;
 
 import java.io.IOException;
@@ -23,23 +25,23 @@ import java.util.stream.Stream;
  */
 @Builder
 @EqualsAndHashCode(doNotUseGetters = true)
-public class InlineUserGroup implements RecursiveStreamingGroup<GroupRule, Identifiable>, Writable {
+public class InlineUserGroup implements RecursiveStreamingGroup<GroupRule, Identifier>, Writable {
 
 	@Singular
 	private final List<GroupRule> groups;
 
 	@Singular
-	private final List<Identifiable> members;
+	private final List<Identifier> members;
 
 	public InlineUserGroup(GroupRule... groups) {
 		this(Arrays.asList(groups), Collections.emptyList());
 	}
 
-	public InlineUserGroup(Identifiable... identifiable) {
+	public InlineUserGroup(Identifier... identifiable) {
 		this(Collections.emptyList(), Arrays.asList(identifiable));
 	}
 
-	public InlineUserGroup(Collection<? extends GroupRule> groups, Collection<? extends Identifiable> members) {
+	public InlineUserGroup(Collection<? extends GroupRule> groups, Collection<? extends Identifier> members) {
 		this.groups = Lists.newArrayList(groups);
 		this.members = Lists.newArrayList(members);
 	}
@@ -55,22 +57,22 @@ public class InlineUserGroup implements RecursiveStreamingGroup<GroupRule, Ident
 	}
 
 	@Override
-	public Stream<Identifiable> getOwnMembersStream() {
+	public Stream<Identifier> getOwnMembersStream() {
 		return members.stream();
 	}
 
 	@Override
-	public boolean remove(Identifiable value) {
+	public boolean remove(Identifier value) {
 		return members.remove(value);
 	}
 
 	@Override
-	public boolean delete(GroupRule group) {
+	public boolean remove(GroupRule group) {
 		return groups.remove(group);
 	}
 
 	@Override
-	public void add(Identifiable value) {
+	public void add(Identifier value) {
 		members.add(value);
 	}
 

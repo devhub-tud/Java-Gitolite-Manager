@@ -28,12 +28,21 @@ import java.util.stream.Stream;
 @EqualsAndHashCode
 public class GroupRule implements RecursiveAndPrototypeStreamingGroup<GroupRule, Identifier>, Rule, Identifiable {
 
+	/**
+	 * {@code @all} is a special group name that is often convenient to use if you really mean "all repos" or "all users".
+	 */
 	public final static GroupRule ALL = new GroupRule("@all") {
 
 		@Override
 		public boolean contains(Identifier value) {
 			return true;
 		}
+
+		@Override
+		public String toString() { return "@all"; }
+
+		@Override
+		public void write(Writer writer) {}
 
 	};
 
@@ -90,7 +99,7 @@ public class GroupRule implements RecursiveAndPrototypeStreamingGroup<GroupRule,
 	}
 
 	@Override
-	public boolean delete(GroupRule group) {
+	public boolean remove(GroupRule group) {
 		return groups.remove(group);
 	}
 

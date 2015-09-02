@@ -8,7 +8,6 @@ import nl.tudelft.ewi.gitolite.config.objects.Identifier;
 import nl.tudelft.ewi.gitolite.config.parser.rules.Rule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.ConfigKey;
 import nl.tudelft.ewi.gitolite.config.parser.rules.GroupRule;
-import nl.tudelft.ewi.gitolite.config.parser.rules.InlineUserGroup;
 import nl.tudelft.ewi.gitolite.config.parser.rules.Option;
 import nl.tudelft.ewi.gitolite.config.parser.rules.AccessRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.RepositoryRule;
@@ -157,18 +156,6 @@ public class TokenizerBasedParser {
 	}
 
 	/**
-	 * Parse an {@link InlineUserGroup}.
-	 * @return A {@code InlineUserGroup}
-	 * @throws IOException if the next token could not be read.
-	 */
-	public InlineUserGroup parseInlineUserGroup() throws IOException {
-		List<GroupRule> groups = Lists.newArrayList();
-		List<Identifiable> members = Lists.newArrayList();
-		parseInlineGroup(groups, members);
-		return new InlineUserGroup(groups, members);
-	}
-
-	/**
 	 * Consume a list of tokens {@code [@foo bar]} from a {@code Scanner} and put them in their
 	 * corresponding {@code List}.
 	 * @param groups {@code List} for {@link GroupRule} references.
@@ -179,8 +166,14 @@ public class TokenizerBasedParser {
 		while(hasNext(true)) {
 			String idName = next();
 			if(idName.startsWith("@")) {
-				GroupRule groupRule = groupRuleMap.get(idName);
-				Preconditions.checkNotNull(groupRule);
+				GroupRule groupRule;
+				if(idName.equals(GroupRule.ALL.getPattern())) {
+					groupRule = GroupRule.ALL;
+				}
+				else {
+					groupRule = groupRuleMap.get(idName);
+					if(groupRule == null) throw new NoSuchElementException();
+				}
 				groups.add(groupRule);
 			}
 			else {
@@ -235,11 +228,11 @@ public class TokenizerBasedParser {
 	}
 
 	/**
-	 * Parse a RepositoryRule
-	 * @return the parsed RepositoryRule
+	 * Parse a {@link AccessRule}
+	 * @return the parsed {@code AccessRule}
 	 * @throws IOException  if the next token could not be read.
 	 */
-	public AccessRule parseRepositoryRule() throws IOException {
+	public AccessRule parseAccessRule() throws IOException {
 		Permission permission = Permission.valueOf(next());
 		String next = next();
 		String refex = null;
@@ -247,16 +240,18 @@ public class TokenizerBasedParser {
 			refex = next;
 			next("=");
 		}
-		InlineUserGroup inlineUserGroup = parseInlineUserGroup();
-		return new AccessRule(permission, refex, inlineUserGroup);
+		List<GroupRule> groups = Lists.newArrayList();
+		List<Identifier> members = Lists.newArrayList();
+		parseInlineGroup(groups, members);
+		return new AccessRule(permission, refex, groups, members);
 	}
 
 	/**
-	 * Parse a RepositoryRuleBlock
-	 * @return the parsed RepositoryRuleBlock
+	 * Parse a {@link RepositoryRule}
+	 * @return the parsed {@link RepositoryRule}
 	 * @throws IOException  if the next token could not be read.
 	 */
-	public RepositoryRule parseRepositoryRuleBlock() throws IOException {
+	public RepositoryRule parseRepositoryRule() throws IOException {
 		next("repo");
 
 		List<Identifiable> identifiables = Lists.newArrayList();
@@ -269,12 +264,11 @@ public class TokenizerBasedParser {
 			if(hasNext("repo") || hasNext("@")) break;
 			else if(hasNext("config")) configKeys.add(parseConfigRule());
 			else if(hasNext("option")) configKeys.add(parseOption());
-			else if(hasNext()) rules.add(parseRepositoryRule());
+			else if(hasNext()) rules.add(parseAccessRule());
 			else break;
 		}
 
-		RepositoryRule repositoryRule = new RepositoryRule(identifiables, rules, configKeys);
-		return repositoryRule;
+		return new RepositoryRule(identifiables, rules, configKeys);
 	}
 
 	/**
@@ -294,7 +288,7 @@ public class TokenizerBasedParser {
 	 */
 	public void parse(final Collection<? super RepositoryRule> repositoryRules, final Collection<? super GroupRule> groupRules) throws IOException {
 		for(;;) {
-			if(hasNext("repo")) repositoryRules.add(parseRepositoryRuleBlock());
+			if(hasNext("repo")) repositoryRules.add(parseRepositoryRule());
 			else if(hasNext("@")) groupRules.add(parseGroupRule());
 			else break;
 		}

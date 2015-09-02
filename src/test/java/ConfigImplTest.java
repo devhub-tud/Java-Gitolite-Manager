@@ -6,7 +6,6 @@ import nl.tudelft.ewi.gitolite.config.parser.rules.GroupRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.RepositoryRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.Rule;
 import nl.tudelft.ewi.gitolite.config.permission.BasePermission;
-import nl.tudelft.ewi.gitolite.config.repositories.Repository;
 import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +15,7 @@ import static org.hamcrest.Matchers.*;
 import static java.util.stream.Collectors.toList;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -115,13 +115,12 @@ public class ConfigImplTest {
 
 		RepositoryRule repositoryRule = RepositoryRule.builder()
 			.identifiable(foo)
-			.rule(new AccessRule(BasePermission.RW_PLUS, bliep, bar))
+			.rule(new AccessRule(BasePermission.RW_PLUS, Collections.singleton(bliep), Collections.singleton(bar)))
 			.build();
 
 		config.addRepositoryRule(repositoryRule);
 		assertThat(config.getRules(), contains(bliep, repositoryRule));
 	}
-
 
 	@Test
 	public void testGroupRemoveCascadesToRepository() {
@@ -156,6 +155,18 @@ public class ConfigImplTest {
 		config.deleteGroup(bliep);
 
 		assertThat(repositoryRule.getIdentifiables(), empty());
+	}
+
+	@Test
+	public void testRepositoryWithAllGroup() {
+		RepositoryRule repositoryRule = RepositoryRule.builder()
+			.identifiable(foo)
+			.rule(new AccessRule(BasePermission.RW_PLUS, GroupRule.ALL))
+			.build();
+
+		config.addRepositoryRule(repositoryRule);
+		assertThat(config.getRules(), contains(repositoryRule));
+
 	}
 
 	public static <T> void assertThatStream(Stream<T> stream, Matcher<? super List<T>> matcher) {

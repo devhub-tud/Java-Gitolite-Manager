@@ -11,7 +11,7 @@ import java.util.Collections;
 public enum BasePermission implements Permission {
 
 	/**
-	 * Allow pretty much anything -- fast-forward, rewind or delete branches or tags.
+	 * Allow pretty much anything -- fast-forward, rewind or remove branches or tags.
 	 */
 	RW_PLUS("RW+"),
 

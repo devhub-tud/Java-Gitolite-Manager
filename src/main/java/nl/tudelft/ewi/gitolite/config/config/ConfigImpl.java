@@ -12,7 +12,6 @@ import nl.tudelft.ewi.gitolite.config.parser.rules.GroupRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.InlineUserGroup;
 import nl.tudelft.ewi.gitolite.config.parser.rules.RepositoryRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.Rule;
-import nl.tudelft.ewi.gitolite.config.util.MultimapCollector;
 import nl.tudelft.ewi.gitolite.config.util.StreamingGroup;
 
 import java.util.Collection;
@@ -48,6 +47,7 @@ public class ConfigImpl implements Config {
 
 	@Override
 	public void addGroup(GroupRule groupRule) {
+		if(GroupRule.ALL.equals(groupRule)) return;
 		// Add groups dependencies recursively
 		groupRule.getOwnGroupsStream().forEach(this::addGroup);
 		groupRuleMultimap.put(groupRule.getPattern(), groupRule);
@@ -71,7 +71,7 @@ public class ConfigImpl implements Config {
 
 	protected void deleteRecursiveGroupUsages(GroupRule groupRule) {
 		groupRuleMultimap.values().stream()
-			.filter(group -> group.delete(groupRule)) // Remove uses as well
+			.filter(group -> group.remove(groupRule)) // Remove uses as well
 			.filter(StreamingGroup::isEmpty)
 			.forEach(this::deleteGroup); // Remove groups that have become empty
 	}
@@ -126,7 +126,7 @@ public class ConfigImpl implements Config {
 
 		Stream<Identifiable> identifiablesFromAccessRules = repositoryRule.getRules().stream()
 			.map(AccessRule::getMembers)
-			.flatMap(InlineUserGroup::getMembersStream);
+			.flatMap(InlineUserGroup::getOwnGroupsStream);
 
 		Stream.concat(identifiablesFromRepositoryRule, identifiablesFromAccessRules)
 			.filter(GroupRule.class::isInstance)

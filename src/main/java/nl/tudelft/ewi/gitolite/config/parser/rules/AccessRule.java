@@ -5,11 +5,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
+import nl.tudelft.ewi.gitolite.config.objects.Identifier;
 import nl.tudelft.ewi.gitolite.config.permission.Permission;
 
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Collection;
 
 /**
  * @author Jan-Willem Gmelig Meyling
@@ -67,7 +69,7 @@ public class AccessRule implements Writable {
 	 * @param identifiable {@link Identifiable Identifiables} for this {@code Rule}.
 	 * @see AccessRule#AccessRule(Permission, String, InlineUserGroup)
 	 */
-	public AccessRule(final Permission permission, final Identifiable... identifiable) {
+	public AccessRule(final Permission permission, final Identifier... identifiable) {
 		this(permission, new InlineUserGroup(identifiable));
 	}
 
@@ -81,7 +83,17 @@ public class AccessRule implements Writable {
 		this(permission, new InlineUserGroup(identifiable));
 	}
 
-	public AccessRule(final Permission permission, final InlineUserGroup members) {
+	/**
+	 * Shorthand that allows you to write constructs like: {@code new RepositoryRule(Permission.RW_PLUS, foo)}.
+	 * @param permission {@link Permission} for this {@code Rule}.
+	 * @param groups groups for this rule.
+	 * @param members members for this rule.
+	 */
+	public AccessRule(final Permission permission, final Collection<? extends GroupRule> groups, final Collection<? extends Identifier> members) {
+		this(permission, null, new InlineUserGroup(groups, members));
+	}
+
+	protected AccessRule(final Permission permission, final InlineUserGroup members) {
 		this(permission, null, members);
 	}
 
@@ -92,11 +104,22 @@ public class AccessRule implements Writable {
 	 * @param identifiable {@link Identifiable Identifiables} for this {@code Rule}.
 	 * @see AccessRule#AccessRule(Permission, String, InlineUserGroup)
 	 */
-	public AccessRule(final Permission permission, String refex, final Identifiable... identifiable) {
+	public AccessRule(final Permission permission, String refex, final Identifier... identifiable) {
 		this(permission, refex, new InlineUserGroup(identifiable));
 	}
 
-	public AccessRule(final Permission permission, final String refex, final InlineUserGroup members) {
+	/**
+	 * Shorthand that allows you to write constructs like: {@code new RepositoryRule(Permission.RW_PLUS, foo)}.
+	 * @param permission {@link Permission} for this {@code Rule}.
+	 * @param refex refex for the rule
+	 * @param groups groups for this rule.
+	 * @param members members for this rule.
+	 */
+	public AccessRule(final Permission permission, final String refex,  final Collection<? extends GroupRule> groups, final Collection<? extends Identifier> members) {
+		this(permission, refex, new InlineUserGroup(groups, members));
+	}
+
+	protected AccessRule(final Permission permission, final String refex, final InlineUserGroup members) {
 		this.permission = permission;
 		this.refex = refex;
 		this.members = members;

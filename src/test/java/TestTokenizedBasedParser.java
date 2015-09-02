@@ -9,6 +9,7 @@ import nl.tudelft.ewi.gitolite.config.parser.rules.Option;
 import nl.tudelft.ewi.gitolite.config.parser.rules.AccessRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.RepositoryRule;
 import nl.tudelft.ewi.gitolite.config.permission.BasePermission;
+import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
@@ -17,9 +18,14 @@ import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 /**
  * @author Jan-Willem Gmelig Meyling
@@ -67,7 +73,7 @@ public class TestTokenizedBasedParser {
 
 		AccessRule accessRule = new AccessRule(BasePermission.RW_PLUS, foo, bar);
 
-		AccessRule actual = parser.parseRepositoryRule();
+		AccessRule actual = parser.parseAccessRule();
 		actual.write(System.out);
 		assertEquals(accessRule, actual);
 	}
@@ -79,7 +85,7 @@ public class TestTokenizedBasedParser {
 
 		AccessRule accessRule = new AccessRule(BasePermission.RW_PLUS, "master", foo, bar);
 
-		AccessRule actual = parser.parseRepositoryRule();
+		AccessRule actual = parser.parseAccessRule();
 		actual.write(System.out);
 		assertEquals(accessRule, actual);
 	}
@@ -93,7 +99,7 @@ public class TestTokenizedBasedParser {
 		AccessRule accessRule = new AccessRule(BasePermission.RW_PLUS, foo, bar);
 		RepositoryRule repositoryRule = new RepositoryRule("yolo", accessRule);
 
-		RepositoryRule actual = parser.parseRepositoryRuleBlock();
+		RepositoryRule actual = parser.parseRepositoryRule();
 		actual.write(System.out);
 		assertEquals(repositoryRule, actual);
 	}
@@ -109,7 +115,7 @@ public class TestTokenizedBasedParser {
 		AccessRule accessRule2 = new AccessRule(BasePermission.RW, bar);
 		RepositoryRule repositoryRule = new RepositoryRule("yolo", accessRule, accessRule2);
 
-		RepositoryRule actual = parser.parseRepositoryRuleBlock();
+		RepositoryRule actual = parser.parseRepositoryRule();
 		actual.write(System.out);
 		assertEquals(repositoryRule, actual);
 	}
@@ -125,7 +131,7 @@ public class TestTokenizedBasedParser {
 		AccessRule accessRule2 = new AccessRule(BasePermission.RW, bar);
 		RepositoryRule repositoryRule = new RepositoryRule("yolo", accessRule, accessRule2);
 
-		RepositoryRule actual = parser.parseRepositoryRuleBlock();
+		RepositoryRule actual = parser.parseRepositoryRule();
 		actual.write(System.out);
 		assertEquals(repositoryRule, actual);
 	}
@@ -143,7 +149,7 @@ public class TestTokenizedBasedParser {
 		List<AccessRule> rules = Lists.newArrayList(accessRule, accessRule2);
 		RepositoryRule repositoryRule = new RepositoryRule(identifiables, rules, Collections.emptyList());
 
-		RepositoryRule actual = parser.parseRepositoryRuleBlock();
+		RepositoryRule actual = parser.parseRepositoryRule();
 		actual.write(System.out);
 		assertEquals(repositoryRule, actual);
 	}
@@ -165,7 +171,7 @@ public class TestTokenizedBasedParser {
 			Collections.emptyList()
 		);
 
-		RepositoryRule actual = parser.parseRepositoryRuleBlock();
+		RepositoryRule actual = parser.parseRepositoryRule();
 		actual.write(System.out);
 		assertEquals(repositoryRule, actual);
 	}
@@ -224,7 +230,7 @@ public class TestTokenizedBasedParser {
 			Arrays.asList(denyRules, emailPrefix)
 		);
 
-		RepositoryRule actual = parser.parseRepositoryRuleBlock();
+		RepositoryRule actual = parser.parseRepositoryRule();
 		actual.write(System.out);
 		assertEquals(repositoryRule, actual);
 	}
@@ -303,6 +309,52 @@ public class TestTokenizedBasedParser {
 
 
 
+	}
+
+	@Test
+	public void testParseAllRule() throws IOException {
+		String in = "repo FOSS/..*\n" +
+						"    R   =   @all";
+		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
+
+		RepositoryRule repositoryRule = parser.parseRepositoryRule();
+		AccessRule accessRule = repositoryRule.getRules().stream().findFirst().get();
+
+		assertThatStream(accessRule.getMembers().getOwnGroupsStream(), contains(GroupRule.ALL));
+	}
+
+	@Test(expected = NoSuchElementException.class)
+	public void testParseNonExistingAccessGroup() throws IOException {
+		String in = "repo FOSS/..*\n" +
+			"    R   =   @foo";
+		new TokenizerBasedParser(new StringReader(in)).parseRepositoryRule();
+	}
+
+	@Test
+	public void testParseAllRepositoriesRule() throws IOException {
+		String in = "repo @all\n" +
+			"    R   =   foo";
+		TokenizerBasedParser parser = new TokenizerBasedParser(new StringReader(in));
+
+		RepositoryRule repositoryRule = parser.parseRepositoryRule();
+
+		RepositoryRule expected = RepositoryRule.builder()
+			.identifiable(GroupRule.ALL)
+			.rule(new AccessRule(BasePermission.R, foo))
+			.build();
+
+		assertThat(repositoryRule, equalTo(expected));
+	}
+
+	@Test(expected = NoSuchElementException.class)
+	public void testParseNonExistingRepositoryGroup() throws IOException {
+		String in = "repo @foo\n" +
+			"    R   =   bar";
+		new TokenizerBasedParser(new StringReader(in)).parseRepositoryRule();
+	}
+
+	public static <T> void assertThatStream(Stream<T> stream, Matcher<? super List<T>> matcher) {
+		assertThat(stream.collect(toList()), matcher);
 	}
 
 }
