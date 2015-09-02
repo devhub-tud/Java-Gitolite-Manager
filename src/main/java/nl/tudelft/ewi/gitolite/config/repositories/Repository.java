@@ -19,11 +19,18 @@ public interface Repository {
 	 *
 	 * @throws IOException
 	 */
-	void delete() throws IOException;
+	void delete() throws IOException, UnsupportedOperationException;
 
 	/**
 	 * @return the folder where the bare repository resists.
 	 */
 	Path getPath() throws UnsupportedOperationException;
+
+	/**
+	 * @return the size for the repository
+	 * @throws IOException
+	 * @throws UnsupportedOperationException
+	 */
+	FileSize getSize() throws IOException, UnsupportedOperationException;
 
 }

@@ -12,6 +12,7 @@ import nl.tudelft.ewi.gitolite.config.parser.rules.GroupRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.InlineUserGroup;
 import nl.tudelft.ewi.gitolite.config.parser.rules.RepositoryRule;
 import nl.tudelft.ewi.gitolite.config.parser.rules.Rule;
+import nl.tudelft.ewi.gitolite.config.util.MultimapCollector;
 import nl.tudelft.ewi.gitolite.config.util.StreamingGroup;
 
 import java.util.Collection;

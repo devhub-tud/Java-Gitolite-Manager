@@ -26,6 +26,8 @@ import java.util.stream.StreamSupport;
 @EqualsAndHashCode
 public class PathRepositoriesManager implements RepositoriesManager {
 
+	public static final int DEFAULT_BLOCK_SIZE = 4096;
+
 	/**
 	 * Folder that contains the repositories.
 	 */
@@ -91,7 +93,6 @@ public class PathRepositoriesManager implements RepositoriesManager {
 		};
 	}
 
-
 	/**
 	 * Implementation for {@link Repository} based on {@link File}.
 	 *
@@ -118,6 +119,22 @@ public class PathRepositoriesManager implements RepositoriesManager {
 			repositories.remove(getURI(), this);
 		}
 
+		@Override
+		public FileSize getSize() throws IOException {
+			return new FileSize(Files.walk(path)
+				.filter(p -> p.toFile().isFile())
+				.mapToLong(PathRepositoriesManager::fileSize)
+				.sum());
+		}
+
+	}
+
+	@SneakyThrows
+	public static long fileSize(Path path) {
+		long size = Files.size(path);
+		// Git objects are very small, but have to be stored in the smallest available block,
+		// so there is quite some overhead here.
+		return (size < DEFAULT_BLOCK_SIZE) ? DEFAULT_BLOCK_SIZE : size;
 	}
 
 }
