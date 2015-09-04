@@ -1,10 +1,10 @@
 import com.google.common.io.Files;
-import nl.tudelft.ewi.gitolite.config.keystore.Key;
-import nl.tudelft.ewi.gitolite.config.keystore.KeyStoreImpl;
-import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
+import nl.tudelft.ewi.gitolite.keystore.Key;
+import nl.tudelft.ewi.gitolite.keystore.KeyStoreImpl;
+import nl.tudelft.ewi.gitolite.objects.Identifiable;
 import static org.junit.Assert.*;
 
-import nl.tudelft.ewi.gitolite.config.objects.Identifier;
+import nl.tudelft.ewi.gitolite.objects.Identifier;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,12 +19,12 @@ public class KeyStoreImplTest {
 
 	private File folder;
 	private KeyStoreImpl keyStore;
-	private static Identifiable identifiable = new Identifier("lupa");
+	private static String identifiable = "lupa";
 
 	@Before
 	public void setUp() {
 		folder = Files.createTempDir();
-		keyStore = new KeyStoreImpl(folder.toPath());
+		keyStore = new KeyStoreImpl(folder);
 	}
 
 	@Test
@@ -37,7 +37,7 @@ public class KeyStoreImplTest {
 	@Test
 	public void testScan() throws IOException {
 		Key key = keyStore.put(identifiable, "", "contents");
-		KeyStoreImpl otherKeyStore = new KeyStoreImpl(folder.toPath());
+		KeyStoreImpl otherKeyStore = new KeyStoreImpl(folder);
 		assertEquals(key, otherKeyStore.getKey(identifiable, ""));
 		assertThat(otherKeyStore.getKeys(identifiable), Matchers.contains(key));
 	}
@@ -46,7 +46,7 @@ public class KeyStoreImplTest {
 	public void testDelete() throws IOException {
 		Key key = keyStore.put(identifiable, "", "contents");
 		key.delete();
-		KeyStoreImpl otherKeyStore = new KeyStoreImpl(folder.toPath());
+		KeyStoreImpl otherKeyStore = new KeyStoreImpl(folder);
 		assertThat(otherKeyStore.getKeys(identifiable), Matchers.empty());
 	}
 

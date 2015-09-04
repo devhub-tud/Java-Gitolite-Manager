@@ -1,7 +1,7 @@
 
-import nl.tudelft.ewi.gitolite.config.parser.rules.GroupRule;
-import nl.tudelft.ewi.gitolite.config.objects.Identifiable;
-import nl.tudelft.ewi.gitolite.config.objects.Identifier;
+import nl.tudelft.ewi.gitolite.parser.rules.GroupRule;
+import nl.tudelft.ewi.gitolite.objects.Identifiable;
+import nl.tudelft.ewi.gitolite.objects.Identifier;
 import org.junit.Test;
 
 import java.io.IOException;

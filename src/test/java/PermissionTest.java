@@ -1,8 +1,8 @@
 import lombok.SneakyThrows;
-import nl.tudelft.ewi.gitolite.config.permission.BasePermission;
-import nl.tudelft.ewi.gitolite.config.permission.Permission;
-import nl.tudelft.ewi.gitolite.config.permission.PermissionWithModifier;
-import nl.tudelft.ewi.gitolite.config.permission.PermissionModifier;
+import nl.tudelft.ewi.gitolite.permission.BasePermission;
+import nl.tudelft.ewi.gitolite.permission.Permission;
+import nl.tudelft.ewi.gitolite.permission.PermissionWithModifier;
+import nl.tudelft.ewi.gitolite.permission.PermissionModifier;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
