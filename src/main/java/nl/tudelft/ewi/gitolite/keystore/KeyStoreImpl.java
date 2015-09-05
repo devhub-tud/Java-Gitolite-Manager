@@ -1,13 +1,17 @@
 package nl.tudelft.ewi.gitolite.keystore;
 
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.codec.binary.Base64;
+
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
-import lombok.Value;
+import org.apache.sshd.common.util.Buffer;
 
 import java.io.Closeable;
 import java.io.File;
@@ -80,42 +84,66 @@ public class KeyStoreImpl implements KeyStore {
 	}
 
 	@Override
-	public KeyImpl put(String identifiable, String name, String contents) throws IOException {
+	public KeyImpl put(Key draft) throws IOException {
+		validate(draft);
 		StringBuilder builder = new StringBuilder();
-		builder.append(identifiable);
-		if (!Strings.isNullOrEmpty(name)) {
-			builder.append('@').append(name);
+		builder.append(draft.getUser());
+		if (!Strings.isNullOrEmpty(draft.getName())) {
+			builder.append('@').append(draft.getName());
 		}
 		builder.append(PUB_FILE_EXT);
 
 
 		Path path = folder.resolve(builder.toString());
 		try(Writer writer = Files.newBufferedWriter(path)) {
-			writer.write(contents);
+			writer.write(draft.getContents());
 		}
 
-		KeyImpl key = new KeyImpl(identifiable, name, path);
-		keyMultimap.put(identifiable, key);
+		KeyImpl key = new KeyImpl(path);
+		keyMultimap.put(draft.getUser(), key);
 		return key;
 	}
 
-	@Value
-	@AllArgsConstructor
-	protected class KeyImpl implements Key {
+	protected void validate(Key key) throws IOException {
+		Preconditions.checkNotNull(key.getName());
+		String content = Preconditions.checkNotNull(key.getContents());
+		try {
+			String[] parts = content.split("[\\r\\n\\s]+");
+			String keyPart = parts[1];
+			final byte[] bin = Base64.decodeBase64(keyPart);
+			new Buffer(bin).getRawPublicKey();
+		}
+		catch (Exception e) {
+			throw new IllegalArgumentException("Validation failed for key \"" + content + "\"", e);
+		}
+	}
 
-		private final String user;
+	@Data
+	@RequiredArgsConstructor
+	protected class KeyImpl implements PersistedKey {
 
-		private final String name;
+		public static final String PUB_FILE_EXT = ".pub";
+
+		public static final String KEY_NAME_SEPARATOR = "@";
 
 		private final Path path;
 
-		public KeyImpl(Path path) {
-			this.path = path;
+		@Override
+		public String getUser() {
+			String[] parts = getFileNameParts();
+			return parts[0];
+		}
+
+		protected String[] getFileNameParts() {
 			String fileName = path.getFileName().toString();
 			fileName = fileName.substring(0, fileName.indexOf(PUB_FILE_EXT));
-			String[] parts = fileName.split(KEY_NAME_SEPARATOR);
-			this.user = parts[0];
-			this.name = parts.length > 1 ? parts[1] : EMPTY_KEY_NAME;
+			return fileName.split(KEY_NAME_SEPARATOR);
+		}
+
+		@Override
+		public String getName() {
+			String[] parts = getFileNameParts();
+			return parts.length > 1 ? parts[1] : EMPTY_KEY_NAME;
 		}
 
 		@Override
@@ -125,8 +153,8 @@ public class KeyStoreImpl implements KeyStore {
 
 		@Override
 		public void delete() throws IOException {
-			Files.delete(path);
-			keyMultimap.remove(user, this);
+			Files.delete(getPath());
+			keyMultimap.remove(getUser(), this);
 		}
 
 	}

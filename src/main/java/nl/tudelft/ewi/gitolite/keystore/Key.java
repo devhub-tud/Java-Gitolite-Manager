@@ -10,6 +10,11 @@ import java.io.IOException;
 public interface Key extends Comparable<Key> {
 
 	/**
+	 * The empty key name
+	 */
+	String EMPTY_KEY_NAME = "";
+
+	/**
 	 * @return the Identifiable for this Key
 	 */
 	String getUser();
@@ -24,12 +29,6 @@ public interface Key extends Comparable<Key> {
 	 * @throws IOException if the contents could not be read
 	 */
 	String getContents() throws IOException;
-
-	/**
-	 * Delete the key.
-	 * @throws IOException if the key could not be deleted.
-	 */
-	void delete() throws IOException;
 
 	@Override
 	default int compareTo(Key o) {
