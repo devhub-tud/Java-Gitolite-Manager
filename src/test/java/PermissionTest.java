@@ -57,8 +57,7 @@ public class PermissionTest {
 	@Test
 	@SneakyThrows
 	public void testToString() {
-		StringWriter stringWriter = new StringWriter();
-		Assert.assertEquals(type, stringWriter.toString());
+		Assert.assertEquals(type, expected.valueOf());
 	}
 
 }

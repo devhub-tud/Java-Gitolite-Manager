@@ -299,7 +299,7 @@ public class TestTokenizedBasedParser {
 		RepositoryRule repositoryRule = RepositoryRule.builder()
 			.identifiable(new Identifier("courses/ti1705/*"))
 			.rule(new AccessRule(BasePermission.RW_PLUS, groupRule))
-			.rule(new AccessRule(BasePermission.DENY, "VREF/MAX_FILE_SIZE/50", new Identifier("@all")))
+			.rule(new AccessRule(BasePermission.DENY, "VREF/MAX_FILE_SIZE/50", Collections.singleton(GroupRule.ALL), Collections.emptyList()))
 			.build();
 
 		RepositoryRule second = RepositoryRule.builder()
