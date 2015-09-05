@@ -42,6 +42,7 @@ public class ConfigKey implements Rule {
 	public void write(Writer writer) throws IOException {
 		writer.write(toString());
 		writer.write('\n');
+		writer.flush();
 	}
 
 	protected String escapeValue() {

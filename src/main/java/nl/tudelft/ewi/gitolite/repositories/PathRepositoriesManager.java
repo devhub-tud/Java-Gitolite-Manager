@@ -6,8 +6,6 @@ import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.Value;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -44,8 +42,7 @@ public class PathRepositoriesManager implements RepositoriesManager {
 	 * {@link RepositoriesManager} implementation based on {@code Path}.
 	 * @param root Folder that contains the repositories.
 	 */
-	@Inject
-	public PathRepositoriesManager(final @Named("gitolite.repositories.dir") File root) {
+	public PathRepositoriesManager(final File root) {
 		this.root = root.toPath();
 		this.repositories = Maps.newHashMap();
 		scan();

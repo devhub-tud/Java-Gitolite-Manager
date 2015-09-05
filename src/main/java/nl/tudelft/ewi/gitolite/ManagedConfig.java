@@ -6,7 +6,9 @@ import nl.tudelft.ewi.gitolite.config.Config;
 import nl.tudelft.ewi.gitolite.git.GitManager;
 import nl.tudelft.ewi.gitolite.keystore.KeyStore;
 
-import javax.inject.Inject;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
 /**
@@ -16,8 +18,18 @@ import java.io.IOException;
  *
  * @author Jan-Willem Gmelig Meyling
  */
-@AllArgsConstructor(onConstructor = @__({@Inject}))
+@AllArgsConstructor
 public class ManagedConfig implements KeyStore, Config {
+
+	/**
+	 * The configuration folder.
+	 */
+	public static final String CONFDIR_REL_PATH = "conf";
+
+	/**
+	 * The configuration file name.
+	 */
+	public static final String GITOLITE_CONF_FILE = "gitolite.conf";
 
 	/**
 	 * The {@code GitManager} to use.
@@ -40,8 +52,13 @@ public class ManagedConfig implements KeyStore, Config {
 	 * @throws IOException If an I/O error occurred.
 	 */
 	public void applyChanges() throws InterruptedException, IOException {
-		gitManager.commitChanges();
-		gitManager.push();
+		File confDir = new File(gitManager.getWorkingDirectory(), CONFDIR_REL_PATH);
+		File configurationFile = new File(confDir, GITOLITE_CONF_FILE);
+		try(BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(configurationFile, false))) {
+			config.write(bufferedWriter);
+			gitManager.commitChanges();
+			gitManager.push();
+		}
 	}
 
 }

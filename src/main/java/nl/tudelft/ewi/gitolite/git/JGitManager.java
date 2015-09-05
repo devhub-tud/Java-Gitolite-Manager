@@ -20,9 +20,6 @@ import org.eclipse.jgit.transport.RemoteRefUpdate;
 
 import com.google.common.base.Preconditions;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-
 /**
  * The {@link JGitManager} class is responsible for communicating with the
  * remote git repository containing the gitolite configuration.
@@ -41,8 +38,7 @@ public class JGitManager extends AbstractGitManager implements GitManager {
 	private final Object gitLock = new Object();
 	private Git git;
 
-	@Inject
-	public JGitManager(@Named("gitolite.admin.dir") File workingDirectory, CredentialsProvider credentialProvider) {
+	public JGitManager(File workingDirectory, CredentialsProvider credentialProvider) {
 		super(workingDirectory);
 		this.credentialProvider = credentialProvider;
 	}

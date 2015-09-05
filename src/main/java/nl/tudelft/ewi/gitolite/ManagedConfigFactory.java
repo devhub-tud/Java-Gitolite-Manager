@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.gitolite;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -34,8 +35,19 @@ import java.io.IOException;
 @Accessors(fluent = true)
 public class ManagedConfigFactory {
 
+	/**
+	 * The key folder.
+	 */
 	public static final String KEYDIR_REL_PATH = "keydir";
+
+	/**
+	 * The configuration folder.
+	 */
 	public static final String CONFDIR_REL_PATH = "conf";
+
+	/**
+	 * The configuration file name.
+	 */
 	public static final String GITOLITE_CONF_FILE = "gitolite.conf";
 
 	/**
@@ -61,6 +73,7 @@ public class ManagedConfigFactory {
 	 * @throws InterruptedException If the thread was interrupted.
 	 */
 	public ManagedConfig init(String gitoliteAdminRepo) throws IOException, InterruptedException {
+		Preconditions.checkNotNull(gitoliteAdminRepo);
 		ensureRepositoryFolderExists();
 		GitManager gitManager = getGitManager();
 		ensureRepositoryExists(gitManager, gitoliteAdminRepo);

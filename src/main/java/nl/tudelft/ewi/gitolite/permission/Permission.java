@@ -1,7 +1,5 @@
 package nl.tudelft.ewi.gitolite.permission;
 
-import nl.tudelft.ewi.gitolite.parser.rules.Writable;
-
 import java.util.Collection;
 import java.util.SortedSet;
 import java.util.regex.Matcher;
@@ -14,7 +12,7 @@ import java.util.regex.Pattern;
  *
  * @author Jan-Willem Gmelig Meyling
  */
-public interface Permission extends Writable {
+public interface Permission {
 
 	/**
 	 * @return the {@link BasePermission} for this {@link Permission}.
@@ -31,6 +29,11 @@ public interface Permission extends Writable {
 	 * Regular expression that matches permissions
 	 */
 	Pattern PERMISSION_PATTERN = Pattern.compile("^(-|C|R|RW\\+?)((?:C?D?|D?C?)M?)$");
+
+	/**
+	 * @return String value of this permission.
+	 */
+	String valueOf();
 
 	/**
 	 * Parse a {@code Permission}.

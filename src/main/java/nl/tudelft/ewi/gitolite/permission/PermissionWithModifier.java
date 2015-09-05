@@ -28,21 +28,12 @@ public class PermissionWithModifier implements Permission {
 	}
 
 	@Override
-	public String toString() {
+	public String valueOf() {
 		StringBuilder builder = new StringBuilder(3 + modifiers.size());
-		builder.append(basePermission.getField());
+		builder.append(basePermission.valueOf());
 		for(PermissionModifier permissionModifier : modifiers) {
 			builder.append(permissionModifier.toString());
 		}
 		return builder.toString();
 	}
-
-	@Override
-	public void write(Writer writer) throws IOException {
-		basePermission.write(writer);
-		for(PermissionModifier permissionModifier : modifiers) {
-			permissionModifier.write(writer);
-		}
-	}
-
 }

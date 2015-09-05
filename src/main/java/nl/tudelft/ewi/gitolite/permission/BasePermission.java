@@ -1,13 +1,15 @@
 package nl.tudelft.ewi.gitolite.permission;
 
-import java.io.IOException;
-import java.io.Writer;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+
 import java.util.Collection;
 import java.util.Collections;
 
 /**
  * @author Jan-Willem Gmelig Meyling
  */
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public enum BasePermission implements Permission {
 
 	/**
@@ -35,16 +37,7 @@ public enum BasePermission implements Permission {
 	 */
 	DENY("-");
 
-
 	private final String field;
-
-	BasePermission(String field) {
-		this.field = field;
-	}
-
-	public String getField() {
-		return field;
-	}
 
 	public static BasePermission parse(String input) {
 		for(BasePermission basePermission : values()) {
@@ -56,11 +49,6 @@ public enum BasePermission implements Permission {
 	}
 
 	@Override
-	public void write(Writer writer) throws IOException {
-		writer.write(getField());
-	}
-
-	@Override
 	public BasePermission getBasePermission() {
 		return this;
 	}
@@ -68,6 +56,11 @@ public enum BasePermission implements Permission {
 	@Override
 	public Collection<PermissionModifier> getModifiers() {
 		return Collections.emptyList();
+	}
+
+	@Override
+	public String valueOf() {
+		return field;
 	}
 
 }

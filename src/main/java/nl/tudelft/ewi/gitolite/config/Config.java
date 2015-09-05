@@ -4,13 +4,14 @@ import nl.tudelft.ewi.gitolite.objects.Identifiable;
 import nl.tudelft.ewi.gitolite.parser.rules.GroupRule;
 import nl.tudelft.ewi.gitolite.parser.rules.RepositoryRule;
 import nl.tudelft.ewi.gitolite.parser.rules.Rule;
+import nl.tudelft.ewi.gitolite.parser.rules.Writable;
 
 import java.util.Collection;
 
 /**
  * @author Jan-Willem Gmelig Meyling
  */
-public interface Config {
+public interface Config extends Writable {
 
 	/**
 	 * Get a group from the config

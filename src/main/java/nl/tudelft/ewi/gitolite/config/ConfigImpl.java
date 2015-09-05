@@ -14,6 +14,8 @@ import nl.tudelft.ewi.gitolite.parser.rules.RepositoryRule;
 import nl.tudelft.ewi.gitolite.parser.rules.Rule;
 import nl.tudelft.ewi.gitolite.util.StreamingGroup;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -177,4 +179,10 @@ public class ConfigImpl implements Config {
 		}
 	}
 
+	@Override
+	public void write(Writer writer) throws IOException {
+		for(Rule rule : getRules()) {
+			rule.write(writer);
+		}
+	}
 }

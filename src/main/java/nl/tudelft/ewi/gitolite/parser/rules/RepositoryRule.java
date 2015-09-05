@@ -100,7 +100,9 @@ public class RepositoryRule implements Rule {
 		for(AccessRule rule : rules) {
 			rule.write(writer);
 		}
-		writer.write('\n');
+		if(!rules.isEmpty() && !configKeys.isEmpty()) {
+			writer.write('\n');
+		}
 		for(ConfigKey config : configKeys) {
 			config.write(writer);
 		}

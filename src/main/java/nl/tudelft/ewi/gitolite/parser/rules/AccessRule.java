@@ -157,9 +157,8 @@ public class AccessRule implements Writable {
 
 	@Override
 	public void write(final Writer writer) throws IOException {
-		String permissionStr = permission.toString();
 		String tempRexes = refex == null ? "" : refex;
-		writer.write(String.format("    %-7s %-7s = ", permissionStr, tempRexes));
+		writer.write(String.format("    %-7s %-7s = ", permission.valueOf(), tempRexes));
 		members.write(writer);
 		writer.write('\n');
 		writer.flush();

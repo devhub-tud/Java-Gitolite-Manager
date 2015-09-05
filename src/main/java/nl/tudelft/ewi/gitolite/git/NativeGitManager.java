@@ -2,8 +2,6 @@ package nl.tudelft.ewi.gitolite.git;
 
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.io.File;
 import java.io.IOException;
 
@@ -17,8 +15,7 @@ public class NativeGitManager extends AbstractGitManager implements GitManager {
 
 	private static final String GIT = "git";
 
-	@Inject
-	public NativeGitManager(@Named("gitolite.repositories.dir") File workingDirectory) {
+	public NativeGitManager(File workingDirectory) {
 		super(workingDirectory);
 	}
 

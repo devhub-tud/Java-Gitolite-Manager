@@ -9,8 +9,6 @@ import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.Value;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -38,8 +36,7 @@ public class KeyStoreImpl implements KeyStore {
 
 	private final Multimap<String, KeyImpl> keyMultimap;
 
-	@Inject
-	public KeyStoreImpl(final @Named("gitolite.keydir.dir") File folder) {
+	public KeyStoreImpl(final File folder) {
 		this.keyMultimap = TreeMultimap.create();
 		this.folder = folder.toPath();
 		scan();
