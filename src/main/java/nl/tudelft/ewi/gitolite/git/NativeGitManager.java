@@ -1,9 +1,13 @@
 package nl.tudelft.ewi.gitolite.git;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.sshd.common.util.IoUtils;
+import sun.nio.ch.IOUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 /**
  * A {@link GitManager} backed by the native Git application. Git should be available on the path.
@@ -40,6 +44,10 @@ public class NativeGitManager extends AbstractGitManager implements GitManager {
 	public void clone(String uri) throws IOException, InterruptedException, GitException {
 		ProcessBuilder processBuilder = new ProcessBuilder(GIT, "clone", uri, workingDirectory.getAbsolutePath());
 		Process process = processBuilder.start();
+
+		IOUtils.lineIterator(process.getInputStream(), Charset.defaultCharset())
+			.forEachRemaining(log::info);
+
 		process.waitFor();
 		int exitValue = process.exitValue();
 

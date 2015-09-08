@@ -1,7 +1,9 @@
 package manager;
 
+import lombok.SneakyThrows;
 import nl.tudelft.ewi.gitolite.ManagedConfig;
 import nl.tudelft.ewi.gitolite.ManagedConfigFactory;
+import nl.tudelft.ewi.gitolite.config.Config;
 import nl.tudelft.ewi.gitolite.git.GitManager;
 import nl.tudelft.ewi.gitolite.git.GitManagerFactory;
 import nl.tudelft.ewi.gitolite.objects.Identifier;
@@ -55,41 +57,61 @@ public class TestConfigOne implements GitManagerFactory {
 		managedConfig = initManagedConfig();
 	}
 
-	protected ManagedConfig initManagedConfig() throws IOException, InterruptedException {
+	@SneakyThrows
+	protected ManagedConfig initManagedConfig() {
 		return managedConfigFactory.init("mocked-gitolite-admin");
 	}
 
+	private static void noop(Object obj){}
+
 	@Test
 	public void parseAndStoreConfig() throws IOException, InterruptedException {
-		managedConfig.applyChanges();
-		verify(gitManager).commitChanges();
-		verify(gitManager).push();
+		managedConfig.writeConfig(TestConfigOne::noop);
+		verifyGitoliteAdminPush();
 
-		ManagedConfig pass2 = initManagedConfig();
-		assertEquals(managedConfig.getRules(), pass2.getRules());
-		managedConfig.write(System.out);
+		managedConfig.readConfig(config ->
+			initManagedConfig().readConfig(config2 -> {
+				assertEquals(config.getRules(), config2.getRules());
+				writeConfig(config);
+			})
+		);
 	}
+
+	@SneakyThrows
+	private static void writeConfig(Config config) {
+		config.write(System.out);
+	}
+
 
 	@Test
 	public void parseAndStoreAlteredConfig() throws IOException, InterruptedException {
-		Collection<GroupRule> TI1706 = Collections.singleton(managedConfig.getGroup("@staff"));
-		Collection<Identifier> GIT = Collections.singleton(new Identifier("git"));
+		managedConfig.readConfig(config -> {
+			Collection<GroupRule> TI1706 = Collections.singleton(config.getGroup("@staff"));
+			Collection<Identifier> GIT = Collections.singleton(Identifier.valueOf("git"));
 
-		RepositoryRule repositoryRule = RepositoryRule.builder()
-			.identifiable(new Identifier("FOSS/..*"))
-			.rule(new AccessRule(BasePermission.RW_PLUS, TI1706, GIT))
-			.build();
+			RepositoryRule repositoryRule = RepositoryRule.builder()
+				.identifiable(Identifier.valueOf("FOSS/..*"))
+				.rule(new AccessRule(BasePermission.RW_PLUS, TI1706, GIT))
+				.build();
 
-		managedConfig.addRepositoryRule(repositoryRule);
+			// Update to write lock, push changes...
+			managedConfig.writeConfig(writeConfig ->
+				writeConfig.addRepositoryRule(repositoryRule));
 
-		managedConfig.applyChanges();
+			verifyGitoliteAdminPush();
+
+			initManagedConfig().readConfig(config2 -> {
+				assertEquals(config.getRules(), config2.getRules());
+				assertThat(config2.getRules(), Matchers.hasItem(repositoryRule));
+				writeConfig(config2);
+			});
+		});
+	}
+
+	@SneakyThrows
+	void verifyGitoliteAdminPush() {
 		verify(gitManager).commitChanges();
 		verify(gitManager).push();
-
-		ManagedConfig pass2 = initManagedConfig();
-		assertEquals(managedConfig.getRules(), pass2.getRules());
-		assertThat(pass2.getRules(), Matchers.hasItem(repositoryRule));
-		pass2.write(System.out);
 	}
 
 }

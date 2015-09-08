@@ -34,6 +34,11 @@ public interface Config extends Writable {
 	boolean deleteGroup(GroupRule groupRule);
 
 	/**
+	 * @return all group rules
+	 */
+	Collection<? extends GroupRule> getGroupRules();
+
+	/**
 	 * Get the repository rules for a set of identifiables.
 	 * @param identifiables Set of identifiables
 	 * @return a collection of repository rules

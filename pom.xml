@@ -125,6 +125,11 @@
             <artifactId>sshd-core</artifactId>
             <version>0.14.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.googlecode.concurrent-locks</groupId>
+            <artifactId>concurrent-locks</artifactId>
+            <version>1.0.0</version>
+        </dependency>
 
         <!-- Testing -->
         <dependency>
@@ -149,7 +154,6 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
-            <scope>test</scope>
         </dependency>
 
     </dependencies>

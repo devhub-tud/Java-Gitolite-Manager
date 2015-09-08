@@ -30,4 +30,15 @@ public interface KeyStore {
 	 */
 	PersistedKey put(Key key) throws IOException;
 
+	/**
+	 * @return A list of users.
+	 */
+	Collection<String> getUsers();
+
+	/**
+	 * Scan for new keys.
+	 * @throws IOException If an I/O Error occurs
+	 */
+	void scan() throws IOException;
+
 }

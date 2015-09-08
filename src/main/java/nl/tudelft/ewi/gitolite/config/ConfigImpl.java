@@ -56,6 +56,11 @@ public class ConfigImpl implements Config {
 	}
 
 	@Override
+	public Collection<GroupRule> getGroupRules() {
+		return groupRuleMultimap.values();
+	}
+
+	@Override
 	public boolean deleteGroup(GroupRule groupRule) {
 		if(groupRuleMultimap.remove(groupRule.getPattern(), groupRule)) {
 			deleteGroupUses(groupRule);
@@ -72,7 +77,7 @@ public class ConfigImpl implements Config {
 	}
 
 	protected void deleteRecursiveGroupUsages(GroupRule groupRule) {
-		groupRuleMultimap.values().stream()
+		getGroupRules().stream()
 			.filter(group -> group.remove(groupRule)) // Remove uses as well
 			.filter(StreamingGroup::isEmpty)
 			.forEach(this::deleteGroup); // Remove groups that have become empty
@@ -151,7 +156,7 @@ public class ConfigImpl implements Config {
 	}
 
 	protected void getTopoSortGroupRules(LinkedList<? super Rule> toposortRules) {
-		Queue<GroupRule> unmarkedNodes = Queues.newArrayDeque(groupRuleMultimap.values());
+		Queue<GroupRule> unmarkedNodes = Queues.newArrayDeque(getGroupRules());
 		List<GroupRule> temporaryMarks = Lists.newArrayList();
 
 		class Toposort {

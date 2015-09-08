@@ -33,7 +33,7 @@ public class TokenizerBasedParser {
 
 	private final StreamTokenizer streamTokenizer;
 	private final Map<String, GroupRule> groupRuleMap = Maps.newHashMap();
-	private final Map<String, Identifier> identifiableMap = Maps.newHashMap();
+
 	private boolean eof = false;
 
 	public TokenizerBasedParser(final Reader reader) {
@@ -48,15 +48,6 @@ public class TokenizerBasedParser {
 		streamTokenizer.eolIsSignificant(true);
 		// Slice off comments
 		streamTokenizer.commentChar('#');
-	}
-
-	public Identifier getIdentifiable(String name) {
-		Identifier identifiable = identifiableMap.get(name);
-		if(identifiable == null) {
-			identifiable = new Identifier(name);
-			identifiableMap.put(name, identifiable);
-		}
-		return identifiable;
 	}
 
 	/**
@@ -182,7 +173,7 @@ public class TokenizerBasedParser {
 				groups.add(groupRule);
 			}
 			else {
-				members.add(getIdentifiable(idName));
+				members.add(Identifier.valueOf(idName));
 			}
 		}
 	}

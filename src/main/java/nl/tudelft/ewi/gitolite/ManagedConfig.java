@@ -1,7 +1,9 @@
 package nl.tudelft.ewi.gitolite;
 
+import com.googlecode.concurentlocks.ReadWriteUpdateLock;
+import com.googlecode.concurentlocks.ReentrantReadWriteUpdateLock;
 import lombok.AllArgsConstructor;
-import lombok.experimental.Delegate;
+import lombok.SneakyThrows;
 import nl.tudelft.ewi.gitolite.config.Config;
 import nl.tudelft.ewi.gitolite.git.GitManager;
 import nl.tudelft.ewi.gitolite.keystore.KeyStore;
@@ -10,6 +12,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * The {@code ManagedConfig} decorates a {@link KeyStore} and a {@link Config} with a
@@ -19,7 +23,7 @@ import java.io.IOException;
  * @author Jan-Willem Gmelig Meyling
  */
 @AllArgsConstructor
-public class ManagedConfig implements KeyStore, Config {
+public class ManagedConfig {
 
 	/**
 	 * The configuration folder.
@@ -39,25 +43,157 @@ public class ManagedConfig implements KeyStore, Config {
 	/**
 	 * The {@code KeyStore} to use.
 	 */
-	@Delegate private final KeyStore keyStore;
+	private final KeyStore keyStore;
 
 	/**
 	 * The {@code Config}.
 	 */
-	@Delegate private final Config config;
+	private final Config config;
+
+	/**
+	 * Locks used for operations on the {@code Config} and {@code KeyStore}.
+	 */
+	private final ReadWriteUpdateLock readWriteLock = new ReentrantReadWriteUpdateLock();
 
 	/**
 	 * Commit and push changes to the remote.
 	 * @throws InterruptedException If the thread was interrupted.
 	 * @throws IOException If an I/O error occurred.
 	 */
-	public void applyChanges() throws InterruptedException, IOException {
+	@SneakyThrows
+	protected void applyChanges() {
 		File confDir = new File(gitManager.getWorkingDirectory(), CONFDIR_REL_PATH);
 		File configurationFile = new File(confDir, GITOLITE_CONF_FILE);
 		try(BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(configurationFile, false))) {
 			config.write(bufferedWriter);
 			gitManager.commitChanges();
 			gitManager.push();
+		}
+	}
+
+	/**
+	 * Perform read operations to the {@link Config} within a {@code ReadLock}.
+	 * @param configInteraction function
+	 * @param <T> return type
+	 * @return return value
+	 */
+	public <T> T readConfigWithReturn(Function<? super Config, T> configInteraction) {
+		readWriteLock.updateLock().lock();
+		try {
+			return configInteraction.apply(config);
+		}
+		finally {
+			readWriteLock.updateLock().unlock();
+		}
+	}
+
+	/**
+	 * Perform read operations to the {@link Config} within a {@code ReadLock}.
+	 * @param configInteraction function
+	 */
+	public void readConfig(Consumer<? super Config> configInteraction) {
+		readWriteLock.updateLock().lock();
+		try {
+			configInteraction.accept(config);
+		}
+		finally {
+			readWriteLock.updateLock().unlock();
+		}
+	}
+
+	/**
+	 * Perform write operations to the {@link Config} within a {@code WriteLock}.
+	 * Applies the changes to the repository when done.
+	 * @param configInteraction function
+	 * @see ManagedConfig#applyChanges()
+	 */
+	public void writeConfig(Consumer<? super Config> configInteraction) {
+		readWriteLock.writeLock().lock();
+		try {
+			configInteraction.accept(config);
+			applyChanges();
+		} finally {
+			readWriteLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Perform write operations to the {@link Config} within a {@code WriteLock}.
+	 * Applies the changes to the repository when done.
+	 * @param configInteraction function
+	 * @param <T> return type
+	 * @return return value
+	 * @see ManagedConfig#applyChanges()
+	 */
+	public <T> T writeConfigWithReturn(Function<? super Config, T> configInteraction) {
+		readWriteLock.writeLock().lock();
+		try {
+			T res = configInteraction.apply(config);
+			applyChanges();
+			return res;
+		} finally {
+			readWriteLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Perform read operations to the {@link KeyStore} within a {@code ReadLock}.
+	 * @param configInteraction function
+	 * @param <T> return type
+	 * @return return value
+	 */
+	public <T> T readKeyStore(Function<? super KeyStore, T> configInteraction) {
+		readWriteLock.updateLock().lock();
+		try {
+			return configInteraction.apply(keyStore);
+		}
+		finally {
+			readWriteLock.updateLock().unlock();
+		}
+	}
+
+	/**
+	 * Perform write operations to the {@link KeyStore} within a {@code WriteLock}.
+	 * Applies the changes to the repository when done.
+	 * @param configInteraction function
+	 * @param <T> return type
+	 * @return return value
+	 * @see ManagedConfig#applyChanges()
+	 */
+	@SneakyThrows
+	public <T> T writeKeyStoreWithReturn(ThrowingFunction<? super KeyStore, T> configInteraction) {
+		readWriteLock.writeLock().lock();
+		try {
+			T res = configInteraction.apply(keyStore);
+			applyChanges();
+			return res;
+		} finally {
+			readWriteLock.writeLock().unlock();
+		}
+	}
+
+	public interface ThrowingConsumer<T> {
+		void accept(T value) throws IOException, InterruptedException;
+	}
+
+	public interface ThrowingFunction<T, R> {
+		R apply(T value) throws IOException, InterruptedException;
+	}
+
+	/**
+	 * Perform write operations to the {@link KeyStore} within a {@code WriteLock}.
+	 * Applies the changes to the repository when done.
+	 * @param configInteraction function
+	 * @see ManagedConfig#applyChanges()
+	 */
+	@SneakyThrows
+	public void writeKeyStore(ThrowingConsumer<? super KeyStore> configInteraction) {
+		readWriteLock.writeLock().lock();
+		try {
+			configInteraction.accept(keyStore);
+			applyChanges();
+		} finally {
+			readWriteLock.writeLock().unlock();
 		}
 	}
 

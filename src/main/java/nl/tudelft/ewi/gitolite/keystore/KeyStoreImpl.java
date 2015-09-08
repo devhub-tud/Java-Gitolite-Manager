@@ -22,6 +22,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -116,6 +117,11 @@ public class KeyStoreImpl implements KeyStore {
 		catch (Exception e) {
 			throw new IllegalArgumentException("Validation failed for key \"" + content + "\"", e);
 		}
+	}
+
+	@Override
+	public Collection<String> getUsers() {
+		return Collections.unmodifiableCollection(keyMultimap.keys());
 	}
 
 	@Data
