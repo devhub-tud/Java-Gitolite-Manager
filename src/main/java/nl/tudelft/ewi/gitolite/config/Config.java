@@ -1,6 +1,7 @@
 package nl.tudelft.ewi.gitolite.config;
 
 import nl.tudelft.ewi.gitolite.objects.Identifiable;
+import nl.tudelft.ewi.gitolite.objects.Identifier;
 import nl.tudelft.ewi.gitolite.parser.rules.GroupRule;
 import nl.tudelft.ewi.gitolite.parser.rules.RepositoryRule;
 import nl.tudelft.ewi.gitolite.parser.rules.Rule;
@@ -37,6 +38,14 @@ public interface Config extends Writable {
 	 * @return all group rules
 	 */
 	Collection<? extends GroupRule> getGroupRules();
+
+	/**
+	 * Remove an identifier
+	 * @param identifier
+	 */
+	void deleteIdentifierUses(Identifier identifier);
+
+	void cleanUpModifiedRepositories();
 
 	/**
 	 * Get the repository rules for a set of identifiables.

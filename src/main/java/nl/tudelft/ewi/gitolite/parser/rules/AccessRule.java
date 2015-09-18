@@ -96,11 +96,11 @@ public class AccessRule implements Writable {
 	 * @param members members for this rule.
 	 */
 	public AccessRule(final Permission permission, final Collection<? extends GroupRule> groups, final Collection<? extends Identifier> members) {
-		this(permission, null, new InlineUserGroup(groups, members));
+		this(permission, (String) null, new InlineUserGroup(groups, members));
 	}
 
 	protected AccessRule(final Permission permission, final InlineUserGroup members) {
-		this(permission, null, members);
+		this(permission, (String) null, members);
 	}
 
 	/**

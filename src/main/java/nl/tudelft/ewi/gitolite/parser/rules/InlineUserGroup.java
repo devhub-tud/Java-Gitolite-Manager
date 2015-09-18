@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
@@ -51,6 +52,11 @@ public class InlineUserGroup implements RecursiveStreamingGroup<GroupRule, Ident
 	}
 
 	@Override
+	public boolean add(Identifier identifier) {
+		return members.add(identifier);
+	}
+
+	@Override
 	public void add(GroupRule group) {
 		groups.add(group);
 	}
@@ -61,18 +67,36 @@ public class InlineUserGroup implements RecursiveStreamingGroup<GroupRule, Ident
 	}
 
 	@Override
-	public boolean remove(Identifier value) {
-		return members.remove(value);
+	public boolean remove(Object value) {
+		// Intended inclusive-OR
+		return members.remove(value) | groups.remove(value);
 	}
 
 	@Override
-	public boolean remove(GroupRule group) {
-		return groups.remove(group);
+	public boolean addAll(Collection<? extends Identifier> c) {
+		return members.addAll(c);
 	}
 
 	@Override
-	public void add(Identifier value) {
-		members.add(value);
+	public boolean removeAll(Collection<?> c) {
+		// Intended inclusive-OR
+		return members.removeAll(c) | groups.removeAll(c);
+	}
+
+	@Override
+	public boolean retainAll(Collection<?> c) {
+		return members.retainAll(c) | groups.retainAll(c);
+	}
+
+	@Override
+	public void clear() {
+		groups.clear();
+		members.clear();
+	}
+
+	@Override
+	public boolean removeIf(Predicate<? super Identifier> filter) {
+		return members.removeIf(filter);
 	}
 
 	@Override

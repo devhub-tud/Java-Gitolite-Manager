@@ -1,12 +1,16 @@
 package nl.tudelft.ewi.gitolite.config;
 
 import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Queues;
 import com.google.common.collect.SetMultimap;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import nl.tudelft.ewi.gitolite.objects.Identifiable;
+import nl.tudelft.ewi.gitolite.objects.Identifier;
 import nl.tudelft.ewi.gitolite.parser.rules.AccessRule;
 import nl.tudelft.ewi.gitolite.parser.rules.GroupRule;
 import nl.tudelft.ewi.gitolite.parser.rules.InlineUserGroup;
@@ -29,11 +33,12 @@ import java.util.stream.Stream;
  *
  * @author Jan-Willem Gmelig Meyling
  */
+@Slf4j
 @NoArgsConstructor
 @EqualsAndHashCode
 public class ConfigImpl implements Config {
 
-	private final SetMultimap<String, GroupRule> groupRuleMultimap = LinkedHashMultimap.create();
+	private final Multimap<String, GroupRule> groupRuleMultimap = LinkedListMultimap.create();
 
 	private final List<RepositoryRule> repositoryRules = Lists.newArrayList();
 
@@ -52,7 +57,9 @@ public class ConfigImpl implements Config {
 		if(GroupRule.ALL.equals(groupRule)) return;
 		// Add groups dependencies recursively
 		groupRule.getOwnGroupsStream().forEach(this::addGroup);
-		groupRuleMultimap.put(groupRule.getPattern(), groupRule);
+		if(!groupRuleMultimap.containsEntry(groupRule.getPattern(), groupRule)) {
+			groupRuleMultimap.put(groupRule.getPattern(), groupRule);
+		}
 	}
 
 	@Override
@@ -61,26 +68,64 @@ public class ConfigImpl implements Config {
 	}
 
 	@Override
+	public void deleteIdentifierUses(Identifier identifier) {
+		deleteIdentifierUsesInGroupRules(identifier);
+		deleteIdentifierUsesInAccessRules(identifier);
+		deleteIdentifierUsersInRepositoryRules(identifier);
+		cleanUpModifiedRepositories();
+	}
+
+	protected void deleteIdentifierUsersInRepositoryRules(Identifier identifier) {
+		repositoryRules.forEach(repositoryRule ->
+			repositoryRule.removeIdentifiable(identifier));
+	}
+
+	protected void deleteIdentifierUsesInAccessRules(Identifier identifier) {
+		repositoryRules.forEach(repositoryRule ->
+			repositoryRule.getRules().removeIf(accessRule ->
+				accessRule.getMembers().remove(identifier)));
+	}
+
+	protected void deleteIdentifierUsesInGroupRules(Identifier identifier) {
+		getGroupRules().stream()
+			.filter(group -> group.remove(identifier)) // Remove uses as well
+			.filter(StreamingGroup::isEmpty)
+			.forEach(this::deleteGroup); // Remove groups that have become empty
+	}
+
+
+	@Override
 	public boolean deleteGroup(GroupRule groupRule) {
-		if(groupRuleMultimap.remove(groupRule.getPattern(), groupRule)) {
+		Collection<GroupRule> groupRules = groupRuleMultimap.get(groupRule.getPattern());
+		if(groupRules.remove(groupRule)){
 			deleteGroupUses(groupRule);
 			return true;
 		}
 		return false;
 	}
 
+
 	protected void deleteGroupUses(GroupRule groupRule) {
 		deleteRecursiveGroupUsages(groupRule);
+		deleteEmptyGroupRules();
 		deleteGroupFromRepositoryRules(groupRule);
 		deleteGroupFromAccessRules(groupRule);
 		cleanUpModifiedRepositories();
 	}
 
+	protected void deleteEmptyGroupRules() {
+		Queue<GroupRule> groupRulesQueue = Queues.newArrayDeque(groupRuleMultimap.values());
+		while(!groupRulesQueue.isEmpty()) {
+			GroupRule groupRule = groupRulesQueue.remove();
+			if(groupRule.isEmpty() && deleteGroup(groupRule)) {
+				groupRulesQueue.addAll(groupRuleMultimap.values());
+			}
+		}
+	}
+
 	protected void deleteRecursiveGroupUsages(GroupRule groupRule) {
 		getGroupRules().stream()
-			.filter(group -> group.remove(groupRule)) // Remove uses as well
-			.filter(StreamingGroup::isEmpty)
-			.forEach(this::deleteGroup); // Remove groups that have become empty
+			.forEach(group -> group.remove(groupRule)); // Remove uses as well
 	}
 
 	protected void deleteGroupFromRepositoryRules(GroupRule groupRule) {
@@ -94,7 +139,11 @@ public class ConfigImpl implements Config {
 				accessRule.getMembers().remove(groupRule)));
 	}
 
-	protected void cleanUpModifiedRepositories() {
+	@Override
+	public void cleanUpModifiedRepositories() {
+		repositoryRules.forEach(repositoryRule ->
+			repositoryRule.getRules().removeIf(accessRule ->
+				accessRule.getMembers().isEmpty()));
 		repositoryRules.removeIf(repositoryRule ->
 			repositoryRule.getIdentifiables().isEmpty() ||
 				repositoryRule.getRules().isEmpty() && repositoryRule.getConfigKeys().isEmpty());

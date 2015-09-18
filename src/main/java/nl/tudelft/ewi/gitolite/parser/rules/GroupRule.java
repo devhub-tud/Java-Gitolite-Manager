@@ -3,8 +3,8 @@ package nl.tudelft.ewi.gitolite.parser.rules;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.sun.istack.internal.Nullable;
 import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Singular;
@@ -19,13 +19,15 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
  * @author Jan-Willem Gmelig Meyling
  */
+@Data
 @Builder
-@EqualsAndHashCode
+//@EqualsAndHashCode(doNotUseGetters = true)
 public class GroupRule implements RecursiveAndPrototypeStreamingGroup<GroupRule, Identifier>, Rule, Identifiable {
 
 	/**
@@ -34,7 +36,7 @@ public class GroupRule implements RecursiveAndPrototypeStreamingGroup<GroupRule,
 	public final static GroupRule ALL = new GroupRule("@all") {
 
 		@Override
-		public boolean contains(Identifier value) {
+		public boolean contains(Object value) {
 			return true;
 		}
 
@@ -50,7 +52,6 @@ public class GroupRule implements RecursiveAndPrototypeStreamingGroup<GroupRule,
 	private final String pattern;
 
 	@Getter
-	@Nullable
 	private GroupRule parent;
 
 	@Singular
@@ -64,7 +65,7 @@ public class GroupRule implements RecursiveAndPrototypeStreamingGroup<GroupRule,
 	}
 
 	public GroupRule(final String pattern,
-	                 @Nullable final GroupRule parent,
+	                 final GroupRule parent,
 	                 final Collection<? extends Identifier> members,
 	                 final Collection<? extends GroupRule> groups) {
 		Preconditions.checkNotNull(pattern);
@@ -94,18 +95,39 @@ public class GroupRule implements RecursiveAndPrototypeStreamingGroup<GroupRule,
 	}
 
 	@Override
-	public boolean remove(Identifier element) {
-		return members.remove(element) || parent != null && parent.remove(element);
+	public boolean remove(Object element) {
+		return members.remove(element) | groups.remove(element) | (parent != null && parent.remove(element));
 	}
 
 	@Override
-	public boolean remove(GroupRule group) {
-		return groups.remove(group);
+	public boolean add(Identifier value) {
+		return members.add(value);
 	}
 
 	@Override
-	public void add(Identifier value) {
-		members.add(value);
+	public boolean addAll(Collection<? extends Identifier> c) {
+		return members.addAll(c);
+	}
+
+	@Override
+	public boolean removeAll(Collection<?> c) {
+		return members.removeAll(c) | groups.removeAll(c);
+	}
+
+	@Override
+	public boolean retainAll(Collection<?> c) {
+		return members.retainAll(c) | groups.retainAll(c);
+	}
+
+	@Override
+	public void clear() {
+		members.clear();
+		groups.clear();
+	}
+
+	@Override
+	public boolean removeIf(Predicate<? super Identifier> filter) {
+		return members.removeIf(filter);
 	}
 
 	@Override
@@ -118,12 +140,10 @@ public class GroupRule implements RecursiveAndPrototypeStreamingGroup<GroupRule,
 
 
 	@Override
-	@SneakyThrows
 	public String toString() {
-		try(StringWriter stringWriter = new StringWriter()) {
-			write(stringWriter);
-			return stringWriter.toString();
-		}
+		return (String.format("%-20s=   %s\n", pattern, Joiner.on(' ').join(Stream.concat(getOwnGroupsStream(), getOwnMembersStream())
+			.map(Identifiable::getPattern)
+			.iterator())));
 	}
 
 }

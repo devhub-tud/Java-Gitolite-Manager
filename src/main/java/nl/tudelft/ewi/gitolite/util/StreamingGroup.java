@@ -1,8 +1,9 @@
 package nl.tudelft.ewi.gitolite.util;
 
-import com.sun.istack.internal.Nullable;
-
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -11,38 +12,24 @@ import java.util.stream.Stream;
  * @param <T> Type that this group contains.
  * @author Jan-Willem Gmelig Meyling
  */
-public interface StreamingGroup<T> extends Iterable<T> {
+public interface StreamingGroup<T> extends Collection<T> {
 
 	/**
 	 * @return A {@code Stream} of items
 	 */
 	Stream<T> getMembersStream();
 
-	/**
-	 * Check if this group definition contains an element.
-	 * @param element element to check for.
-	 * @return true if this group contains the element.
-	 */
-	default boolean contains(T element) {
+	@Override
+	default boolean contains(Object element) {
 		return getMembersStream().anyMatch(element::equals);
 	}
 
-	/**
-	 * Add an element to the group.
-	 * @param element
-	 */
-	void add(T element);
+	@Override
+	default boolean containsAll(Collection<?> c) {
+		return c.stream().allMatch(this::contains);
+	}
 
-	/**
-	 * Remove an element from the group.
-	 * @param element
-	 */
-	boolean remove(T element);
-
-	/**
-	 * Check if the group is empty.
-	 * @return true if empty.
-	 */
+	@Override
 	default boolean isEmpty() {
 		return !getMembersStream().findAny().isPresent();
 	}
@@ -50,6 +37,36 @@ public interface StreamingGroup<T> extends Iterable<T> {
 	@Override
 	default Iterator<T> iterator() {
 		return getMembersStream().iterator();
+	}
+
+	@Override
+	default int size() {
+		return (int) getMembersStream().count();
+	}
+
+	@Override
+	default <T1> T1[] toArray(T1[] a) {
+		return getMembersStream().collect(Collectors.toList()).toArray(a);
+	}
+
+	@Override
+	default Object[] toArray() {
+		return getMembersStream().collect(Collectors.toList()).toArray();
+	}
+
+	@Override
+	default Stream<T> stream() {
+		return getMembersStream();
+	}
+
+	@Override
+	default Stream<T> parallelStream() {
+		return getMembersStream().parallel();
+	}
+
+	@Override
+	default void forEach(Consumer<? super T> action) {
+		getMembersStream().forEach(action);
 	}
 
 }

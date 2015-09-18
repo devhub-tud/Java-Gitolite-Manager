@@ -31,12 +31,6 @@ public interface RecursiveStreamingGroup<R extends RecursiveStreamingGroup<? ext
 	void add(R group);
 
 	/**
-	 * Delete a group from this group.
-	 * @param group group to remove.
-	 */
-	boolean remove(R group);
-
-	/**
 	 * @return the members inherited from the groups.
 	 */
 	default Stream<T> getRecursiveInheritedStream() {

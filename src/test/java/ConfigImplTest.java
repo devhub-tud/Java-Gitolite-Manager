@@ -14,6 +14,7 @@ import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 import static java.util.stream.Collectors.toList;
 
+import java.security.acl.Group;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -167,6 +168,24 @@ public class ConfigImplTest {
 		config.addRepositoryRule(repositoryRule);
 		assertThat(config.getRules(), contains(repositoryRule));
 
+	}
+
+	@Test
+	public void testRemoveAGroupThatWasReferencedByAGroup() {
+		GroupRule groupRule = new GroupRule("@test", foo);
+		GroupRule groupRuleB = new GroupRule("@bliep", null, Collections.emptyList(), Collections.singleton(groupRule));
+		GroupRule groupRuleC = new GroupRule("@lupa", null, Collections.emptyList(), Collections.singleton(groupRuleB));
+
+		config.addGroup(groupRule);
+		config.addGroup(groupRuleB);
+		config.addGroup(groupRuleC);
+
+		Collection<GroupRule> groupRules = config.getGroupRules();
+		assertThat(groupRules, contains(groupRule, groupRuleB, groupRuleC));
+
+		config.deleteGroup(groupRule);
+
+		assertThat(config.getGroupRules(), empty());
 	}
 
 	public static <T> void assertThatStream(Stream<T> stream, Matcher<? super List<T>> matcher) {
