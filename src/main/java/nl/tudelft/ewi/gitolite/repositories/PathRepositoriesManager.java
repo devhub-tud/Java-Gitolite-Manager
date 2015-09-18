@@ -61,11 +61,13 @@ public class PathRepositoriesManager implements RepositoriesManager {
 
 	@Override
 	public Collection<PathRepositoryImpl> getRepositories() {
+		scan();
 		return repositories.values();
 	}
 
 	@Override
 	public PathRepositoryImpl getRepository(URI uri) throws RepositoryNotFoundException {
+		scan();
 		PathRepositoryImpl pathRepository = repositories.get(uri);
 		if(pathRepository == null) {
 			throw new RepositoryNotFoundException();
