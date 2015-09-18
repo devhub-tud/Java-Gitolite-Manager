@@ -79,4 +79,5 @@ public interface Config extends Writable {
 	 */
 	Collection<Rule> getRules();
 
+	void clear();
 }

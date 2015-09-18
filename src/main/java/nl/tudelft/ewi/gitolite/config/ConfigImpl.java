@@ -239,4 +239,11 @@ public class ConfigImpl implements Config {
 			rule.write(writer);
 		}
 	}
+
+	@Override
+	public void clear() {
+		groupRuleMultimap.clear();
+		repositoryRules.clear();
+	}
+
 }
