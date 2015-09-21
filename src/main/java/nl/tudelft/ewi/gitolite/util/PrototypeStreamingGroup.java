@@ -1,7 +1,5 @@
 package nl.tudelft.ewi.gitolite.util;
 
-import com.sun.istack.internal.Nullable;
-
 import java.util.stream.Stream;
 
 /**
@@ -13,7 +11,6 @@ public interface PrototypeStreamingGroup<T> extends StreamingGroup<T> {
 	/**
 	 * @return the prototypical parent for this group.
 	 */
-	@Nullable
 	StreamingGroup<T> getParent();
 
 	/**

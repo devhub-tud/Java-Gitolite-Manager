@@ -2,8 +2,6 @@ package nl.tudelft.ewi.gitolite.git;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.sshd.common.util.IoUtils;
-import sun.nio.ch.IOUtil;
 
 import java.io.File;
 import java.io.IOException;
