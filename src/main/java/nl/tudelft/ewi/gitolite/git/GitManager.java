@@ -79,7 +79,7 @@ public interface GitManager {
 	 *
 	 * @throws GitException If an exception occurred while using the Git API.
 	 */
-	void commitChanges() throws IOException, InterruptedException, IOException, GitException;
+	void commitChanges() throws InterruptedException, IOException, GitException;
 
 	/**
 	 * This method pushes the locally committed changes to the remote git
