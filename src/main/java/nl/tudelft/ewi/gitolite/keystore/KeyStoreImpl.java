@@ -11,7 +11,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
-import org.apache.sshd.common.util.Buffer;
+import org.apache.sshd.common.util.buffer.ByteArrayBuffer;
 
 import java.io.Closeable;
 import java.io.File;
@@ -112,7 +112,7 @@ public class KeyStoreImpl implements KeyStore {
 			String[] parts = content.split("[\\r\\n\\s]+");
 			String keyPart = parts[1];
 			final byte[] bin = Base64.decodeBase64(keyPart);
-			new Buffer(bin).getRawPublicKey();
+			new ByteArrayBuffer(bin).getRawPublicKey();
 		}
 		catch (Exception e) {
 			throw new IllegalArgumentException("Validation failed for key \"" + content + "\"", e);
