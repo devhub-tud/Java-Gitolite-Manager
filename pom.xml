@@ -6,7 +6,7 @@
 
     <groupId>nl.tudelft.ewi</groupId>
     <artifactId>gitolite</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
 
     <url>http://devhub.ewi.tudelft.nl</url>
     <name>Java Gitolite Manager</name>
