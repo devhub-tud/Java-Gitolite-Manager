@@ -1,22 +1,18 @@
 package nl.tudelft.ewi.gitolite.repositories;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.Value;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * {@link RepositoriesManager} implementation based on {@code Path}.
@@ -77,22 +73,9 @@ public class PathRepositoriesManager implements RepositoriesManager {
 
 	@SneakyThrows
 	protected static Stream<Path> directoriesAsStream(Path path) {
-		DirectoryStream<Path> stream = Files.newDirectoryStream(path);
-		return StreamSupport.stream(stream.spliterator(), false)
+		return Files.walk(path, 4)
 			.filter(Files::isDirectory)
-			.flatMap(a -> a.toString().contains(".git") ? Stream.of(a) : directoriesAsStream(a))
-			.onClose(closeAndPropagate(stream));
-	}
-
-	protected static Runnable closeAndPropagate(Closeable closable) {
-		return () -> {
-			try {
-				closable.close();
-			}
-			catch (IOException e) {
-				Throwables.propagate(e);
-			}
-		};
+			.filter(directory -> directory.getFileName().toString().endsWith(".git"));
 	}
 
 	/**
