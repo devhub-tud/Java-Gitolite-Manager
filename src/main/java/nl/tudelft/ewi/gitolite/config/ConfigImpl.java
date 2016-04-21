@@ -68,85 +68,34 @@ public class ConfigImpl implements Config {
 	}
 
 	@Override
-	public void deleteIdentifierUses(Identifier identifier) {
-		deleteIdentifierUsesInGroupRules(identifier);
-		deleteIdentifierUsesInAccessRules(identifier);
-		deleteIdentifierUsersInRepositoryRules(identifier);
-		cleanUpModifiedRepositories();
-	}
+	public void deleteIdentifierUses(Identifiable identifier) {
+		Queue<Identifiable> identifiables = Queues.newArrayDeque();
+		identifiables.add(identifier);
+		while (!identifiables.isEmpty()) {
+			Identifiable current = identifiables.remove();
+			groupRuleMultimap.removeAll(current.getPattern());
 
-	protected void deleteIdentifierUsersInRepositoryRules(Identifier identifier) {
-		repositoryRules.forEach(repositoryRule ->
-			repositoryRule.removeIdentifiable(identifier));
-	}
+			groupRuleMultimap.values().stream().filter(groupRule ->
+				groupRule.remove(current) && groupRule.isEmpty()
+			).forEach(identifiables::add);
 
-	protected void deleteIdentifierUsesInAccessRules(Identifier identifier) {
-		repositoryRules.forEach(repositoryRule ->
-			repositoryRule.getRules().removeIf(accessRule ->
-				accessRule.getMembers().remove(identifier)));
-	}
+			repositoryRules.removeIf(repositoryRule -> {
+				repositoryRule.getRules().removeIf(rule ->
+					rule.getMembers().remove(current) && rule.getMembers().isEmpty()
+				);
 
-	protected void deleteIdentifierUsesInGroupRules(Identifier identifier) {
-		getGroupRules().stream()
-			.filter(group -> group.remove(identifier)) // Remove uses as well
-			.filter(StreamingGroup::isEmpty)
-			.forEach(this::deleteGroup); // Remove groups that have become empty
+				return repositoryRule.getIdentifiables().remove(current) &&
+					repositoryRule.getIdentifiables().isEmpty() ||
+					(repositoryRule.getConfigKeys().isEmpty() && repositoryRule.getRules().isEmpty());
+			});
+		}
 	}
-
 
 	@Override
 	public boolean deleteGroup(GroupRule groupRule) {
-		Collection<GroupRule> groupRules = groupRuleMultimap.get(groupRule.getPattern());
-		if(groupRules.remove(groupRule)){
-			deleteGroupUses(groupRule);
-			return true;
-		}
-		return false;
-	}
-
-
-	protected void deleteGroupUses(GroupRule groupRule) {
-		deleteRecursiveGroupUsages(groupRule);
-		deleteEmptyGroupRules();
-		deleteGroupFromRepositoryRules(groupRule);
-		deleteGroupFromAccessRules(groupRule);
-		cleanUpModifiedRepositories();
-	}
-
-	protected void deleteEmptyGroupRules() {
-		Queue<GroupRule> groupRulesQueue = Queues.newArrayDeque(groupRuleMultimap.values());
-		while(!groupRulesQueue.isEmpty()) {
-			GroupRule groupRule = groupRulesQueue.remove();
-			if(groupRule.isEmpty() && deleteGroup(groupRule)) {
-				groupRulesQueue.addAll(groupRuleMultimap.values());
-			}
-		}
-	}
-
-	protected void deleteRecursiveGroupUsages(GroupRule groupRule) {
-		getGroupRules().stream()
-			.forEach(group -> group.remove(groupRule)); // Remove uses as well
-	}
-
-	protected void deleteGroupFromRepositoryRules(GroupRule groupRule) {
-		repositoryRules.forEach(repositoryRule ->
-			repositoryRule.removeIdentifiable(groupRule));
-	}
-
-	protected void deleteGroupFromAccessRules(GroupRule groupRule) {
-		repositoryRules.forEach(repositoryRule ->
-			repositoryRule.getRules().removeIf(accessRule ->
-				accessRule.getMembers().remove(groupRule)));
-	}
-
-	@Override
-	public void cleanUpModifiedRepositories() {
-		repositoryRules.forEach(repositoryRule ->
-			repositoryRule.getRules().removeIf(accessRule ->
-				accessRule.getMembers().isEmpty()));
-		repositoryRules.removeIf(repositoryRule ->
-			repositoryRule.getIdentifiables().isEmpty() ||
-				repositoryRule.getRules().isEmpty() && repositoryRule.getConfigKeys().isEmpty());
+		boolean exists = groupRuleMultimap.containsValue(groupRule);
+		deleteIdentifierUses(groupRule);
+		return exists;
 	}
 
 	@Override

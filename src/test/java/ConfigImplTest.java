@@ -14,7 +14,6 @@ import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 import static java.util.stream.Collectors.toList;
 
-import java.security.acl.Group;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -171,6 +170,19 @@ public class ConfigImplTest {
 	}
 
 	@Test
+	public void testRemoveIdentifierUses() {
+		RepositoryRule repositoryRule = RepositoryRule.builder()
+			.identifiable(foo)
+			.rule(new AccessRule(BasePermission.RW_PLUS, GroupRule.ALL))
+			.build();
+
+		config.addRepositoryRule(repositoryRule);
+
+		config.deleteIdentifierUses(foo);
+		assertThat(config.getRules(), empty());
+	}
+
+	@Test
 	public void testRemoveAGroupThatWasReferencedByAGroup() {
 		GroupRule groupRule = new GroupRule("@test", foo);
 		GroupRule groupRuleB = new GroupRule("@bliep", null, Collections.emptyList(), Collections.singleton(groupRule));
@@ -186,6 +198,37 @@ public class ConfigImplTest {
 		config.deleteGroup(groupRule);
 
 		assertThat(config.getGroupRules(), empty());
+	}
+
+	@Test
+	public void testRemoveIdentifierUsesInBigConfig() {
+		GroupRule groupRule = new GroupRule("@test", foo);
+		GroupRule groupRuleB = new GroupRule("@bliep", null, Collections.emptyList(), Collections.singleton(groupRule));
+		GroupRule groupRuleC = new GroupRule("@lupa", null, Collections.emptyList(), Collections.singleton(groupRuleB));
+
+		RepositoryRule repositoryRule = RepositoryRule.builder()
+			.identifiable(bar)
+			.rule(new AccessRule(BasePermission.RW_PLUS, GroupRule.ALL))
+			.build();
+
+		RepositoryRule repositoryRule2 = RepositoryRule.builder()
+			.identifiable(baz)
+			.rule(new AccessRule(BasePermission.RW_PLUS, GroupRule.ALL))
+			.build();
+
+		config.addGroup(groupRule);
+		config.addGroup(groupRuleB);
+		config.addGroup(groupRuleC);
+		config.addRepositoryRule(repositoryRule);
+		config.addRepositoryRule(repositoryRule2);
+
+		config.deleteIdentifierUses(bar);
+
+		assertThat(
+			config.getRules(),
+			contains(groupRule, groupRuleB, groupRuleC, repositoryRule2)
+		);
+
 	}
 
 	public static <T> void assertThatStream(Stream<T> stream, Matcher<? super List<T>> matcher) {

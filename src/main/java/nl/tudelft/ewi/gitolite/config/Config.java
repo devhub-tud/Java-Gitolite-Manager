@@ -43,9 +43,7 @@ public interface Config extends Writable {
 	 * Remove an identifier
 	 * @param identifier
 	 */
-	void deleteIdentifierUses(Identifier identifier);
-
-	void cleanUpModifiedRepositories();
+	void deleteIdentifierUses(Identifiable identifier);
 
 	/**
 	 * Get the repository rules for a set of identifiables.
