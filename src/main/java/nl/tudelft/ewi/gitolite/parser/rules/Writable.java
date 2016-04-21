@@ -22,6 +22,7 @@ public interface Writable {
 	/**
 	 * Write to a {@code OutputStream}.
 	 * @param out {@code OutputStream} to write to.
+	 * @throws IOException If an IO error occurs.
 	 */
 	default void write(OutputStream out) throws IOException {
 		write(new OutputStreamWriter(out));

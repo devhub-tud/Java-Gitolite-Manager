@@ -54,8 +54,8 @@ public class RepositoryRule implements Rule {
 	 *    new RepositoryRuleBlock("foo", new RepositoryRule(RW_PLUS, members);
 	 * </pre>}
 	 *
-	 * @param pattern {@see identifiables}
-	 * @param rules {@see rules}
+	 * @param pattern Pattern to use.
+	 * @param rules Rules to use.
 	 */
 	public RepositoryRule(String pattern, AccessRule... rules) {
 		this(Collections.singletonList(new Identifier(pattern)), Arrays.asList(rules), Collections.emptyList());
@@ -64,9 +64,9 @@ public class RepositoryRule implements Rule {
 	/**
 	 * Constructor for {@code RepositoryRuleBlock}.
 	 *
-	 * @param patterns {@see identifiables}
-	 * @param rules {@see rules}
-	 * @param configKeys {@see configKeys}
+	 * @param patterns Patterns to use.
+	 * @param rules Rules to use.
+	 * @param configKeys Keys to use.
 	 */
 	public RepositoryRule(final Collection<? extends Identifiable> patterns,
 	                      final Collection<? extends AccessRule> rules,

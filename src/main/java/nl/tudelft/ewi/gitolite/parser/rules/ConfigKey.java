@@ -27,8 +27,8 @@ public class ConfigKey implements Rule {
 	/**
 	 * Create a new {@code ConfigKey}.
 	 *
-	 * @param key
-	 * @param value
+	 * @param key Key name.
+	 * @param value Value under key.
 	 */
 	public ConfigKey(String key, Object value) {
 		this.key = key;

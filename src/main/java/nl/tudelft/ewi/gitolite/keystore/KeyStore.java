@@ -27,6 +27,7 @@ public interface KeyStore {
 	 * Put a key into the key store
 	 * @param key to perist.
 	 * @return the persisted key.
+	 * @throws IOException if an I/O error occurred while writing the key.
 	 */
 	PersistedKey put(Key key) throws IOException;
 

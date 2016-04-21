@@ -41,7 +41,7 @@ public interface Config extends Writable {
 
 	/**
 	 * Remove an identifier
-	 * @param identifier
+	 * @param identifier The identifier to use
 	 */
 	void deleteIdentifierUses(Identifiable identifier);
 

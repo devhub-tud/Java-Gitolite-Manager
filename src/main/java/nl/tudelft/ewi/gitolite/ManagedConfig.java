@@ -57,8 +57,6 @@ public class ManagedConfig {
 
 	/**
 	 * Commit and push changes to the remote.
-	 * @throws InterruptedException If the thread was interrupted.
-	 * @throws IOException If an I/O error occurred.
 	 */
 	@SneakyThrows
 	protected void applyChanges() {

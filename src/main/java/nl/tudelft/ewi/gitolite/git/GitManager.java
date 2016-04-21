@@ -39,6 +39,7 @@ public interface GitManager {
 	 *            not be removed.
 	 *
 	 * @throws GitException If an exception occurred while using the Git API.
+	 * @throws InterruptedException If the thread was interrupted.
 	 */
 	void remove(String filePattern) throws IOException, GitException, InterruptedException;
 
@@ -48,16 +49,19 @@ public interface GitManager {
 	 *
 	 * @param uri The URI to clone the git repository from. This cannot be NULL.
 	 *
-	 * @throws ServiceUnavailable If the git server is unreachable or otherwise unavailable.
+	 * @throws IOException If an I/O error occurs.
 	 *
 	 * @throws GitException If an exception occurred while using the Git API.
+	 * @throws InterruptedException If the thread was interrupted.
 	 */
 	void clone(String uri) throws IOException, InterruptedException, GitException;
 
 	/**
 	 * This method initializes a new git repository in the working directory.
 	 *
+	 * @throws IOException If an I/O error occurs.
 	 * @throws GitException If an exception occurred while using the Git API.
+	 * @throws InterruptedException If the thread was interrupted.
 	 */
 	void init() throws IOException, InterruptedException, GitException;
 
@@ -66,8 +70,8 @@ public interface GitManager {
 	 *
 	 * @return True if new commits were found and pulled, false otherwise.
 	 *
-	 * @throws ServiceUnavailable If the git server is unreachable or otherwise unavailable.
-	 *
+	 * @throws IOException If an I/O error occurs.
+	 * @throws InterruptedException If the thread was interrupted.
 	 * @throws GitException If an exception occurred while using the Git API.
 	 */
 	boolean pull() throws IOException, InterruptedException, GitException;
@@ -75,8 +79,8 @@ public interface GitManager {
 	/**
 	 * Commits all changes to the working directory to the local git repository.
 	 *
+	 * @throws InterruptedException If the thread was interrupted.
 	 * @throws IOException If the add or commit operations failed.
-	 *
 	 * @throws GitException If an exception occurred while using the Git API.
 	 */
 	void commitChanges() throws InterruptedException, IOException, GitException;
@@ -85,8 +89,8 @@ public interface GitManager {
 	 * This method pushes the locally committed changes to the remote git
 	 * repository.
 	 *
-	 * @throws ServiceUnavailable If the git server is unreachable or otherwise unavailable.
-	 *
+	 * @throws IOException If the add or commit operations failed.
+	 * @throws InterruptedException If the thread was interrupted.
 	 * @throws GitException If an exception occurred while using the Git API.
 	 */
 	void push() throws IOException, InterruptedException, GitException;

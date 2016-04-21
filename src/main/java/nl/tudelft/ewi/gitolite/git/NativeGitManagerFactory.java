@@ -3,7 +3,7 @@ package nl.tudelft.ewi.gitolite.git;
 import java.io.File;
 
 /**
- * {@@link GitManager} implementation that returns a {@link NativeGitManager}.
+ * {@link GitManager} implementation that returns a {@link NativeGitManager}.
  *
  * @author Jan-Willem Gmelig Meyling
  */

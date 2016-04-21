@@ -17,19 +17,25 @@ public interface Repository {
 	/**
 	 * Delete the repository.
 	 *
-	 * @throws IOException
+	 * @throws IOException If an I/O error occurs
+	 * @throws UnsupportedOperationException If the operation is not supported
+	 *  in the {@link Repository} implementation.
 	 */
 	void delete() throws IOException, UnsupportedOperationException;
 
 	/**
 	 * @return the folder where the bare repository resists.
+	 *
+	 * @throws UnsupportedOperationException If the operation is not supported
+	 *  in the {@link Repository} implementation.
 	 */
 	Path getPath() throws UnsupportedOperationException;
 
 	/**
-	 * @return the size for the repository
-	 * @throws IOException
-	 * @throws UnsupportedOperationException
+	 * @return the size for the repository.
+	 * @throws IOException If an IO error occurs.
+	 * @throws UnsupportedOperationException If the operation is not supported
+	 *  in the {@link Repository} implementation.
 	 */
 	FileSize getSize() throws IOException, UnsupportedOperationException;
 
