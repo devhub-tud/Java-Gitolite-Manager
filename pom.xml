@@ -6,7 +6,7 @@
 
     <groupId>nl.tudelft.ewi</groupId>
     <artifactId>gitolite</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.7-SNAPSHOT</version>
 
     <url>http://devhub.ewi.tudelft.nl</url>
     <name>Java Gitolite Manager</name>
@@ -47,16 +47,26 @@
         <url>http://ewi.tudelft.nl</url>
     </organization>
 
+    <scm>
+        <connection>scm:git:git@github.com:devhub-tud/Java-Gitolite-Manager.git</connection>
+        <developerConnection>scm:git:git@github.com:devhub-tud/Java-Gitolite-Manager.git</developerConnection>
+        <url>git@github.com:devhub-tud/Java-Gitolite-Manager.git</url>
+        <tag>HEAD</tag>
+    </scm>
+
     <developers>
-        <developer>
-            <name>Michael de Jong</name>
-            <email>M.deJong-2@student.tudelft.nl</email>
-        </developer>
         <developer>
             <name>Jan-Willem Gmelig Meyling</name>
             <email>j.gmeligmeyling@student.tudelft.nl</email>
         </developer>
     </developers>
+
+    <contributors>
+        <contributor>
+            <name>Michael de Jong</name>
+            <email>michaelj@minicom.nl</email>
+        </contributor>
+    </contributors>
 
     <licenses>
         <license>
@@ -65,7 +75,6 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-
 
     <dependencies>
         <!-- Utilities -->
@@ -191,6 +200,21 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-gitexe</artifactId>
+                        <version>1.9.4</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
