@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.Value;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -100,7 +101,7 @@ public class PathRepositoriesManager implements RepositoriesManager {
 
 		@Override
 		public void delete() throws IOException {
-			Files.delete(path);
+			FileUtils.deleteDirectory(path.toFile());
 			repositories.remove(getURI(), this);
 		}
 
