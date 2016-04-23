@@ -71,9 +71,19 @@ public class RepositoryRule implements Rule {
 	public RepositoryRule(final Collection<? extends Identifiable> patterns,
 	                      final Collection<? extends AccessRule> rules,
 	                      final Collection<? extends ConfigKey> configKeys) {
-		assert patterns != null;
-		assert rules != null;
-		assert configKeys != null;
+		if (patterns == null || patterns.isEmpty()) {
+			throw new IllegalArgumentException("Patterns should not be empty or null");
+		}
+
+		if (rules == null || configKeys == null || (rules.isEmpty() && configKeys.isEmpty())) {
+			throw new IllegalArgumentException("Repository rule should have rules or config keys");
+		}
+
+		patterns.stream().map(Identifiable::getPattern)
+			.filter(id -> id.isEmpty() || id.endsWith("/"))
+			.findAny().ifPresent(id -> {
+				throw new IllegalArgumentException("Invalid refex: " + id);
+			});
 
 		this.identifiables = Lists.newArrayList(patterns);
 		this.rules = Lists.newArrayList(rules);
