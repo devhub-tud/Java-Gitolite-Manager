@@ -4,7 +4,7 @@
 
     <groupId>nl.tudelft.ewi</groupId>
     <artifactId>gitolite</artifactId>
-    <version>0.0.8-SNAPSHOT</version>
+    <version>0.0.8</version>
 
     <url>http://devhub.ewi.tudelft.nl</url>
     <name>Java Gitolite Manager</name>
@@ -49,7 +49,7 @@
         <connection>scm:git:git@github.com:devhub-tud/Java-Gitolite-Manager.git</connection>
         <developerConnection>scm:git:git@github.com:devhub-tud/Java-Gitolite-Manager.git</developerConnection>
         <url>git@github.com:devhub-tud/Java-Gitolite-Manager.git</url>
-        <tag>HEAD</tag>
+        <tag>v0.0.8</tag>
     </scm>
 
     <developers>
