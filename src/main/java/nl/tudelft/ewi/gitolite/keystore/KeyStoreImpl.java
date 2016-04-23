@@ -86,6 +86,14 @@ public class KeyStoreImpl implements KeyStore {
 
 	@Override
 	public KeyImpl put(Key draft) throws IOException {
+		Collection<? extends Key> existingKeys = keyMultimap.get(draft.getUser());
+		for (Key key : existingKeys) {
+			if (key.getName().equals(draft.getName()) ||
+				key.getContents().equals(draft.getContents())) {
+				throw new IllegalArgumentException("Duplicate key: " + draft);
+			}
+		}
+
 		validate(draft);
 		StringBuilder builder = new StringBuilder();
 		builder.append(draft.getUser());
