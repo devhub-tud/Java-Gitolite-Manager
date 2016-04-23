@@ -165,9 +165,9 @@ public class JGitManager extends AbstractGitManager implements GitManager {
 	private void add(Git git, String pathToAdd) throws IOException, GitException {
 		synchronized (gitLock) {
 			log.info("Adding changes to commit");
-			AddCommand add = git.add();
 			try {
-				add.addFilepattern(pathToAdd).call();
+				git.add().addFilepattern(pathToAdd).setUpdate(true).call();
+				git.add().addFilepattern(pathToAdd).setUpdate(false).call();
 			} catch (NoFilepatternException e) {
 				throw new IOException(e);
 			} catch (GitAPIException e) {
