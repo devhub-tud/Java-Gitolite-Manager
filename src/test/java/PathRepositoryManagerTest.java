@@ -1,19 +1,33 @@
 
 import com.google.common.io.Files;
 import nl.tudelft.ewi.gitolite.repositories.PathRepositoriesManager;
+import nl.tudelft.ewi.gitolite.repositories.PathRepositoriesManager.PathRepositoryImpl;
+import nl.tudelft.ewi.gitolite.repositories.Repository;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.IntStream;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.Matchers.emptyArray;
@@ -64,6 +78,20 @@ public class PathRepositoryManagerTest {
 			pathRepositoriesManager.getRepositories(),
 			empty()
 		);
+	}
+
+	@Test
+	public void testConcurrentAccess() throws ExecutionException, InterruptedException {
+		int numThreads = 20;
+		ExecutorService executorService = Executors.newFixedThreadPool(4);
+
+		final Callable<Repository> getRepository = () -> pathRepositoriesManager.getRepository(new URI(TEST_01_GIT));
+
+		IntStream.range(0, numThreads)
+			.mapToObj(count -> executorService.submit(getRepository))
+			.forEach(Assert::assertNotNull);
+
+		executorService.shutdownNow();
 	}
 
 	private File setUpBareRepository(String name) throws GitAPIException {

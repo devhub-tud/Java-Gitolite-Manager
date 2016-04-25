@@ -1,6 +1,5 @@
 package nl.tudelft.ewi.gitolite.repositories;
 
-import com.google.common.collect.Maps;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.Value;
@@ -12,7 +11,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -31,45 +30,26 @@ public class PathRepositoriesManager implements RepositoriesManager {
 	private final Path root;
 
 	/**
-	 * Map that contains the repositories.
-	 */
-	private final Map<URI, PathRepositoryImpl> repositories;
-
-	/**
 	 * {@link RepositoriesManager} implementation based on {@code Path}.
 	 * @param root Folder that contains the repositories.
 	 */
 	public PathRepositoriesManager(final File root) {
 		this.root = root.toPath();
-		this.repositories = Maps.newHashMap();
-		scan();
-	}
-
-	/**
-	 * Scan for repositories.
-	 */
-	public void scan() {
-		repositories.clear();
-		directoriesAsStream(root).forEach(path -> {
-			PathRepositoryImpl pathRepository = new PathRepositoryImpl(path);
-			repositories.put(pathRepository.getURI(), pathRepository);
-		});
 	}
 
 	@Override
 	public Collection<PathRepositoryImpl> getRepositories() {
-		scan();
-		return repositories.values();
+		return directoriesAsStream(root)
+			.map(PathRepositoryImpl::new)
+			.collect(Collectors.toList());
 	}
 
 	@Override
 	public PathRepositoryImpl getRepository(URI uri) throws RepositoryNotFoundException {
-		scan();
-		PathRepositoryImpl pathRepository = repositories.get(uri);
-		if(pathRepository == null) {
-			throw new RepositoryNotFoundException();
-		}
-		return pathRepository;
+		return directoriesAsStream(root)
+			.map(PathRepositoryImpl::new)
+			.filter(pathRepository -> pathRepository.getURI().equals(uri))
+			.findAny().orElseThrow(RepositoryNotFoundException::new);
 	}
 
 	@SneakyThrows
@@ -102,7 +82,6 @@ public class PathRepositoriesManager implements RepositoriesManager {
 		@Override
 		public void delete() throws IOException {
 			FileUtils.deleteDirectory(path.toFile());
-			repositories.remove(getURI(), this);
 		}
 
 		@Override
