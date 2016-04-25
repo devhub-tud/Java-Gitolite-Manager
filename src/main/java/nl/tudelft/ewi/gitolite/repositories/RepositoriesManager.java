@@ -1,5 +1,6 @@
 package nl.tudelft.ewi.gitolite.repositories;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
 
@@ -21,5 +22,11 @@ public interface RepositoriesManager {
 	 * @throws RepositoryNotFoundException when the repository could not be found.
 	 */
 	Repository getRepository(URI uri) throws RepositoryNotFoundException;
+
+	/**
+	 * Reload the repositories within this Manager.
+	 * @throws IOException If an I/O error occurs.
+     */
+	void reload() throws IOException;
 
 }

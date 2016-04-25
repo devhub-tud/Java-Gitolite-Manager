@@ -48,7 +48,6 @@ public class PathRepositoryManagerTest {
 	public void setUpRepository() throws GitAPIException, IOException, URISyntaxException {
 		fillBareRepository(setUpBareRepository(TEST_01));
 		pathRepositoriesManager = new PathRepositoriesManager(temporaryFolder.getRoot());
-
 	}
 
 	@Test
